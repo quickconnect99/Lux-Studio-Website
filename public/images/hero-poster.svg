@@ -1,0 +1,39 @@
+<svg width="1920" height="1080" viewBox="0 0 1920 1080" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1920" height="1080" fill="#12191F"/>
+  <rect width="1920" height="1080" fill="url(#bg)"/>
+  <g opacity="0.8">
+    <path d="M162 715C393 672 561 640 830 626C1027 616 1215 636 1481 705" stroke="#F5F2EC" stroke-opacity="0.42" stroke-width="3"/>
+    <path d="M256 648C507 603 749 589 1035 587C1246 587 1454 613 1718 679" stroke="#9EFF4F" stroke-opacity="0.72" stroke-width="4"/>
+    <path d="M336 592C521 440 712 385 974 371C1209 359 1427 432 1611 564" stroke="#E8EDF6" stroke-opacity="0.26" stroke-width="2"/>
+  </g>
+  <g opacity="0.45">
+    <rect x="182" y="162" width="1556" height="756" rx="36" stroke="#F5F2EC" stroke-opacity="0.3"/>
+    <path d="M260 230H1660" stroke="#F5F2EC" stroke-opacity="0.16"/>
+    <path d="M260 852H1660" stroke="#F5F2EC" stroke-opacity="0.16"/>
+  </g>
+  <circle cx="384" cy="278" r="220" fill="url(#lime)" fill-opacity="0.7"/>
+  <circle cx="1488" cy="182" r="194" fill="url(#blue)" fill-opacity="0.72"/>
+  <circle cx="1518" cy="816" r="284" fill="url(#amber)" fill-opacity="0.28"/>
+  <text x="260" y="790" fill="#F5F2EC" font-family="Georgia, serif" font-size="126" letter-spacing="-4">DRIVE</text>
+  <text x="260" y="905" fill="#9EFF4F" font-family="Georgia, serif" font-size="126" letter-spacing="-4">IN MOTION</text>
+  <text x="264" y="976" fill="#E2E6EB" font-family="Arial, Helvetica, sans-serif" font-size="24" letter-spacing="9">PLACEHOLDER HERO SHOWREEL / REPLACE WITH FINAL MP4</text>
+  <defs>
+    <linearGradient id="bg" x1="249" y1="116" x2="1577" y2="954" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#11161B"/>
+      <stop offset="0.52" stop-color="#1A232B"/>
+      <stop offset="1" stop-color="#0A1015"/>
+    </linearGradient>
+    <radialGradient id="lime" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(384 278) rotate(90) scale(220)">
+      <stop stop-color="#9EFF4F"/>
+      <stop offset="1" stop-color="#9EFF4F" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="blue" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(1488 182) rotate(90) scale(194)">
+      <stop stop-color="#5B82FF"/>
+      <stop offset="1" stop-color="#5B82FF" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="amber" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(1518 816) rotate(90) scale(284)">
+      <stop stop-color="#E58B42"/>
+      <stop offset="1" stop-color="#E58B42" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+</svg>

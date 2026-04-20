@@ -1,0 +1,28 @@
+<svg width="1600" height="1200" viewBox="0 0 1600 1200" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1600" height="1200" fill="#13181A"/>
+  <rect width="1600" height="1200" fill="url(#bg)"/>
+  <rect x="144" y="160" width="1312" height="760" rx="32" fill="#111819" stroke="#F2E6D8" stroke-opacity="0.18"/>
+  <rect x="236" y="244" width="1128" height="592" rx="22" fill="#CDB499" fill-opacity="0.12" stroke="#F2E6D8" stroke-opacity="0.22"/>
+  <rect x="304" y="306" width="992" height="176" fill="#E2CAB0"/>
+  <rect x="304" y="520" width="992" height="118" fill="#917A66" fill-opacity="0.76"/>
+  <rect x="304" y="676" width="992" height="108" fill="#20282B"/>
+  <circle cx="1224" cy="276" r="188" fill="url(#glow)"/>
+  <circle cx="344" cy="942" r="210" fill="url(#stone)"/>
+  <path d="M180 988H1424" stroke="#F2E6D8" stroke-opacity="0.22"/>
+  <text x="164" y="1044" fill="#F4E9DC" font-family="Georgia, serif" font-size="86" letter-spacing="-2">QUIET ARRIVAL</text>
+  <defs>
+    <linearGradient id="bg" x1="188" y1="86" x2="1412" y2="1080" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#0D1415"/>
+      <stop offset="0.48" stop-color="#404741"/>
+      <stop offset="1" stop-color="#101517"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(1224 276) rotate(90) scale(188)">
+      <stop stop-color="#F4D7B4" stop-opacity="0.68"/>
+      <stop offset="1" stop-color="#F4D7B4" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="stone" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(344 942) rotate(90) scale(210)">
+      <stop stop-color="#8A7762" stop-opacity="0.36"/>
+      <stop offset="1" stop-color="#8A7762" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+</svg>

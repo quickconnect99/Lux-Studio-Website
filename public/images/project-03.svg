@@ -1,0 +1,27 @@
+<svg width="1600" height="2000" viewBox="0 0 1600 2000" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1600" height="2000" fill="#171D22"/>
+  <rect width="1600" height="2000" fill="url(#bg)"/>
+  <circle cx="1314" cy="418" r="310" fill="url(#violet)"/>
+  <circle cx="356" cy="1422" r="310" fill="url(#lime)"/>
+  <path d="M218 1044C452 930 620 888 816 880C1046 870 1240 932 1398 1084" stroke="#F2F2EE" stroke-opacity="0.68" stroke-width="4"/>
+  <path d="M194 1138C432 1090 670 1070 975 1088C1170 1099 1296 1130 1424 1188" stroke="#E99B57" stroke-opacity="0.86" stroke-width="5"/>
+  <rect x="112" y="132" width="1376" height="1736" rx="34" stroke="#F5F2EC" stroke-opacity="0.22"/>
+  <text x="176" y="1564" fill="#F5F2EC" font-family="Georgia, serif" font-size="112" letter-spacing="-3">CURRENT</text>
+  <text x="176" y="1672" fill="#E58B42" font-family="Georgia, serif" font-size="112" letter-spacing="-3">FORM</text>
+  <text x="180" y="1742" fill="#DDE2E7" font-family="Arial, Helvetica, sans-serif" font-size="26" letter-spacing="8">PORSCHE TAYCAN TURBO S / MILAN / SOCIAL CONTENT</text>
+  <defs>
+    <linearGradient id="bg" x1="194" y1="118" x2="1282" y2="1844" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#11161B"/>
+      <stop offset="0.44" stop-color="#242F38"/>
+      <stop offset="1" stop-color="#11161B"/>
+    </linearGradient>
+    <radialGradient id="violet" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(1314 418) rotate(90) scale(310)">
+      <stop stop-color="#5D86FF" stop-opacity="0.74"/>
+      <stop offset="1" stop-color="#5D86FF" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="lime" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(356 1422) rotate(90) scale(310)">
+      <stop stop-color="#9EFF4F" stop-opacity="0.46"/>
+      <stop offset="1" stop-color="#9EFF4F" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+</svg>

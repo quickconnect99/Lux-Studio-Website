@@ -1,0 +1,27 @@
+<svg width="1600" height="1200" viewBox="0 0 1600 1200" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1600" height="1200" fill="#151416"/>
+  <rect width="1600" height="1200" fill="url(#bg)"/>
+  <rect x="156" y="162" width="1288" height="724" rx="28" fill="#140F12" stroke="#F9ECDE" stroke-opacity="0.18"/>
+  <rect x="248" y="248" width="1104" height="232" rx="18" fill="#5C3428"/>
+  <rect x="248" y="520" width="1104" height="104" rx="18" fill="#B46344" fill-opacity="0.78"/>
+  <rect x="248" y="660" width="1104" height="176" rx="18" fill="#20181A"/>
+  <path d="M184 958H1420" stroke="#F9ECDE" stroke-opacity="0.2"/>
+  <circle cx="1216" cy="874" r="254" fill="url(#ember)"/>
+  <circle cx="354" cy="288" r="180" fill="url(#mist)"/>
+  <text x="164" y="1044" fill="#FFF1E4" font-family="Georgia, serif" font-size="86" letter-spacing="-2">LAKESIDE RITUAL</text>
+  <defs>
+    <linearGradient id="bg" x1="182" y1="68" x2="1418" y2="1088" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#191518"/>
+      <stop offset="0.5" stop-color="#5A3528"/>
+      <stop offset="1" stop-color="#121114"/>
+    </linearGradient>
+    <radialGradient id="ember" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(1216 874) rotate(90) scale(254)">
+      <stop stop-color="#FF9A67" stop-opacity="0.54"/>
+      <stop offset="1" stop-color="#FF9A67" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="mist" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(354 288) rotate(90) scale(180)">
+      <stop stop-color="#F4DDC9" stop-opacity="0.24"/>
+      <stop offset="1" stop-color="#F4DDC9" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+</svg>

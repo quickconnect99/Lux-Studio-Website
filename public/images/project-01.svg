@@ -1,0 +1,27 @@
+<svg width="1600" height="2000" viewBox="0 0 1600 2000" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1600" height="2000" fill="#161E24"/>
+  <rect width="1600" height="2000" fill="url(#bg)"/>
+  <circle cx="1136" cy="412" r="292" fill="url(#lime)"/>
+  <circle cx="394" cy="1516" r="336" fill="url(#blue)"/>
+  <path d="M258 1042C430 906 621 844 812 832C1058 816 1259 900 1388 1012" stroke="#F5F2EC" stroke-opacity="0.68" stroke-width="4"/>
+  <path d="M224 1166C494 1113 743 1092 1046 1112C1185 1122 1298 1138 1420 1176" stroke="#9EFF4F" stroke-width="5" stroke-opacity="0.8"/>
+  <rect x="112" y="132" width="1376" height="1736" rx="34" stroke="#F5F2EC" stroke-opacity="0.24"/>
+  <text x="176" y="1564" fill="#F5F2EC" font-family="Georgia, serif" font-size="112" letter-spacing="-3">MIDNIGHT</text>
+  <text x="176" y="1672" fill="#9EFF4F" font-family="Georgia, serif" font-size="112" letter-spacing="-3">AEROLINE</text>
+  <text x="180" y="1742" fill="#DCE2E7" font-family="Arial, Helvetica, sans-serif" font-size="26" letter-spacing="8">PORSCHE 911 TURBO S / ZURICH / BRAND FILM</text>
+  <defs>
+    <linearGradient id="bg" x1="196" y1="158" x2="1324" y2="1794" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#11161B"/>
+      <stop offset="0.48" stop-color="#202B33"/>
+      <stop offset="1" stop-color="#0B1014"/>
+    </linearGradient>
+    <radialGradient id="lime" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(1136 412) rotate(90) scale(292)">
+      <stop stop-color="#9EFF4F" stop-opacity="0.82"/>
+      <stop offset="1" stop-color="#9EFF4F" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="blue" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(394 1516) rotate(90) scale(336)">
+      <stop stop-color="#557CFF" stop-opacity="0.66"/>
+      <stop offset="1" stop-color="#557CFF" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+</svg>
