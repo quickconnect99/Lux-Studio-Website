@@ -1,0 +1,33 @@
+<svg width="1600" height="2000" viewBox="0 0 1600 2000" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1600" height="2000" fill="#161517"/>
+  <rect width="1600" height="2000" fill="url(#bg)"/>
+  <rect x="204" y="254" width="1192" height="1060" rx="38" fill="#281C1B" fill-opacity="0.38" stroke="#F7EBDD" stroke-opacity="0.18"/>
+  <rect x="286" y="332" width="1028" height="904" rx="24" fill="#120F11" stroke="#F7EBDD" stroke-opacity="0.22"/>
+  <path d="M286 806H1314" stroke="#F7EBDD" stroke-opacity="0.14"/>
+  <path d="M286 954H1314" stroke="#F7EBDD" stroke-opacity="0.1"/>
+  <rect x="350" y="402" width="900" height="320" rx="18" fill="#4C2C23"/>
+  <rect x="350" y="760" width="900" height="118" rx="18" fill="#A95F41" fill-opacity="0.74"/>
+  <rect x="350" y="912" width="900" height="244" rx="18" fill="#21191A"/>
+  <path d="M336 1370C490 1292 642 1254 824 1254C1022 1254 1200 1324 1370 1452" stroke="#F7EBDD" stroke-opacity="0.42" stroke-width="4"/>
+  <circle cx="1188" cy="516" r="278" fill="url(#ember)"/>
+  <circle cx="430" cy="1490" r="316" fill="url(#pool)"/>
+  <rect x="114" y="132" width="1372" height="1736" rx="34" stroke="#F7EBDD" stroke-opacity="0.22"/>
+  <text x="178" y="1564" fill="#FFF0E2" font-family="Georgia, serif" font-size="112" letter-spacing="-3">LAKESIDE</text>
+  <text x="178" y="1672" fill="#FFAB7D" font-family="Georgia, serif" font-size="112" letter-spacing="-3">RITUAL</text>
+  <text x="184" y="1742" fill="#E8D8CB" font-family="Arial, Helvetica, sans-serif" font-size="26" letter-spacing="8">HOFMEISTER COLLECTION / LAKE ZURICH / LAUNCH CAMPAIGN</text>
+  <defs>
+    <linearGradient id="bg" x1="202" y1="106" x2="1296" y2="1886" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#171517"/>
+      <stop offset="0.5" stop-color="#4E3025"/>
+      <stop offset="1" stop-color="#101012"/>
+    </linearGradient>
+    <radialGradient id="ember" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(1188 516) rotate(90) scale(278)">
+      <stop stop-color="#FFB17E" stop-opacity="0.64"/>
+      <stop offset="1" stop-color="#FFB17E" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="pool" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(430 1490) rotate(90) scale(316)">
+      <stop stop-color="#6E4D42" stop-opacity="0.34"/>
+      <stop offset="1" stop-color="#6E4D42" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+</svg>

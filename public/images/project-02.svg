@@ -1,0 +1,27 @@
+<svg width="1600" height="2000" viewBox="0 0 1600 2000" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1600" height="2000" fill="#F1EEE7"/>
+  <rect width="1600" height="2000" fill="url(#bg)"/>
+  <circle cx="1222" cy="504" r="316" fill="url(#ice)"/>
+  <circle cx="416" cy="1278" r="264" fill="url(#lime)"/>
+  <path d="M256 1002C486 866 665 820 872 816C1131 811 1278 906 1410 1030" stroke="#F8F8F6" stroke-opacity="0.72" stroke-width="4"/>
+  <path d="M228 1098C492 1054 742 1042 1024 1064C1176 1076 1308 1100 1418 1142" stroke="#D7E1EF" stroke-width="6" stroke-opacity="0.84"/>
+  <rect x="116" y="136" width="1368" height="1728" rx="34" stroke="#F7F4ED" stroke-opacity="0.28"/>
+  <text x="180" y="1564" fill="#F7F4ED" font-family="Georgia, serif" font-size="112" letter-spacing="-3">ALPINE</text>
+  <text x="180" y="1672" fill="#B9E7FF" font-family="Georgia, serif" font-size="112" letter-spacing="-3">VECTOR</text>
+  <text x="184" y="1742" fill="#E3E7EA" font-family="Arial, Helvetica, sans-serif" font-size="26" letter-spacing="8">BMW M4 COMPETITION / ST. MORITZ / LAUNCH CAMPAIGN</text>
+  <defs>
+    <linearGradient id="bg" x1="266" y1="106" x2="1240" y2="1830" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#53606A"/>
+      <stop offset="0.42" stop-color="#27333C"/>
+      <stop offset="1" stop-color="#0E1418"/>
+    </linearGradient>
+    <radialGradient id="ice" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(1222 504) rotate(90) scale(316)">
+      <stop stop-color="#C1E5FF" stop-opacity="0.8"/>
+      <stop offset="1" stop-color="#C1E5FF" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="lime" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(416 1278) rotate(90) scale(264)">
+      <stop stop-color="#9EFF4F" stop-opacity="0.52"/>
+      <stop offset="1" stop-color="#9EFF4F" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+</svg>

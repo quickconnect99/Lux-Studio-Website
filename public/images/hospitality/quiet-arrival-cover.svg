@@ -1,0 +1,34 @@
+<svg width="1600" height="2000" viewBox="0 0 1600 2000" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1600" height="2000" fill="#0F1416"/>
+  <rect width="1600" height="2000" fill="url(#bg)"/>
+  <rect x="172" y="214" width="1256" height="1160" rx="42" fill="#1A2428" fill-opacity="0.48" stroke="#E9DED1" stroke-opacity="0.18"/>
+  <rect x="278" y="346" width="1044" height="812" rx="26" fill="#C9B29A" fill-opacity="0.12" stroke="#F4E6D7" stroke-opacity="0.26"/>
+  <rect x="354" y="420" width="892" height="662" rx="18" fill="#1D262A" stroke="#F4E6D7" stroke-opacity="0.18"/>
+  <rect x="412" y="480" width="776" height="198" fill="#DDC4AA" fill-opacity="0.8"/>
+  <rect x="412" y="720" width="776" height="126" fill="#8F7763" fill-opacity="0.72"/>
+  <rect x="412" y="884" width="776" height="140" fill="#283236"/>
+  <path d="M352 1024H1248" stroke="#F4E6D7" stroke-opacity="0.22"/>
+  <path d="M406 846H1186" stroke="#F4E6D7" stroke-opacity="0.16"/>
+  <path d="M418 1432C574 1312 728 1256 868 1258C1058 1260 1202 1328 1350 1456" stroke="#F4E6D7" stroke-opacity="0.5" stroke-width="4"/>
+  <circle cx="1228" cy="442" r="216" fill="url(#glow)"/>
+  <circle cx="366" cy="1488" r="252" fill="url(#stone)"/>
+  <rect x="112" y="132" width="1376" height="1736" rx="34" stroke="#F2E7D8" stroke-opacity="0.24"/>
+  <text x="176" y="1568" fill="#F6EBDD" font-family="Georgia, serif" font-size="112" letter-spacing="-3">QUIET</text>
+  <text x="176" y="1676" fill="#D8B690" font-family="Georgia, serif" font-size="112" letter-spacing="-3">ARRIVAL</text>
+  <text x="182" y="1744" fill="#E4D7C8" font-family="Arial, Helvetica, sans-serif" font-size="26" letter-spacing="8">7132 HOTEL VALS / VALS / BRAND FILM</text>
+  <defs>
+    <linearGradient id="bg" x1="204" y1="120" x2="1312" y2="1880" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#101719"/>
+      <stop offset="0.46" stop-color="#3D433E"/>
+      <stop offset="1" stop-color="#111719"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(1228 442) rotate(90) scale(216)">
+      <stop stop-color="#F5D8B6" stop-opacity="0.72"/>
+      <stop offset="1" stop-color="#F5D8B6" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="stone" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(366 1488) rotate(90) scale(252)">
+      <stop stop-color="#8B7863" stop-opacity="0.48"/>
+      <stop offset="1" stop-color="#8B7863" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+</svg>

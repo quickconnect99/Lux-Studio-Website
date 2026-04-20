@@ -1,0 +1,27 @@
+<svg width="1600" height="2000" viewBox="0 0 1600 2000" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1600" height="2000" fill="#131A20"/>
+  <rect width="1600" height="2000" fill="url(#bg)"/>
+  <circle cx="1210" cy="422" r="310" fill="url(#blue)"/>
+  <circle cx="378" cy="1458" r="292" fill="url(#lime)"/>
+  <path d="M242 1032C446 894 649 840 830 832C1042 823 1230 904 1380 1036" stroke="#EFF3F6" stroke-opacity="0.66" stroke-width="4"/>
+  <path d="M222 1146C492 1088 742 1064 1026 1080C1178 1088 1286 1118 1410 1170" stroke="#9EFF4F" stroke-opacity="0.84" stroke-width="5"/>
+  <rect x="112" y="132" width="1376" height="1736" rx="34" stroke="#EFF4F8" stroke-opacity="0.2"/>
+  <text x="176" y="1564" fill="#EFF4F8" font-family="Georgia, serif" font-size="112" letter-spacing="-3">VELOCITY</text>
+  <text x="176" y="1672" fill="#9EFF4F" font-family="Georgia, serif" font-size="112" letter-spacing="-3">NOTES</text>
+  <text x="180" y="1742" fill="#D9E0E7" font-family="Arial, Helvetica, sans-serif" font-size="26" letter-spacing="8">ASTON MARTIN VANTAGE / DOLOMITES / ROLLING SHOTS</text>
+  <defs>
+    <linearGradient id="bg" x1="194" y1="108" x2="1298" y2="1882" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#0F151A"/>
+      <stop offset="0.42" stop-color="#20323D"/>
+      <stop offset="1" stop-color="#0A1116"/>
+    </linearGradient>
+    <radialGradient id="blue" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(1210 422) rotate(90) scale(310)">
+      <stop stop-color="#6186FF" stop-opacity="0.74"/>
+      <stop offset="1" stop-color="#6186FF" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="lime" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(378 1458) rotate(90) scale(292)">
+      <stop stop-color="#9EFF4F" stop-opacity="0.5"/>
+      <stop offset="1" stop-color="#9EFF4F" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+</svg>

@@ -1,0 +1,788 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer components {
+  .panel-2xl {
+    @apply glass-panel rounded-[2rem];
+  }
+
+  /* ─── Form fields ──────────────────────────────────────────────────── */
+  .input-field {
+    @apply w-full rounded-2xl border border-line bg-panel px-4 py-3 text-base text-foreground outline-none
+      transition-all duration-200 ease-out
+      focus:scale-[1.005] focus:border-accent focus:bg-panel;
+  }
+
+  .textarea-field {
+    @apply w-full rounded-[1.5rem] border border-line bg-panel px-4 py-3 text-base text-foreground outline-none
+      transition-all duration-200 ease-out
+      focus:scale-[1.005] focus:border-accent focus:bg-panel;
+  }
+
+  /* Error state – uses CSS variable so colour stays in the design system */
+  .field-error {
+    @apply border-[var(--error)];
+  }
+
+  /* ─── Metadata ─────────────────────────────────────────────────────── */
+  .metadata-grid {
+    @apply grid gap-4 border-y border-line py-5 sm:grid-cols-3;
+  }
+
+  .metadata-grid-cards {
+    @apply grid gap-3 sm:grid-cols-3;
+  }
+
+  .metadata-card {
+    @apply rounded-[1.25rem] border border-line bg-panel-secondary px-4 py-3;
+  }
+
+  .metadata-label {
+    @apply text-[0.65rem] uppercase tracking-meta text-muted;
+  }
+
+  .metadata-value {
+    @apply mt-2 text-sm font-medium tracking-[0.08em] text-foreground;
+  }
+
+  .metadata-value-compact {
+    @apply mt-2 text-xs uppercase tracking-wide text-foreground;
+  }
+
+  /* Monospace number / index styling (project numbers, year, tech metadata) */
+  .metadata-number {
+    font-family: var(--font-mono);
+    @apply text-[0.65rem] uppercase tracking-meta text-accent;
+  }
+
+  /* ─── Buttons / pills ──────────────────────────────────────────────── */
+  .control-pill {
+    @apply inline-flex items-center gap-2 rounded-full border border-line bg-panel px-4 py-2
+      text-xs uppercase tracking-ui text-foreground;
+  }
+
+  .action-button {
+    @apply inline-flex items-center gap-3 rounded-full border border-foreground bg-foreground
+      px-5 py-3 text-xs uppercase tracking-ui text-background
+      transition-all duration-150 ease-out
+      hover:bg-accent hover:text-accent-contrast
+      active:scale-95
+      disabled:opacity-70;
+  }
+
+  .muted-pill {
+    @apply rounded-full border border-line bg-panel-secondary px-4 py-2 text-xs uppercase tracking-ui text-muted;
+  }
+
+  .toggle-row {
+    @apply flex items-center gap-3 rounded-[1.5rem] border border-line bg-panel-secondary px-4 py-3 text-sm text-muted;
+  }
+}
+
+/* ─── Design tokens ────────────────────────────────────────────────────── */
+:root {
+  --font-display: var(--font-barlow);
+  --font-sans: var(--font-barlow);
+
+  /* Core palette */
+  --background: #f4f1ea;
+  --foreground: #1b232b;
+  --muted:      #58636c;
+  --muted-warm: #6b6360;      /* warmer secondary for footer / dark contexts */
+
+  /* Accent */
+  --accent:      #9eff4f;
+  --accent-contrast: #1b232b;
+  --accent-soft: rgba(158, 255, 79, 0.65);
+  --accent-blue: #7dd3fc;     /* complementary cool accent */
+
+  /* Panels – three standardised opacity levels */
+  --panel:         rgba(255, 255, 255, 0.80); /* primary panels */
+  --panel-secondary: rgba(255, 255, 255, 0.70); /* nested content */
+  --panel-subtle:  rgba(255, 255, 255, 0.55); /* background fills */
+  --panel-dark:    #11161b;
+  --panel-dark-mid: #1a1f25;  /* lighter dark for nested dark panels */
+
+  /* Borders */
+  --line: rgba(27, 35, 43, 0.12);
+
+  /* Semantic colours (kept in system so components can reference vars) */
+  --error:   #ef4444;
+  --success: #10b981;
+  --warning: #f59e0b;
+
+  /* Theming helpers */
+  --header-bg:  rgba(244, 241, 234, 0.82);
+  --grid-line:  rgba(27, 35, 43, 0.04);
+}
+
+/* ─── Base ─────────────────────────────────────────────────────────────── */
+html {
+  scroll-behavior: smooth;
+  color-scheme: light;
+}
+
+/* ─── Dark colour-scheme for dark themes ──────────────────────────────── */
+html[data-theme="obsidian"],
+html[data-theme="vintage"],
+html[data-theme="gpt-vintage"],
+html[data-theme="carbon"],
+html[data-theme="amber"],
+html[data-theme="midnight-racing"],
+html[data-theme="asphalt"],
+html[data-theme="bloodline"] {
+  color-scheme: dark;
+}
+
+body {
+  color: var(--foreground);
+  background:
+    radial-gradient(circle at 0% 0%, rgba(158, 255, 79, 0.18), transparent 25%),
+    radial-gradient(
+      circle at 100% 10%,
+      rgba(70, 120, 255, 0.1),
+      transparent 22%
+    ),
+    linear-gradient(180deg, #f7f4ee 0%, #f0eee7 100%);
+  font-feature-settings:
+    "ss01" 1,
+    "cv01" 1,
+    "rlig" 1;
+  line-height: 1.5;
+  min-height: 100vh;
+}
+
+* {
+  border-color: var(--line);
+}
+
+::selection {
+  background: rgba(158, 255, 79, 0.5);
+  color: #0f1419;
+}
+
+/* ─── Global transitions ───────────────────────────────────────────────── */
+a,
+button,
+input,
+textarea,
+select {
+  transition:
+    color 150ms ease,
+    background-color 150ms ease,
+    border-color 150ms ease,
+    opacity 150ms ease;
+}
+
+/* Separate transform so it can have its own timing */
+a,
+button {
+  transition:
+    color 150ms ease,
+    background-color 150ms ease,
+    border-color 150ms ease,
+    opacity 150ms ease,
+    transform 200ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Press feedback for all interactive elements */
+a:active,
+button:active {
+  transform: scale(0.96);
+}
+
+/* ─── Focus ring ───────────────────────────────────────────────────────── */
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible {
+  outline: none;
+  box-shadow:
+    0 0 0 1.5px var(--background),
+    0 0 0 3px var(--accent);
+}
+
+/* ─── Utilities ────────────────────────────────────────────────────────── */
+.texture-grid {
+  position: relative;
+}
+
+.texture-grid::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(var(--grid-line) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
+  background-size: 58px 58px;
+  mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.8), transparent 90%);
+  pointer-events: none;
+}
+
+/* Spacing shells */
+.section-shell {
+  @apply mx-auto w-full max-w-[1440px] px-5 sm:px-8 lg:px-10;
+}
+
+.section-space {
+  @apply py-12 sm:py-16 lg:py-20;
+}
+
+.section-space-medium {
+  @apply py-8 sm:py-12 lg:py-14;
+}
+
+.section-space-tight {
+  @apply py-6 sm:py-8 lg:py-10;
+}
+
+/* Typography utilities */
+.eyebrow {
+  @apply inline-flex items-center gap-3 text-[0.7rem] uppercase tracking-eyebrow text-muted;
+}
+
+.eyebrow::before {
+  content: "";
+  @apply h-px w-8 bg-accent;
+}
+
+.divider {
+  @apply h-px w-full bg-line;
+}
+
+/* ─── Component classes ─────────────────────────────────────────────────── */
+
+/* Glass panel – enhanced with depth via inset shadow */
+.glass-panel {
+  border: 1px solid rgba(255, 255, 255, 0.55);
+  background: var(--panel);
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.14),
+    0 16px 60px rgba(17, 24, 28, 0.12);
+  backdrop-filter: blur(20px);
+}
+
+.dark-panel {
+  background:
+    radial-gradient(circle at top, color-mix(in srgb, var(--accent) 10%, transparent), transparent 30%),
+    linear-gradient(180deg, var(--panel-dark) 0%, var(--panel-dark-mid) 100%);
+}
+
+/* Film frame – layered border for depth */
+.film-frame {
+  position: relative;
+  overflow: hidden;
+  border-radius: 1.75rem;
+  border: 1px solid rgba(255, 255, 255, 0.50);
+  background:
+    linear-gradient(
+      135deg,
+      rgba(255, 255, 255, 0.16),
+      rgba(255, 255, 255, 0.02)
+    ),
+    rgba(255, 255, 255, 0.18);
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.12),  /* inner light line */
+    0 24px 100px rgba(15, 23, 32, 0.14);
+}
+
+.film-frame::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(
+      circle at center,
+      transparent 45%,
+      rgba(15, 23, 32, 0.16) 100%
+    ),
+    linear-gradient(180deg, transparent 0%, rgba(17, 22, 27, 0.2) 100%);
+  pointer-events: none;
+}
+
+/* Marquee – pauses on hover for accessibility & discoverability */
+.marquee-track {
+  animation: marquee 34s linear infinite;
+}
+
+.marquee-track:hover {
+  animation-play-state: paused;
+  cursor: grab;
+}
+
+/* Hide scrollbar while keeping scroll functionality */
+.no-scrollbar {
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+/* Grain overlay */
+.grain::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  opacity: 0.08;
+  background-image:
+    radial-gradient(
+      circle at 10% 20%,
+      rgba(255, 255, 255, 0.5) 0,
+      transparent 18%
+    ),
+    radial-gradient(
+      circle at 80% 30%,
+      rgba(255, 255, 255, 0.35) 0,
+      transparent 18%
+    ),
+    radial-gradient(
+      circle at 30% 80%,
+      rgba(255, 255, 255, 0.45) 0,
+      transparent 14%
+    ),
+    radial-gradient(
+      circle at 70% 70%,
+      rgba(255, 255, 255, 0.25) 0,
+      transparent 15%
+    );
+  mix-blend-mode: overlay;
+  pointer-events: none;
+}
+
+/* Split headline trail – animated accent underline */
+.split-trail-underline {
+  position: relative;
+  display: inline-block;
+}
+
+.split-trail-underline::after {
+  content: "";
+  position: absolute;
+  bottom: -4px;
+  left: 0;
+  height: 2px;
+  width: 100%;
+  background: linear-gradient(90deg, var(--accent), transparent);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.7s cubic-bezier(0.22, 1, 0.36, 1) 0.3s;
+}
+
+/* Trigger the underline when a parent with .group-reveal is visible */
+.group-reveal .split-trail-underline::after {
+  transform: scaleX(1);
+}
+
+/* Shake animation for form errors */
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  20%       { transform: translateX(-6px); }
+  40%       { transform: translateX(6px); }
+  60%       { transform: translateX(-4px); }
+  80%       { transform: translateX(4px); }
+}
+
+.shake {
+  animation: shake 0.4s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
+}
+
+/* ─── Keyframes ─────────────────────────────────────────────────────────── */
+@keyframes marquee {
+  from { transform: translateX(0%); }
+  to   { transform: translateX(-50%); }
+}
+
+/* ─── Reduced motion ────────────────────────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  .marquee-track {
+    animation: none;
+    transform: translateX(0%);
+  }
+
+  .split-trail-underline::after {
+    transition: none;
+  }
+
+  a:active,
+  button:active {
+    transform: none;
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   THEMES  –  each block overrides the CSS tokens declared in :root above.
+   The <html data-theme="…"> attribute is set by ThemeProvider + an inline
+   script that runs before hydration to prevent any flash of unstyled content.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ─── 1. Cream (default) ──────────────────────────────────────────────── */
+/* No overrides needed – :root already holds the cream values. */
+
+/* Vintage Light - faded paper, terracotta and racing green */
+[data-theme="vintage-light"] {
+  --background:      #f3eadb;
+  --foreground:      #1e493d;
+  --muted:           #6d6a61;
+  --muted-warm:      #7b685c;
+  --accent:          #ec824d;
+  --accent-contrast: #f7efe2;
+  --accent-soft:     rgba(236, 130, 77, 0.20);
+  --accent-blue:     #1e493d;
+  --panel:           rgba(250, 244, 233, 0.84);
+  --panel-secondary: rgba(245, 236, 222, 0.78);
+  --panel-subtle:    rgba(30, 73, 61, 0.09);
+  --panel-dark:      #17342c;
+  --panel-dark-mid:  #22443a;
+  --line:            rgba(30, 73, 61, 0.14);
+  --header-bg:       rgba(243, 234, 219, 0.88);
+  --grid-line:       rgba(30, 73, 61, 0.06);
+}
+[data-theme="vintage-light"] body {
+  background:
+    radial-gradient(circle at 0% 0%, rgba(236, 130, 77, 0.18), transparent 28%),
+    radial-gradient(circle at 100% 12%, rgba(30, 73, 61, 0.14), transparent 24%),
+    linear-gradient(180deg, #f5ecd9 0%, #eadfcb 100%);
+}
+[data-theme="vintage-light"] ::selection {
+  background: rgba(236, 130, 77, 0.35);
+  color: #1e493d;
+}
+
+/* Vintage Dark - warm noir with terracotta and racing green */
+[data-theme="vintage"] {
+  --background:      #17120f;
+  --foreground:      #f3e7d7;
+  --muted:           #b8a595;
+  --muted-warm:      #c79b82;
+  --accent:          #ec824d;
+  --accent-contrast: #17120f;
+  --accent-soft:     rgba(236, 130, 77, 0.24);
+  --accent-blue:     #1e493d;
+  --panel:           rgba(25, 31, 28, 0.74);
+  --panel-secondary: rgba(34, 26, 22, 0.78);
+  --panel-subtle:    rgba(30, 73, 61, 0.28);
+  --panel-dark:      #0d1512;
+  --panel-dark-mid:  #15211d;
+  --line:            rgba(243, 231, 215, 0.10);
+  --header-bg:       rgba(23, 18, 15, 0.88);
+  --grid-line:       rgba(30, 73, 61, 0.10);
+}
+[data-theme="vintage"] body {
+  background:
+    radial-gradient(circle at 12% 0%, rgba(236, 130, 77, 0.18), transparent 30%),
+    radial-gradient(circle at 88% 10%, rgba(30, 73, 61, 0.42), transparent 30%),
+    linear-gradient(180deg, #191310 0%, #0d1512 52%, #0a0d0b 100%);
+}
+[data-theme="vintage"] ::selection {
+  background: rgba(236, 130, 77, 0.40);
+  color: #17120f;
+}
+
+/* GPT Vintage - editorial green noir with terracotta highlights */
+[data-theme="gpt-vintage"] {
+  --background:      #101917;
+  --foreground:      #f2e9db;
+  --muted:           #b7aa97;
+  --muted-warm:      #c98f72;
+  --accent:          #ec824d;
+  --accent-contrast: #1e493d;
+  --accent-soft:     rgba(236, 130, 77, 0.22);
+  --accent-blue:     #1e493d;
+  --panel:           rgba(23, 41, 36, 0.78);
+  --panel-secondary: rgba(248, 236, 219, 0.08);
+  --panel-subtle:    rgba(30, 73, 61, 0.24);
+  --panel-dark:      #08110f;
+  --panel-dark-mid:  #1e493d;
+  --line:            rgba(242, 233, 219, 0.10);
+  --header-bg:       rgba(16, 25, 23, 0.86);
+  --grid-line:       rgba(236, 130, 77, 0.06);
+}
+[data-theme="gpt-vintage"] body {
+  background:
+    radial-gradient(circle at 10% 0%, rgba(236, 130, 77, 0.18), transparent 26%),
+    radial-gradient(circle at 88% 18%, rgba(30, 73, 61, 0.52), transparent 32%),
+    radial-gradient(circle at 50% 100%, rgba(242, 233, 219, 0.06), transparent 30%),
+    linear-gradient(180deg, #14211d 0%, #0d1513 48%, #090c0b 100%);
+}
+[data-theme="gpt-vintage"] ::selection {
+  background: rgba(236, 130, 77, 0.42);
+  color: #1e493d;
+}
+
+/* ─── 2. Obsidian – deep black · neon lime ───────────────────────────── */
+[data-theme="obsidian"] {
+  --background:      #0c0f12;
+  --foreground:      #e8ecef;
+  --muted:           #8a9aa8;
+  --muted-warm:      #7a8a98;
+  --accent:          #9eff4f;
+  --accent-contrast: #0c0f12;
+  --accent-soft:     rgba(158, 255, 79, 0.20);
+  --accent-blue:     #7dd3fc;
+  --panel:           rgba(255, 255, 255, 0.06);
+  --panel-secondary: rgba(255, 255, 255, 0.04);
+  --panel-subtle:    rgba(255, 255, 255, 0.03);
+  --panel-dark:      #040608;
+  --panel-dark-mid:  #0a0d10;
+  --line:            rgba(255, 255, 255, 0.10);
+  --header-bg:       rgba(12, 15, 18, 0.88);
+  --grid-line:       rgba(255, 255, 255, 0.04);
+}
+[data-theme="obsidian"] body {
+  background:
+    radial-gradient(circle at 0% 0%,   rgba(158, 255, 79, 0.07), transparent 30%),
+    radial-gradient(circle at 100% 10%, rgba(125, 211, 252, 0.05), transparent 25%),
+    linear-gradient(180deg, #0e1115 0%, #080b0d 100%);
+}
+[data-theme="obsidian"] ::selection {
+  background: rgba(158, 255, 79, 0.30);
+  color: #e8ecef;
+}
+
+/* ─── 3. Carbon – dark grey · signal red ────────────────────────────── */
+[data-theme="carbon"] {
+  --background:      #141518;
+  --foreground:      #f0f0f0;
+  --muted:           #8a8a94;
+  --muted-warm:      #8a8480;
+  --accent:          #ff3b3b;
+  --accent-contrast: #0c0f12;
+  --accent-soft:     rgba(255, 59, 59, 0.20);
+  --accent-blue:     #7dd3fc;
+  --panel:           rgba(255, 255, 255, 0.05);
+  --panel-secondary: rgba(255, 255, 255, 0.04);
+  --panel-subtle:    rgba(255, 255, 255, 0.03);
+  --panel-dark:      #080809;
+  --panel-dark-mid:  #0f1012;
+  --line:            rgba(255, 255, 255, 0.10);
+  --header-bg:       rgba(20, 21, 24, 0.88);
+  --grid-line:       rgba(255, 255, 255, 0.04);
+}
+[data-theme="carbon"] body {
+  background:
+    radial-gradient(circle at 0% 0%,   rgba(255, 59, 59, 0.07), transparent 28%),
+    radial-gradient(circle at 100% 10%, rgba(255, 59, 59, 0.04), transparent 22%),
+    linear-gradient(180deg, #161719 0%, #0f1012 100%);
+}
+[data-theme="carbon"] ::selection {
+  background: rgba(255, 59, 59, 0.35);
+  color: #f0f0f0;
+}
+
+/* ─── 4. Arctic – cool white · electric blue ────────────────────────── */
+[data-theme="arctic"] {
+  --background:      #f8f9fb;
+  --foreground:      #0f1923;
+  --muted:           #52697a;
+  --muted-warm:      #5a6a78;
+  --accent:          #2563eb;
+  --accent-contrast: #f8f9fb;
+  --accent-soft:     rgba(37, 99, 235, 0.18);
+  --accent-blue:     #7dd3fc;
+  --panel:           rgba(255, 255, 255, 0.92);
+  --panel-secondary: rgba(255, 255, 255, 0.85);
+  --panel-subtle:    rgba(255, 255, 255, 0.70);
+  --panel-dark:      #0f1923;
+  --panel-dark-mid:  #1a2633;
+  --line:            rgba(15, 25, 35, 0.10);
+  --header-bg:       rgba(248, 249, 251, 0.88);
+  --grid-line:       rgba(15, 25, 35, 0.04);
+}
+[data-theme="arctic"] body {
+  background:
+    radial-gradient(circle at 0% 0%,   rgba(37, 99, 235, 0.08), transparent 25%),
+    radial-gradient(circle at 100% 10%, rgba(125, 211, 252, 0.12), transparent 25%),
+    linear-gradient(180deg, #f8f9fb 0%, #f0f3f8 100%);
+}
+[data-theme="arctic"] ::selection {
+  background: rgba(37, 99, 235, 0.20);
+  color: #0f1923;
+}
+
+/* ─── 5. Amber – deep anthracite · gold ─────────────────────────────── */
+[data-theme="amber"] {
+  --background:      #111008;
+  --foreground:      #f5f0e8;
+  --muted:           #9a9080;
+  --muted-warm:      #9a8870;
+  --accent:          #f0a500;
+  --accent-contrast: #111008;
+  --accent-soft:     rgba(240, 165, 0, 0.20);
+  --accent-blue:     #7dd3fc;
+  --panel:           rgba(255, 255, 255, 0.06);
+  --panel-secondary: rgba(255, 255, 255, 0.04);
+  --panel-subtle:    rgba(255, 255, 255, 0.03);
+  --panel-dark:      #060500;
+  --panel-dark-mid:  #0d0c08;
+  --line:            rgba(255, 255, 255, 0.10);
+  --header-bg:       rgba(17, 16, 8, 0.88);
+  --grid-line:       rgba(255, 255, 255, 0.04);
+}
+[data-theme="amber"] body {
+  background:
+    radial-gradient(circle at 0% 0%,   rgba(240, 165, 0, 0.10), transparent 28%),
+    radial-gradient(circle at 100% 10%, rgba(240, 165, 0, 0.05), transparent 22%),
+    linear-gradient(180deg, #131108 0%, #0d0c08 100%);
+}
+[data-theme="amber"] ::selection {
+  background: rgba(240, 165, 0, 0.30);
+  color: #f5f0e8;
+}
+
+/* ─── 6. Midnight Racing – deep navy · electric cyan ────────────────── */
+[data-theme="midnight-racing"] {
+  --background:      #070d1a;
+  --foreground:      #dce8f5;
+  --muted:           #7a9ab8;
+  --muted-warm:      #6a8898;
+  --accent:          #00d4ff;
+  --accent-contrast: #070d1a;
+  --accent-soft:     rgba(0, 212, 255, 0.18);
+  --accent-blue:     #7dd3fc;
+  --panel:           rgba(0, 212, 255, 0.06);
+  --panel-secondary: rgba(255, 255, 255, 0.04);
+  --panel-subtle:    rgba(255, 255, 255, 0.03);
+  --panel-dark:      #040810;
+  --panel-dark-mid:  #0a1020;
+  --line:            rgba(255, 255, 255, 0.10);
+  --header-bg:       rgba(7, 13, 26, 0.88);
+  --grid-line:       rgba(0, 212, 255, 0.05);
+}
+[data-theme="midnight-racing"] body {
+  background:
+    radial-gradient(circle at 0% 0%,   rgba(0, 212, 255, 0.10), transparent 30%),
+    radial-gradient(circle at 100% 10%, rgba(0, 212, 255, 0.05), transparent 25%),
+    linear-gradient(180deg, #080e1c 0%, #050810 100%);
+}
+[data-theme="midnight-racing"] ::selection {
+  background: rgba(0, 212, 255, 0.25);
+  color: #dce8f5;
+}
+
+/* ─── 7. Titanium – cool silver · deep violet ───────────────────────── */
+[data-theme="titanium"] {
+  --background:      #f2f2f4;
+  --foreground:      #1a1a2e;
+  --muted:           #52527a;
+  --muted-warm:      #5a5a72;
+  --accent:          #7c3aed;
+  --accent-contrast: #f2f2f4;
+  --accent-soft:     rgba(124, 58, 237, 0.18);
+  --accent-blue:     #7dd3fc;
+  --panel:           rgba(255, 255, 255, 0.88);
+  --panel-secondary: rgba(255, 255, 255, 0.80);
+  --panel-subtle:    rgba(255, 255, 255, 0.65);
+  --panel-dark:      #1a1a2e;
+  --panel-dark-mid:  #24243e;
+  --line:            rgba(26, 26, 46, 0.10);
+  --header-bg:       rgba(242, 242, 244, 0.88);
+  --grid-line:       rgba(26, 26, 46, 0.04);
+}
+[data-theme="titanium"] body {
+  background:
+    radial-gradient(circle at 0% 0%,   rgba(124, 58, 237, 0.08), transparent 25%),
+    radial-gradient(circle at 100% 10%, rgba(125, 211, 252, 0.10), transparent 25%),
+    linear-gradient(180deg, #f2f2f4 0%, #ebebed 100%);
+}
+[data-theme="titanium"] ::selection {
+  background: rgba(124, 58, 237, 0.18);
+  color: #1a1a2e;
+}
+
+/* ─── 8. Asphalt – warm dark grey · burnout orange ──────────────────── */
+[data-theme="asphalt"] {
+  --background:      #1c1a17;
+  --foreground:      #ede8e0;
+  --muted:           #9a9088;
+  --muted-warm:      #9a8878;
+  --accent:          #ff6a1a;
+  --accent-contrast: #1c1a17;
+  --accent-soft:     rgba(255, 106, 26, 0.20);
+  --accent-blue:     #7dd3fc;
+  --panel:           rgba(255, 255, 255, 0.05);
+  --panel-secondary: rgba(255, 255, 255, 0.04);
+  --panel-subtle:    rgba(255, 255, 255, 0.03);
+  --panel-dark:      #110f0d;
+  --panel-dark-mid:  #181512;
+  --line:            rgba(255, 255, 255, 0.10);
+  --header-bg:       rgba(28, 26, 23, 0.88);
+  --grid-line:       rgba(255, 255, 255, 0.04);
+}
+[data-theme="asphalt"] body {
+  background:
+    radial-gradient(circle at 0% 0%,   rgba(255, 106, 26, 0.08), transparent 28%),
+    radial-gradient(circle at 100% 10%, rgba(255, 106, 26, 0.05), transparent 22%),
+    linear-gradient(180deg, #1e1c19 0%, #131210 100%);
+}
+[data-theme="asphalt"] ::selection {
+  background: rgba(255, 106, 26, 0.30);
+  color: #ede8e0;
+}
+
+/* ─── 9. Glacier – ice white · mint green ───────────────────────────── */
+[data-theme="glacier"] {
+  --background:      #f0f5f4;
+  --foreground:      #0e1f1c;
+  --muted:           #4a6a60;
+  --muted-warm:      #5a6a60;
+  --accent:          #00c896;
+  --accent-contrast: #0e1f1c;
+  --accent-soft:     rgba(0, 200, 150, 0.18);
+  --accent-blue:     #7dd3fc;
+  --panel:           rgba(255, 255, 255, 0.90);
+  --panel-secondary: rgba(255, 255, 255, 0.82);
+  --panel-subtle:    rgba(255, 255, 255, 0.68);
+  --panel-dark:      #0e1f1c;
+  --panel-dark-mid:  #162e28;
+  --line:            rgba(14, 31, 28, 0.10);
+  --header-bg:       rgba(240, 245, 244, 0.88);
+  --grid-line:       rgba(14, 31, 28, 0.04);
+}
+[data-theme="glacier"] body {
+  background:
+    radial-gradient(circle at 0% 0%,   rgba(0, 200, 150, 0.10), transparent 25%),
+    radial-gradient(circle at 100% 10%, rgba(125, 211, 252, 0.10), transparent 25%),
+    linear-gradient(180deg, #f0f5f4 0%, #e8efee 100%);
+}
+[data-theme="glacier"] ::selection {
+  background: rgba(0, 200, 150, 0.25);
+  color: #0e1f1c;
+}
+
+/* ─── 10. Bloodline – near black · carmine red ──────────────────────── */
+[data-theme="bloodline"] {
+  --background:      #0d0a0a;
+  --foreground:      #f0ebe8;
+  --muted:           #9a8880;
+  --muted-warm:      #8a8078;
+  --accent:          #c41230;
+  --accent-contrast: #f0ebe8;
+  --accent-soft:     rgba(196, 18, 48, 0.20);
+  --accent-blue:     #7dd3fc;
+  --panel:           rgba(255, 255, 255, 0.05);
+  --panel-secondary: rgba(255, 255, 255, 0.04);
+  --panel-subtle:    rgba(255, 255, 255, 0.03);
+  --panel-dark:      #060404;
+  --panel-dark-mid:  #100808;
+  --line:            rgba(255, 255, 255, 0.10);
+  --header-bg:       rgba(13, 10, 10, 0.88);
+  --grid-line:       rgba(255, 255, 255, 0.04);
+}
+[data-theme="bloodline"] body {
+  background:
+    radial-gradient(circle at 0% 0%,   rgba(196, 18, 48, 0.08), transparent 28%),
+    radial-gradient(circle at 100% 10%, rgba(196, 18, 48, 0.05), transparent 22%),
+    linear-gradient(180deg, #0f0c0c 0%, #090606 100%);
+}
+[data-theme="bloodline"] ::selection {
+  background: rgba(196, 18, 48, 0.30);
+  color: #f0ebe8;
+}

@@ -1,0 +1,27 @@
+<svg width="1600" height="2000" viewBox="0 0 1600 2000" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1600" height="2000" fill="#231812"/>
+  <rect width="1600" height="2000" fill="url(#bg)"/>
+  <circle cx="1168" cy="420" r="328" fill="url(#sun)"/>
+  <circle cx="418" cy="1518" r="338" fill="url(#heat)"/>
+  <path d="M214 1040C406 918 628 868 850 862C1092 855 1264 915 1410 1046" stroke="#F6EDE5" stroke-opacity="0.7" stroke-width="4"/>
+  <path d="M194 1140C476 1090 728 1078 1032 1098C1210 1112 1308 1136 1432 1180" stroke="#FFC991" stroke-opacity="0.9" stroke-width="5"/>
+  <rect x="114" y="134" width="1372" height="1732" rx="34" stroke="#FFE7D0" stroke-opacity="0.24"/>
+  <text x="178" y="1564" fill="#FFF0E0" font-family="Georgia, serif" font-size="112" letter-spacing="-3">DESERT</text>
+  <text x="178" y="1672" fill="#FFC179" font-family="Georgia, serif" font-size="112" letter-spacing="-3">CIRCUIT</text>
+  <text x="182" y="1742" fill="#F5E8DE" font-family="Arial, Helvetica, sans-serif" font-size="26" letter-spacing="8">FERRARI ROMA SPIDER / ABU DHABI / EVENT COVERAGE</text>
+  <defs>
+    <linearGradient id="bg" x1="182" y1="106" x2="1296" y2="1888" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#372118"/>
+      <stop offset="0.48" stop-color="#6A3820"/>
+      <stop offset="1" stop-color="#1A1310"/>
+    </linearGradient>
+    <radialGradient id="sun" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(1168 420) rotate(90) scale(328)">
+      <stop stop-color="#FFB46A" stop-opacity="0.78"/>
+      <stop offset="1" stop-color="#FFB46A" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="heat" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(418 1518) rotate(90) scale(338)">
+      <stop stop-color="#FF8A52" stop-opacity="0.48"/>
+      <stop offset="1" stop-color="#FF8A52" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+</svg>
