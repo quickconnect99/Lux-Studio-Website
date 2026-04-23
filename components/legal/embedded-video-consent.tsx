@@ -47,7 +47,7 @@ export function EmbeddedVideoConsent({
       <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(5,8,10,0.24)_0%,rgba(5,8,10,0.82)_100%)]" />
 
       <div className="absolute inset-x-0 bottom-0 z-10 p-6 text-white sm:p-8">
-        <div className="max-w-xl rounded-[1.75rem] border border-white/15 bg-black/45 p-5 backdrop-blur-md">
+        <div className="max-w-xl rounded-[1.75rem] border border-white/15 bg-black/70 p-5 backdrop-blur-md">
           <p className="font-mono text-[0.68rem] uppercase tracking-[0.28em] text-accent">
             External video / {providerLabel}
           </p>
@@ -60,7 +60,7 @@ export function EmbeddedVideoConsent({
             den jeweiligen Anbieter uebertragen werden.
           </p>
 
-          <div className="mt-6 flex flex-wrap items-center gap-4">
+          <div className="mt-6 flex flex-col items-start gap-3 sm:flex-row sm:flex-wrap sm:items-center">
             <button
               type="button"
               onClick={() => setEnabled(true)}
@@ -82,7 +82,7 @@ export function EmbeddedVideoConsent({
 
             <Link
               href="/datenschutz"
-              className="text-xs uppercase tracking-ui text-white/68 transition-colors duration-150 hover:text-accent"
+              className="text-xs uppercase tracking-ui text-white/68 transition-colors duration-150 hover:text-accent sm:basis-full"
             >
               Datenschutz ansehen
             </Link>
