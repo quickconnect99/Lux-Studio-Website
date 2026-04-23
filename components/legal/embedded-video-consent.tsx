@@ -42,6 +42,7 @@ export function EmbeddedVideoConsent({
         alt={`${title} Vorschaubild`}
         fill
         sizes="(min-width: 1024px) 55vw, 100vw"
+        quality={90}
         className="object-cover"
       />
       <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(5,8,10,0.24)_0%,rgba(5,8,10,0.82)_100%)]" />
