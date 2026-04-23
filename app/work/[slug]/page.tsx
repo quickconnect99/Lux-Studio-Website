@@ -231,7 +231,7 @@ export default async function ProjectPage({
         </div>
       </section>
 
-      {carouselImages.length > 1 ? (
+      {carouselImages.length >= 1 ? (
         <section className="section-shell section-space-tight pt-0">
           <Reveal delay={0.05}>
             <ProjectImageCarousel
