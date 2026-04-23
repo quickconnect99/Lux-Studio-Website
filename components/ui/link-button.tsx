@@ -23,7 +23,7 @@ export function LinkButton({
       href={href}
       className={cn(
         // base
-        "group inline-flex items-center gap-3 rounded-full border px-5 py-3",
+        "group inline-flex min-h-11 items-center gap-3 rounded-full border px-5 py-3",
         "text-xs font-medium uppercase tracking-ui",
         // press feedback (scale defined in globals.css via a:active)
         "active:scale-95",
