@@ -73,6 +73,7 @@ export function Lightbox({
                 fill
                 sizes="(min-width: 1280px) 80vw, 100vw"
                 className="object-cover"
+                quality={95}
                 priority
               />
             </div>
