@@ -3,13 +3,14 @@
 import {
   type ChangeEvent,
   useCallback,
+  useMemo,
   useEffect,
   useRef,
   useState
 } from "react";
 import { useForm } from "@/hooks/use-form";
-import { projects as fallbackProjects } from "@/lib/content";
 import { defaultSiteSettings } from "@/lib/site-config";
+import { normalizeProjectGallery } from "@/lib/project-images";
 import {
   SITE_SETTINGS_ID,
   SUPABASE_BUCKET,
@@ -18,17 +19,25 @@ import {
   normalizeSiteSettingsRecord,
   normalizeProjectRecord
 } from "@/lib/supabase";
-import type { Project } from "@/lib/types";
 import type {
+  AdminConfirmDialogState,
+  AdminProjectListItem,
+  AdminSaveReport,
   AdminTab,
   ProjectFormState,
+  SlugValidationState,
   SiteSettingsFormState
 } from "@/lib/admin-types";
 import {
+  buildUniqueSlugSuggestion,
   DRAFT_STORAGE_KEY,
+  formatFileSize,
+  getAdminProjectKey,
   slugify,
   parseMultilineInput,
   getProjectCompletionIssues,
+  projectTemplates,
+  toAdminProjectListItem,
   toFormState,
   toSiteSettingsFormState,
   parseSocialLinksText,
@@ -41,12 +50,17 @@ type UploadProgress = { current: number; total: number; filename: string };
 
 const MAX_IMAGE_BYTES = 25 * 1024 * 1024;
 const MAX_VIDEO_BYTES = 2 * 1024 * 1024 * 1024;
+const DRAFT_PROJECT_KEY = "draft:new-project";
+const DEFAULT_STATUS_MESSAGE =
+  "Two starter templates are always available. Editing one and saving creates a new project.";
 
 export function useAdminData() {
   const supabase = createBrowserSupabaseClient();
+  const templateProjects = projectTemplates;
+  const defaultTemplate = templateProjects[0];
 
   const projectForm = useForm<ProjectFormState>(
-    toFormState(fallbackProjects[0])
+    toFormState(defaultTemplate)
   );
   const siteSettingsForm = useForm<SiteSettingsFormState>(
     toSiteSettingsFormState(defaultSiteSettings)
@@ -54,39 +68,43 @@ export function useAdminData() {
   const authForm = useForm({ email: "", password: "" });
 
   const [activeTab, setActiveTab] = useState<AdminTab>("projects");
-  const [projects, setProjects] = useState<Project[]>(fallbackProjects);
-  const [selectedSlug, setSelectedSlug] = useState<string>(
-    fallbackProjects[0]?.slug ?? "new-project"
+  const [projects, setProjects] = useState<AdminProjectListItem[]>([]);
+  const [selectedProjectKey, setSelectedProjectKey] = useState<string>(
+    defaultTemplate.adminKey
   );
   const [sessionEmail, setSessionEmail] = useState<string | null>(null);
-  const [statusMessage, setStatusMessage] = useState(
-    "Demo content is editable locally. Connect Supabase to persist projects and site settings."
-  );
+  const [statusMessage, setStatusMessage] = useState(DEFAULT_STATUS_MESSAGE);
+  const [saveReport, setSaveReport] = useState<AdminSaveReport | null>(null);
   const [working, setWorking] = useState(false);
   const [uploadProgress, setUploadProgress] = useState<UploadProgress | null>(
     null
   );
-  const [coverFile, setCoverFile] = useState<File | null>(null);
+  const [coverFile, setCoverFileState] = useState<File | null>(null);
   const [galleryFiles, setGalleryFiles] = useState<File[]>([]);
-  const [videoFile, setVideoFile] = useState<File | null>(null);
+  const [videoFile, setVideoFileState] = useState<File | null>(null);
   const [savedFormSnapshot, setSavedFormSnapshot] = useState<string>(
-    JSON.stringify(toFormState(fallbackProjects[0]))
+    JSON.stringify(toFormState(defaultTemplate))
   );
   const [saveCount, setSaveCount] = useState(0);
-  const [deleteConfirmPending, setDeleteConfirmPending] = useState(false);
-  const [resetConfirmPending, setResetConfirmPending] = useState(false);
-  const deleteConfirmTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const resetConfirmTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [slugValidation, setSlugValidation] = useState<SlugValidationState>({
+    status: "idle",
+    slug: "",
+    message: null,
+    suggestedSlug: null
+  });
+  const [confirmDialog, setConfirmDialog] =
+    useState<AdminConfirmDialogState | null>(null);
+  const slugValidationRequest = useRef(0);
 
   const {
     values: formState,
     replace: replaceProjectForm,
-    updateField
+    updateField: updateProjectFormField
   } = projectForm;
   const {
     values: siteSettingsFormState,
     replace: replaceSiteSettingsForm,
-    updateField: updateSiteSettingsField
+    updateField: updateSiteSettingsFormField
   } = siteSettingsForm;
   const {
     values: authFormState,
@@ -108,6 +126,70 @@ export function useAdminData() {
 
   const galleryImageList = parseMultilineInput(formState.galleryImagesText);
   const captionRawLines = formState.galleryCaptionsText.split("\n");
+  const [coverPreviewUrl, setCoverPreviewUrl] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!coverFile) {
+      setCoverPreviewUrl(null);
+      return;
+    }
+
+    const objectUrl = URL.createObjectURL(coverFile);
+    setCoverPreviewUrl(objectUrl);
+
+    return () => {
+      URL.revokeObjectURL(objectUrl);
+    };
+  }, [coverFile]);
+
+  const coverPreviewImage = coverPreviewUrl ?? formState.coverImage;
+  const isTemplateProject = Boolean(formState.templateBusiness);
+  const allProjects = useMemo(
+    () => [...templateProjects, ...projects],
+    [projects, templateProjects]
+  );
+
+  const showStatus = useCallback((message: string) => {
+    setSaveReport(null);
+    setStatusMessage(message);
+  }, []);
+
+  const updateField = useCallback(
+    <K extends keyof ProjectFormState>(key: K, value: ProjectFormState[K]) => {
+      setSaveReport(null);
+      if (key === "slug" || key === "title") {
+        setSlugValidation({
+          status: "idle",
+          slug: "",
+          message: null,
+          suggestedSlug: null
+        });
+      }
+      updateProjectFormField(key, value);
+    },
+    [updateProjectFormField]
+  );
+
+  const updateSiteSettingsField = useCallback(
+    <K extends keyof SiteSettingsFormState>(
+      key: K,
+      value: SiteSettingsFormState[K]
+    ) => {
+      setSaveReport(null);
+      updateSiteSettingsFormField(key, value);
+    },
+    [updateSiteSettingsFormField]
+  );
+
+  const setCoverFile = useCallback((file: File | null) => {
+    setSaveReport(null);
+    setCoverFileState(file);
+  }, []);
+
+  const setVideoFile = useCallback((file: File | null) => {
+    setSaveReport(null);
+    setVideoFileState(file);
+  }, []);
 
   function updateCaption(index: number, value: string) {
     const lines = formState.galleryCaptionsText.split("\n");
@@ -117,39 +199,56 @@ export function useAdminData() {
   }
 
   const applyProject = useCallback(
-    (project: Project) => {
+    (project: AdminProjectListItem) => {
       const state = toFormState(project);
-      setSelectedSlug(project.slug);
+      setSelectedProjectKey(project.adminKey);
       replaceProjectForm(state);
       setSavedFormSnapshot(JSON.stringify(state));
-      setCoverFile(null);
+      setSaveReport(null);
+      setCoverFileState(null);
       setGalleryFiles([]);
-      setVideoFile(null);
-      setDeleteConfirmPending(false);
-      setResetConfirmPending(false);
+      setVideoFileState(null);
+      setConfirmDialog(null);
+      setSlugValidation({
+        status: "idle",
+        slug: "",
+        message: null,
+        suggestedSlug: null
+      });
     },
     [replaceProjectForm]
   );
 
   function resetToNewProject() {
     const fresh = createEmptyProject();
-    setSelectedSlug(fresh.slug);
+    setSelectedProjectKey(DRAFT_PROJECT_KEY);
     replaceProjectForm(fresh);
     setSavedFormSnapshot(JSON.stringify(fresh));
-    setCoverFile(null);
+    setSaveReport(null);
+    setCoverFileState(null);
     setGalleryFiles([]);
-    setVideoFile(null);
-    setDeleteConfirmPending(false);
-    setResetConfirmPending(false);
+    setVideoFileState(null);
+    setConfirmDialog(null);
+    setSlugValidation({
+      status: "idle",
+      slug: "",
+      message: null,
+      suggestedSlug: null
+    });
   }
 
-  function selectProject(project: Project) {
-    if (isDirty) setStatusMessage("Previous unsaved changes were discarded.");
+  function selectProject(project: AdminProjectListItem) {
+    if (isDirty) showStatus("Previous unsaved changes were discarded.");
     applyProject(project);
+    if (project.isTemplate) {
+      showStatus(
+        `${project.business} template loaded. Saving will create a new project and keep the template available.`
+      );
+    }
   }
 
   function newProject() {
-    if (isDirty) setStatusMessage("Previous unsaved changes were discarded.");
+    if (isDirty) showStatus("Previous unsaved changes were discarded.");
     resetToNewProject();
   }
 
@@ -160,57 +259,244 @@ export function useAdminData() {
     const copy: ProjectFormState = {
       ...formState,
       id: undefined,
+      templateBusiness: undefined,
       title: `${formState.title} (Copy)`,
       slug: baseSlug,
       published: false,
       createdAt: new Date().toISOString()
     };
-    setSelectedSlug(copy.slug);
+    setSelectedProjectKey(DRAFT_PROJECT_KEY);
     replaceProjectForm(copy);
     setSavedFormSnapshot("");
-    setCoverFile(null);
+    setSaveReport(null);
+    setCoverFileState(null);
     setGalleryFiles([]);
-    setVideoFile(null);
-    setDeleteConfirmPending(false);
-    setResetConfirmPending(false);
-    setStatusMessage("Project duplicated. Update the title and slug, then save.");
+    setVideoFileState(null);
+    setConfirmDialog(null);
+    setSlugValidation({
+      status: "idle",
+      slug: "",
+      message: null,
+      suggestedSlug: null
+    });
+    showStatus("Project duplicated. Update the title and slug, then save.");
   }
 
   function addGalleryFiles(newFiles: File[]) {
     const oversized = newFiles.filter((f) => f.size > MAX_IMAGE_BYTES);
     if (oversized.length > 0) {
-      setStatusMessage(
+      showStatus(
         `Files too large: ${oversized.map((f) => f.name).join(", ")}. Maximum 25 MB per image.`
       );
       return;
     }
+    setSaveReport(null);
     setGalleryFiles((prev) => [...prev, ...newFiles]);
   }
 
   function removeGalleryFile(index: number) {
+    setSaveReport(null);
     setGalleryFiles((prev) => prev.filter((_, i) => i !== index));
+  }
+
+  async function checkSlugAvailability(
+    rawValue = formState.slug || formState.title,
+    options?: { showAvailableState?: boolean }
+  ) {
+    const targetSlug = slugify(rawValue);
+
+    if (!targetSlug) {
+      setSlugValidation({
+        status: "idle",
+        slug: "",
+        message: null,
+        suggestedSlug: null
+      });
+      return { ok: false, slug: "" };
+    }
+
+    const existingSlugs = projects
+      .filter((project) => project.id !== formState.id)
+      .map((project) => project.slug);
+    const suggestion = buildUniqueSlugSuggestion(targetSlug, existingSlugs);
+    const requestId = ++slugValidationRequest.current;
+
+    setSlugValidation({
+      status: "checking",
+      slug: targetSlug,
+      message: "Checking slug availability...",
+      suggestedSlug: null
+    });
+
+    const localConflict = projects.find(
+      (project) => project.slug === targetSlug && project.id !== formState.id
+    );
+
+    if (localConflict) {
+      if (requestId !== slugValidationRequest.current) {
+        return { ok: false, slug: targetSlug };
+      }
+
+      setSlugValidation({
+        status: "conflict",
+        slug: targetSlug,
+        message: `This slug is already used by "${localConflict.title}".`,
+        suggestedSlug: suggestion
+      });
+      return { ok: false, slug: targetSlug, suggestedSlug: suggestion };
+    }
+
+    if (supabase && sessionEmail) {
+      let query = supabase
+        .from("projects")
+        .select("id, title, slug")
+        .eq("slug", targetSlug);
+
+      if (formState.id) {
+        query = query.neq("id", formState.id);
+      }
+
+      const { data, error } = await query.maybeSingle();
+
+      if (requestId !== slugValidationRequest.current) {
+        return { ok: false, slug: targetSlug };
+      }
+
+      if (error) {
+        showStatus(
+          "Slug availability could not be verified against Supabase. It will be checked again when saving."
+        );
+        setSlugValidation({
+          status: "idle",
+          slug: targetSlug,
+          message: null,
+          suggestedSlug: null
+        });
+        return { ok: false, slug: targetSlug };
+      }
+
+      if (data) {
+        setSlugValidation({
+          status: "conflict",
+          slug: targetSlug,
+          message: `This slug is already used by "${data.title}".`,
+          suggestedSlug: suggestion
+        });
+        return { ok: false, slug: targetSlug, suggestedSlug: suggestion };
+      }
+    }
+
+    setSlugValidation({
+      status:
+        options?.showAvailableState === false ? "idle" : "available",
+      slug: targetSlug,
+      message:
+        options?.showAvailableState === false ? null : "Slug is available.",
+      suggestedSlug: null
+    });
+    return { ok: true, slug: targetSlug };
+  }
+
+  function handleSlugBlur() {
+    void checkSlugAvailability();
+  }
+
+  function applySuggestedSlug() {
+    if (!slugValidation.suggestedSlug) {
+      return;
+    }
+
+    updateField("slug", slugValidation.suggestedSlug);
+    void checkSlugAvailability(slugValidation.suggestedSlug);
   }
 
   function handleResetClick() {
     if (!isDirty) {
-      const current = projects.find((p) => p.slug === selectedSlug);
+      const current = allProjects.find((p) => p.adminKey === selectedProjectKey);
       current ? applyProject(current) : resetToNewProject();
       return;
     }
 
-    if (!resetConfirmPending) {
-      setResetConfirmPending(true);
-      resetConfirmTimer.current = setTimeout(
-        () => setResetConfirmPending(false),
-        3000
-      );
+    setConfirmDialog({
+      action: "reset",
+      title: "Discard unsaved changes?",
+      description:
+        "Resetting restores the last saved project state and removes any unsaved edits in the editor and preview.",
+      confirmLabel: "Reset form",
+      tone: "default",
+      inputValue: ""
+    });
+  }
+
+  function openDeleteDialog() {
+    if (formState.templateBusiness) {
+      showStatus("Templates are permanent starting points and cannot be deleted.");
       return;
     }
 
-    if (resetConfirmTimer.current) clearTimeout(resetConfirmTimer.current);
-    setResetConfirmPending(false);
-    const current = projects.find((p) => p.slug === selectedSlug);
+    if (!formState.id) {
+      showStatus("This project has no database ID and cannot be deleted.");
+      return;
+    }
+
+    setConfirmDialog({
+      action: "delete",
+      title: `Delete "${formState.title}"?`,
+      description: formState.published
+        ? "This published project will be removed from Supabase and disappear from the live website. This action cannot be undone."
+        : "This project will be removed from Supabase. This action cannot be undone.",
+      confirmLabel: "Delete project",
+      tone: "danger",
+      requireMatchText: formState.published ? formState.title : undefined,
+      inputLabel: formState.published
+        ? "Type the project title to confirm"
+        : undefined,
+      inputPlaceholder: formState.published ? formState.title : undefined,
+      inputValue: ""
+    });
+  }
+
+  function closeConfirmDialog() {
+    if (working) {
+      return;
+    }
+
+    setConfirmDialog(null);
+  }
+
+  function updateConfirmDialogInput(value: string) {
+    setConfirmDialog((current) =>
+      current ? { ...current, inputValue: value } : current
+    );
+  }
+
+  function resetCurrentSelection() {
+    const current = allProjects.find((p) => p.adminKey === selectedProjectKey);
     current ? applyProject(current) : resetToNewProject();
+  }
+
+  async function confirmDialogAction() {
+    if (!confirmDialog) {
+      return;
+    }
+
+    if (
+      confirmDialog.requireMatchText &&
+      confirmDialog.inputValue.trim() !== confirmDialog.requireMatchText
+    ) {
+      showStatus("Type the project title exactly to confirm deletion.");
+      return;
+    }
+
+    if (confirmDialog.action === "reset") {
+      setConfirmDialog(null);
+      resetCurrentSelection();
+      showStatus("Unsaved changes were discarded.");
+      return;
+    }
+
+    setConfirmDialog(null);
+    await performDelete();
   }
 
   const loadProjects = useCallback(async () => {
@@ -219,11 +505,16 @@ export function useAdminData() {
       .from("projects")
       .select("*")
       .order("created_at", { ascending: false });
-    if (!data || data.length === 0) return;
-    const normalized = data.map((item) => normalizeProjectRecord(item));
+    if (!data || data.length === 0) {
+      setProjects([]);
+      return;
+    }
+
+    const normalized = data
+      .map((item) => normalizeProjectRecord(item))
+      .map(toAdminProjectListItem);
     setProjects(normalized);
-    if (normalized[0]) applyProject(normalized[0]);
-  }, [supabase, applyProject]);
+  }, [supabase]);
 
   const loadSiteSettings = useCallback(async () => {
     if (!supabase) {
@@ -268,9 +559,9 @@ export function useAdminData() {
       if (session?.user.email) {
         void loadProjects();
       } else {
-        setProjects(fallbackProjects);
+        setProjects([]);
         void loadSiteSettings();
-        if (fallbackProjects[0]) applyProject(fallbackProjects[0]);
+        applyProject(defaultTemplate);
       }
     });
 
@@ -278,7 +569,7 @@ export function useAdminData() {
       active = false;
       subscription.unsubscribe();
     };
-  }, [loadProjects, loadSiteSettings, applyProject, supabase]);
+  }, [loadProjects, loadSiteSettings, applyProject, supabase, defaultTemplate]);
 
   const handleSaveRef = useRef<(() => void) | null>(null);
   useEffect(() => {
@@ -298,12 +589,23 @@ export function useAdminData() {
       const raw = localStorage.getItem(DRAFT_STORAGE_KEY);
       if (!raw) return;
       const draft = JSON.parse(raw) as Partial<ProjectFormState>;
-      replaceProjectForm({
+      const restoredDraft: ProjectFormState = {
         ...createEmptyProject(),
         ...draft,
         business: draft.business === "Hospitality" ? "Hospitality" : "Car"
-      });
-      setStatusMessage("Draft restored from browser storage.");
+      };
+      replaceProjectForm(restoredDraft);
+      setSelectedProjectKey(
+        restoredDraft.templateBusiness
+          ? getAdminProjectKey({
+              slug: restoredDraft.slug,
+              isTemplate: true,
+              templateBusiness: restoredDraft.templateBusiness
+            })
+          : DRAFT_PROJECT_KEY
+      );
+      setSavedFormSnapshot(JSON.stringify(restoredDraft));
+      showStatus("Draft restored from browser storage.");
     } catch {
       // ignore malformed storage
     }
@@ -336,32 +638,35 @@ export function useAdminData() {
     event?.preventDefault();
 
     if (!isProjectComplete) {
-      setStatusMessage(
+      showStatus(
         `Project not saved. Complete these fields first: ${completionIssues.join(", ")}.`
       );
       return;
     }
 
-    const targetSlug = slugify(formState.slug || formState.title);
-    const slugConflict = projects.find(
-      (p) => p.slug === targetSlug && p.id !== formState.id
-    );
-    if (slugConflict) {
-      setStatusMessage(
-        `Slug "${targetSlug}" is already used by "${slugConflict.title}". Please choose a different title or slug.`
-      );
+    const slugResult = await checkSlugAvailability(formState.slug || formState.title, {
+      showAvailableState: false
+    });
+    if (!slugResult.ok) {
+      showStatus("Project not saved. Resolve the slug conflict before saving.");
       return;
     }
 
+    const targetSlug = slugResult.slug;
+    const isTemplateSource = Boolean(formState.templateBusiness);
+
+    setSaveReport(null);
     setWorking(true);
 
     try {
       let coverImage = formState.coverImage;
       let uploadedVideo = formState.uploadedVideo;
       let galleryImages = parseMultilineInput(formState.galleryImagesText);
-      const galleryCaptions = formState.galleryCaptionsText
+      let galleryCaptions = formState.galleryCaptionsText
         .split("\n")
         .map((v) => v.trim());
+      let shouldClearQueuedMedia = true;
+      let nextReport: AdminSaveReport | null = null;
 
       if (supabase && sessionEmail) {
         const totalFiles =
@@ -400,8 +705,19 @@ export function useAdminData() {
         }
         setUploadProgress(null);
 
+        const normalizedGallery = normalizeProjectGallery({
+          coverImage,
+          galleryImages,
+          galleryCaptions
+        });
+        galleryImages = normalizedGallery.images;
+        galleryCaptions = normalizedGallery.captions;
+
+        const createdAt = isTemplateSource
+          ? new Date().toISOString()
+          : formState.createdAt;
         const payload = {
-          id: formState.id,
+          id: isTemplateSource ? undefined : formState.id,
           business: formState.business,
           title: formState.title,
           slug: targetSlug,
@@ -418,7 +734,7 @@ export function useAdminData() {
           uploaded_video: uploadedVideo || null,
           featured: formState.featured,
           published: formState.published,
-          created_at: formState.createdAt,
+          created_at: createdAt,
           behind_the_scenes: formState.behindTheScenes || null
         };
 
@@ -430,22 +746,94 @@ export function useAdminData() {
 
         if (error) throw error;
 
-        const saved = normalizeProjectRecord(data);
+        const saved = toAdminProjectListItem(normalizeProjectRecord(data));
         const nextProjects = [
           saved,
-          ...projects.filter((p) => p.slug !== saved.slug)
+          ...projects.filter(
+            (p) => p.id !== saved.id && p.slug !== saved.slug
+          )
         ].sort((a, b) => b.createdAt.localeCompare(a.createdAt));
 
         setProjects(nextProjects);
         const nextState = toFormState(saved);
-        setSelectedSlug(saved.slug);
+        setSelectedProjectKey(saved.adminKey);
         replaceProjectForm(nextState);
         setSavedFormSnapshot(JSON.stringify(nextState));
         setSaveCount((c) => c + 1);
-        setStatusMessage("Project saved to Supabase.");
+        setStatusMessage(
+          isTemplateSource
+            ? "New project created from template and saved to Supabase."
+            : "Project saved to Supabase."
+        );
+        nextReport = {
+          title: isTemplateSource
+            ? "New project created and synced"
+            : "Project saved to Supabase",
+          items: [
+            {
+              id: "project",
+              label: "Project data saved",
+              detail: "Supabase",
+              tone: "success"
+            },
+            ...(coverFile
+              ? [
+                  {
+                    id: "cover",
+                    label: "Cover uploaded",
+                    detail: formatFileSize(coverFile.size),
+                    tone: "success" as const
+                  }
+                ]
+              : []),
+            ...(galleryFiles.length > 0
+              ? [
+                  {
+                    id: "gallery",
+                    label: `${galleryFiles.length} gallery ${galleryFiles.length === 1 ? "image" : "images"} uploaded`,
+                    detail: formatFileSize(
+                      galleryFiles.reduce((sum, file) => sum + file.size, 0)
+                    ),
+                    tone: "success" as const
+                  }
+                ]
+              : []),
+            ...(videoFile
+              ? [
+                  {
+                    id: "video",
+                    label: "Video uploaded",
+                    detail: formatFileSize(videoFile.size),
+                    tone: "success" as const
+                  }
+                ]
+              : []),
+            ...(!coverFile && galleryFiles.length === 0 && !videoFile
+              ? [
+                  {
+                    id: "metadata-only",
+                    label: "No media uploads in this save",
+                    detail: "Metadata only",
+                    tone: "info" as const
+                  }
+                ]
+              : [])
+          ]
+        };
       } else {
-        const saved: Project = {
-          id: formState.id,
+        const normalizedGallery = normalizeProjectGallery({
+          coverImage,
+          galleryImages,
+          galleryCaptions
+        });
+        galleryImages = normalizedGallery.images;
+        galleryCaptions = normalizedGallery.captions;
+
+        const createdAt = isTemplateSource
+          ? new Date().toISOString()
+          : formState.createdAt;
+        const saved = toAdminProjectListItem({
+          id: isTemplateSource ? undefined : formState.id,
           business: formState.business,
           title: formState.title,
           slug: targetSlug,
@@ -462,33 +850,88 @@ export function useAdminData() {
           uploadedVideo: uploadedVideo || undefined,
           featured: formState.featured,
           published: formState.published,
-          createdAt: formState.createdAt,
+          createdAt,
           behindTheScenes: formState.behindTheScenes || undefined
-        };
+        });
 
         const nextProjects = [
           saved,
-          ...projects.filter((p) => p.slug !== saved.slug)
+          ...projects.filter(
+            (p) => p.id !== saved.id && p.slug !== saved.slug
+          )
         ];
         setProjects(nextProjects);
         const nextState = toFormState(saved);
-        setSelectedSlug(saved.slug);
+        setSelectedProjectKey(saved.adminKey);
         replaceProjectForm(nextState);
         setSavedFormSnapshot(JSON.stringify(nextState));
         setSaveCount((c) => c + 1);
+        shouldClearQueuedMedia =
+          !coverFile && galleryFiles.length === 0 && !videoFile;
         setStatusMessage(
           isSupabaseConfigured
             ? "Sign in to persist changes to Supabase."
-            : "Draft saved to browser storage."
+            : isTemplateSource
+              ? "New project created locally from template."
+              : "Draft saved to browser storage."
         );
+        nextReport = {
+          title: isSupabaseConfigured
+            ? "Saved locally only"
+            : "Local draft saved",
+          items: [
+            {
+              id: "project",
+              label: isSupabaseConfigured
+                ? "Project data saved in this browser session"
+                : "Project data saved in browser storage",
+              detail: isSupabaseConfigured ? "Session only" : "localStorage",
+              tone: "info"
+            },
+            ...(coverFile
+              ? [
+                  {
+                    id: "cover-warning",
+                    label: "Cover upload still pending",
+                    detail: "Sign in to Supabase to persist this file",
+                    tone: "warning" as const
+                  }
+                ]
+              : []),
+            ...(galleryFiles.length > 0
+              ? [
+                  {
+                    id: "gallery-warning",
+                    label: `${galleryFiles.length} gallery ${galleryFiles.length === 1 ? "image is" : "images are"} still pending`,
+                    detail: "Sign in to Supabase to upload queued media",
+                    tone: "warning" as const
+                  }
+                ]
+              : []),
+            ...(videoFile
+              ? [
+                  {
+                    id: "video-warning",
+                    label: "Video upload still pending",
+                    detail: "Sign in to Supabase to persist this file",
+                    tone: "warning" as const
+                  }
+                ]
+              : [])
+          ]
+        };
       }
 
-      setCoverFile(null);
-      setGalleryFiles([]);
-      setVideoFile(null);
+      if (shouldClearQueuedMedia) {
+        setCoverFileState(null);
+        setGalleryFiles([]);
+        setVideoFileState(null);
+      }
+
+      setSaveReport(nextReport);
     } catch (err) {
       setUploadProgress(null);
-      setStatusMessage(
+      showStatus(
         err instanceof Error ? err.message : "The project could not be saved."
       );
     } finally {
@@ -510,25 +953,20 @@ export function useAdminData() {
     return () => window.removeEventListener("beforeunload", handler);
   }, [isDirty]);
 
-  async function handleDeleteClick() {
+  async function performDelete() {
+    if (formState.templateBusiness) {
+      showStatus("Templates are permanent starting points and cannot be deleted.");
+      return;
+    }
+
     if (!formState.id) {
-      setStatusMessage(
+      showStatus(
         "This project has no database ID and cannot be deleted."
       );
       return;
     }
 
-    if (!deleteConfirmPending) {
-      setDeleteConfirmPending(true);
-      deleteConfirmTimer.current = setTimeout(
-        () => setDeleteConfirmPending(false),
-        3000
-      );
-      return;
-    }
-
-    if (deleteConfirmTimer.current) clearTimeout(deleteConfirmTimer.current);
-    setDeleteConfirmPending(false);
+    setSaveReport(null);
     setWorking(true);
 
     try {
@@ -540,21 +978,32 @@ export function useAdminData() {
         if (error) throw error;
       }
 
-      const next = projects.filter((p) => p.slug !== formState.slug);
-      const remaining = next.length > 0 ? next : fallbackProjects;
-      setProjects(remaining);
-      if (remaining[0]) {
-        applyProject(remaining[0]);
+      const next = projects.filter((p) => p.id !== formState.id);
+      setProjects(next);
+      if (next[0]) {
+        applyProject(next[0]);
       } else {
-        resetToNewProject();
+        applyProject(defaultTemplate);
       }
       setStatusMessage(
         sessionEmail
           ? "Project deleted from Supabase."
           : "Project removed from session."
       );
+      setSaveReport({
+        title: "Project deleted",
+        items: [
+          {
+            id: "delete",
+            label: sessionEmail
+              ? "Project removed from Supabase"
+              : "Project removed from the current session",
+            tone: "success"
+          }
+        ]
+      });
     } catch (err) {
-      setStatusMessage(err instanceof Error ? err.message : "Delete failed.");
+      showStatus(err instanceof Error ? err.message : "Delete failed.");
     } finally {
       setWorking(false);
     }
@@ -562,17 +1011,18 @@ export function useAdminData() {
 
   async function handleSaveSiteSettings(event: { preventDefault(): void }) {
     event.preventDefault();
+    setSaveReport(null);
     setWorking(true);
 
     try {
       if (!supabase) {
-        setStatusMessage(
+        showStatus(
           "Connect Supabase to persist global links and contact details. Static fallback still lives in lib/site-config.ts."
         );
         return;
       }
       if (!sessionEmail) {
-        setStatusMessage("Sign in to save global site settings.");
+        showStatus("Sign in to save global site settings.");
         return;
       }
 
@@ -613,8 +1063,19 @@ export function useAdminData() {
         toSiteSettingsFormState(normalizeSiteSettingsRecord(data))
       );
       setStatusMessage("Global site settings saved to Supabase.");
+      setSaveReport({
+        title: "Site settings saved",
+        items: [
+          {
+            id: "site-settings",
+            label: "Global site settings saved",
+            detail: "Supabase",
+            tone: "success"
+          }
+        ]
+      });
     } catch (err) {
-      setStatusMessage(
+      showStatus(
         err instanceof Error
           ? err.message
           : "The site settings could not be saved."
@@ -626,6 +1087,7 @@ export function useAdminData() {
 
   async function handleSignIn() {
     if (!supabase) return;
+    setSaveReport(null);
     setWorking(true);
     try {
       const { error } = await supabase.auth.signInWithPassword({
@@ -633,7 +1095,7 @@ export function useAdminData() {
         password: authFormState.password
       });
       if (error) throw error;
-      setStatusMessage("Signed in. Project syncing is now enabled.");
+      showStatus("Signed in. Project syncing is now enabled.");
       try {
         localStorage.removeItem(DRAFT_STORAGE_KEY);
       } catch {
@@ -641,7 +1103,7 @@ export function useAdminData() {
       }
       resetAuthForm();
     } catch (err) {
-      setStatusMessage(err instanceof Error ? err.message : "Sign-in failed.");
+      showStatus(err instanceof Error ? err.message : "Sign-in failed.");
     } finally {
       setWorking(false);
     }
@@ -649,9 +1111,12 @@ export function useAdminData() {
 
   async function handleSignOut() {
     if (!supabase) return;
+    setSaveReport(null);
     await supabase.auth.signOut();
     setSessionEmail(null);
-    setStatusMessage("Signed out. Admin remains available in demo mode.");
+    setProjects([]);
+    applyProject(defaultTemplate);
+    showStatus("Signed out. Templates remain available for new project drafts.");
   }
 
   function handleFileSelection(
@@ -664,13 +1129,14 @@ export function useAdminData() {
 
     const oversized = files.filter((f) => f.size > limit);
     if (oversized.length > 0) {
-      setStatusMessage(
+      showStatus(
         `File too large: ${oversized.map((f) => f.name).join(", ")}. Maximum size for ${type === "video" ? "videos" : "images"} is ${limitLabel}.`
       );
       event.target.value = "";
       return;
     }
 
+    setSaveReport(null);
     if (type === "cover") setCoverFile(files[0] ?? null);
     if (type === "video") setVideoFile(files[0] ?? null);
   }
@@ -678,8 +1144,9 @@ export function useAdminData() {
   return {
     activeTab,
     setActiveTab,
+    templateProjects,
     projects,
-    selectedSlug,
+    selectedProjectKey,
     saveCount,
     sessionEmail,
     authFormState,
@@ -687,28 +1154,36 @@ export function useAdminData() {
     handleSignIn,
     handleSignOut,
     statusMessage,
+    saveReport,
     working,
     uploadProgress,
     coverFile,
+    coverPreviewImage,
     setCoverFile,
     galleryFiles,
     videoFile,
     setVideoFile,
     formState,
+    isTemplateProject,
     updateField,
     completionIssues,
     isProjectComplete,
     isDirty,
     galleryImageList,
     captionRawLines,
-    deleteConfirmPending,
-    resetConfirmPending,
+    slugValidation,
+    handleSlugBlur,
+    applySuggestedSlug,
+    confirmDialog,
+    closeConfirmDialog,
+    updateConfirmDialogInput,
+    confirmDialogAction,
     updateCaption,
     handleFileSelection,
     addGalleryFiles,
     removeGalleryFile,
     handleSave,
-    handleDeleteClick,
+    handleDeleteClick: openDeleteDialog,
     handleResetClick,
     selectProject,
     newProject,

@@ -2,14 +2,15 @@
 
 import {
   type KeyboardEvent as ReactKeyboardEvent,
+  type ReactNode,
   type RefObject,
   useEffect,
   useRef,
   useState
 } from "react";
 import Image from "next/image";
-import { PenSquare } from "lucide-react";
-import type { ProjectFormState } from "@/lib/admin-types";
+import { ExternalLink, PenSquare } from "lucide-react";
+import type { AdminProjectFieldKey, ProjectFormState } from "@/lib/admin-types";
 import { businesses, categories } from "@/lib/admin-utils";
 import { getProjectPrimaryMetaLabel } from "@/lib/project-business";
 import { cn } from "@/lib/utils";
@@ -34,14 +35,55 @@ export type PreviewToggleField = "published" | "featured";
 
 type LivePreviewProps = {
   formState: ProjectFormState;
+  coverPreviewSrc: string;
   isDirty: boolean;
   galleryImageList: string[];
   captionRawLines: string[];
+  activeField: AdminProjectFieldKey | null;
+  onActiveFieldChange: (field: AdminProjectFieldKey | null) => void;
   onUpdateField: (field: PreviewEditableField, value: string) => void;
   onUpdateCaption: (index: number, value: string) => void;
   onReplaceGalleryImage: (index: number, value: string) => void;
   onToggleField: (field: PreviewToggleField) => void;
+  liveProjectHref: string | null;
 };
+
+function PreviewFieldShell({
+  fieldKey,
+  activeField,
+  onActiveFieldChange,
+  className,
+  children
+}: {
+  fieldKey: AdminProjectFieldKey;
+  activeField: AdminProjectFieldKey | null;
+  onActiveFieldChange: (field: AdminProjectFieldKey | null) => void;
+  className?: string;
+  children: ReactNode;
+}) {
+  const isHighlighted = activeField === fieldKey;
+
+  return (
+    <div
+      onMouseEnter={() => onActiveFieldChange(fieldKey)}
+      onMouseLeave={() => onActiveFieldChange(null)}
+      onFocusCapture={() => onActiveFieldChange(fieldKey)}
+      onBlurCapture={(event) => {
+        const nextTarget = event.relatedTarget as Node | null;
+        if (!event.currentTarget.contains(nextTarget)) {
+          onActiveFieldChange(null);
+        }
+      }}
+      className={cn(
+        "rounded-[1.25rem] ring-1 ring-transparent transition-colors",
+        isHighlighted ? "bg-accent/5 ring-accent/50" : "",
+        className
+      )}
+    >
+      {children}
+    </div>
+  );
+}
 
 type EditablePreviewFieldProps = {
   fieldKey: PreviewEditableField;
@@ -231,6 +273,8 @@ type PreviewToggleChipProps = {
   onClick: () => void;
   activeClassName: string;
   inactiveClassName: string;
+  highlighted?: boolean;
+  onHoverChange?: (active: boolean) => void;
 };
 
 function PreviewToggleChip({
@@ -238,14 +282,21 @@ function PreviewToggleChip({
   label,
   onClick,
   activeClassName,
-  inactiveClassName
+  inactiveClassName,
+  highlighted = false,
+  onHoverChange
 }: PreviewToggleChipProps) {
   return (
     <button
       type="button"
       onClick={onClick}
+      onMouseEnter={() => onHoverChange?.(true)}
+      onMouseLeave={() => onHoverChange?.(false)}
+      onFocus={() => onHoverChange?.(true)}
+      onBlur={() => onHoverChange?.(false)}
       className={cn(
-        "rounded-full px-2.5 py-1 text-[0.6rem] uppercase tracking-eyebrow backdrop-blur-sm transition-colors",
+        "rounded-full border px-2.5 py-1 text-[0.6rem] uppercase tracking-eyebrow backdrop-blur-sm transition-colors",
+        highlighted ? "border-accent/60" : "border-transparent",
         active ? activeClassName : inactiveClassName
       )}
     >
@@ -256,13 +307,17 @@ function PreviewToggleChip({
 
 export function LivePreview({
   formState,
+  coverPreviewSrc,
   isDirty,
   galleryImageList,
   captionRawLines,
+  activeField,
+  onActiveFieldChange,
   onUpdateField,
   onUpdateCaption,
   onReplaceGalleryImage,
-  onToggleField
+  onToggleField,
+  liveProjectHref
 }: LivePreviewProps) {
   const primaryMetaLabel = getProjectPrimaryMetaLabel(formState.business);
 
@@ -278,21 +333,42 @@ export function LivePreview({
               Double-click any text to edit it directly in the preview.
             </p>
           </div>
-          <div className="flex h-10 w-10 items-center justify-center rounded-full border border-line bg-panel-secondary text-muted">
-            <PenSquare className="h-4 w-4" />
+          <div className="flex items-center gap-2">
+            {liveProjectHref ? (
+              <a
+                href={liveProjectHref}
+                target="_blank"
+                rel="noreferrer"
+                className="control-pill text-accent"
+              >
+                Open Live Page
+                <ExternalLink className="h-3.5 w-3.5" />
+              </a>
+            ) : null}
+            <div className="flex h-10 w-10 items-center justify-center rounded-full border border-line bg-panel-secondary text-muted">
+              <PenSquare className="h-4 w-4" />
+            </div>
           </div>
         </div>
 
         <div className="relative min-h-[240px] bg-panel-dark">
-          {formState.coverImage ? (
-            <Image
-              src={formState.coverImage}
-              alt={formState.title || "Project preview"}
-              fill
-              sizes="360px"
-              className="object-cover"
-            />
-          ) : null}
+          <PreviewFieldShell
+            fieldKey="coverImage"
+            activeField={activeField}
+            onActiveFieldChange={onActiveFieldChange}
+            className="absolute inset-0 overflow-hidden rounded-none"
+          >
+            {coverPreviewSrc ? (
+              <Image
+                src={coverPreviewSrc}
+                alt={formState.title || "Project preview"}
+                fill
+                sizes="360px"
+                unoptimized
+                className="object-cover"
+              />
+            ) : null}
+          </PreviewFieldShell>
           <div className="absolute inset-x-0 bottom-0 flex flex-wrap gap-1.5 p-3">
             <PreviewToggleChip
               active={formState.published}
@@ -300,6 +376,10 @@ export function LivePreview({
               onClick={() => onToggleField("published")}
               activeClassName="bg-success/20 text-success"
               inactiveClassName="bg-foreground/50 text-background/70"
+              highlighted={activeField === "published"}
+              onHoverChange={(isActive) =>
+                onActiveFieldChange(isActive ? "published" : null)
+              }
             />
             <PreviewToggleChip
               active={formState.featured}
@@ -307,6 +387,10 @@ export function LivePreview({
               onClick={() => onToggleField("featured")}
               activeClassName="bg-accent/20 text-accent"
               inactiveClassName="bg-black/35 text-white/75"
+              highlighted={activeField === "featured"}
+              onHoverChange={(isActive) =>
+                onActiveFieldChange(isActive ? "featured" : null)
+              }
             />
             {isDirty ? (
               <span className="bg-warning/20 rounded-full px-2.5 py-1 text-[0.6rem] uppercase tracking-eyebrow text-warning backdrop-blur-sm">
@@ -317,66 +401,101 @@ export function LivePreview({
         </div>
 
         <div className="space-y-5 p-5">
-          <EditablePreviewField
+          <PreviewFieldShell
             fieldKey="business"
-            value={formState.business}
-            placeholder="Project business"
-            kind="select"
-            options={businesses}
-            onCommit={onUpdateField}
-            wrapperClassName="-mx-2 -my-1 px-2 py-1"
-            displayClassName="text-[0.62rem] uppercase tracking-[0.28em] text-accent"
-          />
-
-          <EditablePreviewField
-            fieldKey="category"
-            value={formState.category}
-            placeholder="Project category"
-            kind="select"
-            options={categories}
-            onCommit={onUpdateField}
-            wrapperClassName="-mx-2 -my-1 px-2 py-1"
-            displayClassName="text-[0.62rem] uppercase tracking-[0.28em] text-muted"
-          />
-
-          <EditablePreviewField
-            fieldKey="title"
-            value={formState.title}
-            placeholder="Project title"
-            onCommit={onUpdateField}
-            wrapperClassName="-mx-2 -my-2 px-2 py-2"
-            displayClassName="font-[family:var(--font-display)] text-3xl uppercase leading-[0.9] text-foreground"
-            inputClassName="font-[family:var(--font-display)] text-2xl uppercase tracking-tight"
-          />
-
-          <EditablePreviewField
-            fieldKey="shortDescription"
-            value={formState.shortDescription}
-            placeholder="Short description will appear here."
-            kind="textarea"
-            rows={4}
-            onCommit={onUpdateField}
-            wrapperClassName="-mx-2 -my-1 px-2 py-2"
-            displayClassName="text-sm leading-7 text-muted"
-            inputClassName="min-h-[7.5rem]"
-          />
-
-          <div className="space-y-1">
-            <p className="text-[0.58rem] uppercase tracking-[0.28em] text-muted">
-              Slug
-            </p>
+            activeField={activeField}
+            onActiveFieldChange={onActiveFieldChange}
+          >
             <EditablePreviewField
-              fieldKey="slug"
-              value={formState.slug}
-              placeholder="new-project"
+              fieldKey="business"
+              value={formState.business}
+              placeholder="Project business"
+              kind="select"
+              options={businesses}
               onCommit={onUpdateField}
-              wrapperClassName="-mx-2 px-2 py-1"
-              displayClassName="block text-[0.72rem] uppercase tracking-[0.22em] text-muted"
+              wrapperClassName="-mx-2 -my-1 px-2 py-1"
+              displayClassName="text-[0.62rem] uppercase tracking-[0.28em] text-accent"
             />
-          </div>
+          </PreviewFieldShell>
+
+          <PreviewFieldShell
+            fieldKey="category"
+            activeField={activeField}
+            onActiveFieldChange={onActiveFieldChange}
+          >
+            <EditablePreviewField
+              fieldKey="category"
+              value={formState.category}
+              placeholder="Project category"
+              kind="select"
+              options={categories}
+              onCommit={onUpdateField}
+              wrapperClassName="-mx-2 -my-1 px-2 py-1"
+              displayClassName="text-[0.62rem] uppercase tracking-[0.28em] text-muted"
+            />
+          </PreviewFieldShell>
+
+          <PreviewFieldShell
+            fieldKey="title"
+            activeField={activeField}
+            onActiveFieldChange={onActiveFieldChange}
+          >
+            <EditablePreviewField
+              fieldKey="title"
+              value={formState.title}
+              placeholder="Project title"
+              onCommit={onUpdateField}
+              wrapperClassName="-mx-2 -my-2 px-2 py-2"
+              displayClassName="font-[family:var(--font-display)] text-3xl uppercase leading-[0.9] text-foreground"
+              inputClassName="font-[family:var(--font-display)] text-2xl uppercase tracking-tight"
+            />
+          </PreviewFieldShell>
+
+          <PreviewFieldShell
+            fieldKey="shortDescription"
+            activeField={activeField}
+            onActiveFieldChange={onActiveFieldChange}
+          >
+            <EditablePreviewField
+              fieldKey="shortDescription"
+              value={formState.shortDescription}
+              placeholder="Short description will appear here."
+              kind="textarea"
+              rows={4}
+              onCommit={onUpdateField}
+              wrapperClassName="-mx-2 -my-1 px-2 py-2"
+              displayClassName="text-sm leading-7 text-muted"
+              inputClassName="min-h-[7.5rem]"
+            />
+          </PreviewFieldShell>
+
+          <PreviewFieldShell
+            fieldKey="slug"
+            activeField={activeField}
+            onActiveFieldChange={onActiveFieldChange}
+          >
+            <div className="space-y-1">
+              <p className="text-[0.58rem] uppercase tracking-[0.28em] text-muted">
+                Slug
+              </p>
+              <EditablePreviewField
+                fieldKey="slug"
+                value={formState.slug}
+                placeholder="new-project"
+                onCommit={onUpdateField}
+                wrapperClassName="-mx-2 px-2 py-1"
+                displayClassName="block text-[0.72rem] uppercase tracking-[0.22em] text-muted"
+              />
+            </div>
+          </PreviewFieldShell>
 
           <div className="grid gap-3 sm:grid-cols-3">
-            <div className="metadata-card">
+            <PreviewFieldShell
+              fieldKey="carModel"
+              activeField={activeField}
+              onActiveFieldChange={onActiveFieldChange}
+              className="metadata-card"
+            >
               <p className="metadata-label">{primaryMetaLabel}</p>
               <EditablePreviewField
                 fieldKey="carModel"
@@ -386,8 +505,13 @@ export function LivePreview({
                 wrapperClassName="-mx-2 mt-1 px-2 py-1"
                 displayClassName="block text-xs uppercase tracking-wide text-foreground"
               />
-            </div>
-            <div className="metadata-card">
+            </PreviewFieldShell>
+            <PreviewFieldShell
+              fieldKey="location"
+              activeField={activeField}
+              onActiveFieldChange={onActiveFieldChange}
+              className="metadata-card"
+            >
               <p className="metadata-label">Location</p>
               <EditablePreviewField
                 fieldKey="location"
@@ -397,8 +521,13 @@ export function LivePreview({
                 wrapperClassName="-mx-2 mt-1 px-2 py-1"
                 displayClassName="block text-xs uppercase tracking-wide text-foreground"
               />
-            </div>
-            <div className="metadata-card">
+            </PreviewFieldShell>
+            <PreviewFieldShell
+              fieldKey="year"
+              activeField={activeField}
+              onActiveFieldChange={onActiveFieldChange}
+              className="metadata-card"
+            >
               <p className="metadata-label">Year</p>
               <EditablePreviewField
                 fieldKey="year"
@@ -408,12 +537,17 @@ export function LivePreview({
                 wrapperClassName="-mx-2 mt-1 px-2 py-1"
                 displayClassName="block text-xs uppercase tracking-wide text-foreground"
               />
-            </div>
+            </PreviewFieldShell>
           </div>
         </div>
       </div>
 
-      <div className="panel-2xl p-5">
+      <PreviewFieldShell
+        fieldKey="fullDescription"
+        activeField={activeField}
+        onActiveFieldChange={onActiveFieldChange}
+        className="panel-2xl p-5"
+      >
         <p className="text-xs uppercase tracking-eyebrow text-muted">
           Narrative
         </p>
@@ -428,14 +562,18 @@ export function LivePreview({
           displayClassName="text-sm leading-7 text-muted"
           inputClassName="min-h-[10rem]"
         />
-      </div>
+      </PreviewFieldShell>
 
       <div className="panel-2xl p-5">
         <p className="text-xs uppercase tracking-eyebrow text-muted">
           Project Meta
         </p>
         <div className="mt-4 space-y-4">
-          <div>
+          <PreviewFieldShell
+            fieldKey="coverImage"
+            activeField={activeField}
+            onActiveFieldChange={onActiveFieldChange}
+          >
             <p className="text-[0.58rem] uppercase tracking-[0.28em] text-muted">
               Cover image path
             </p>
@@ -447,9 +585,13 @@ export function LivePreview({
               wrapperClassName="-mx-2 mt-1 px-2 py-1"
               displayClassName="block break-all text-sm leading-6 text-muted"
             />
-          </div>
+          </PreviewFieldShell>
 
-          <div>
+          <PreviewFieldShell
+            fieldKey="createdAt"
+            activeField={activeField}
+            onActiveFieldChange={onActiveFieldChange}
+          >
             <p className="text-[0.58rem] uppercase tracking-[0.28em] text-muted">
               Created at
             </p>
@@ -461,9 +603,13 @@ export function LivePreview({
               wrapperClassName="-mx-2 mt-1 px-2 py-1"
               displayClassName="block break-all text-sm leading-6 text-muted"
             />
-          </div>
+          </PreviewFieldShell>
 
-          <div>
+          <PreviewFieldShell
+            fieldKey="video"
+            activeField={activeField}
+            onActiveFieldChange={onActiveFieldChange}
+          >
             <p className="text-[0.58rem] uppercase tracking-[0.28em] text-muted">
               Video URL
             </p>
@@ -475,9 +621,13 @@ export function LivePreview({
               wrapperClassName="-mx-2 mt-1 px-2 py-1"
               displayClassName="block break-all text-sm leading-6 text-muted"
             />
-          </div>
+          </PreviewFieldShell>
 
-          <div>
+          <PreviewFieldShell
+            fieldKey="video"
+            activeField={activeField}
+            onActiveFieldChange={onActiveFieldChange}
+          >
             <p className="text-[0.58rem] uppercase tracking-[0.28em] text-muted">
               Uploaded video
             </p>
@@ -489,11 +639,16 @@ export function LivePreview({
               wrapperClassName="-mx-2 mt-1 px-2 py-1"
               displayClassName="block break-all text-sm leading-6 text-muted"
             />
-          </div>
+          </PreviewFieldShell>
         </div>
       </div>
 
-      <div className="panel-2xl p-5">
+      <PreviewFieldShell
+        fieldKey="behindTheScenes"
+        activeField={activeField}
+        onActiveFieldChange={onActiveFieldChange}
+        className="panel-2xl p-5"
+      >
         <p className="text-xs uppercase tracking-eyebrow text-muted">
           Behind The Scenes
         </p>
@@ -507,10 +662,15 @@ export function LivePreview({
           wrapperClassName="-mx-2 mt-3 px-2 py-2"
           displayClassName="text-sm leading-7 text-muted"
         />
-      </div>
+      </PreviewFieldShell>
 
       {galleryImageList.length > 0 ? (
-        <div className="panel-2xl p-4">
+        <PreviewFieldShell
+          fieldKey="gallery"
+          activeField={activeField}
+          onActiveFieldChange={onActiveFieldChange}
+          className="panel-2xl p-4"
+        >
           <p className="mb-3 text-[0.6rem] uppercase tracking-eyebrow text-muted">
             Gallery ({galleryImageList.length}{" "}
             {galleryImageList.length === 1 ? "frame" : "frames"})
@@ -570,7 +730,7 @@ export function LivePreview({
               </div>
             ))}
           </div>
-        </div>
+        </PreviewFieldShell>
       ) : null}
     </aside>
   );
