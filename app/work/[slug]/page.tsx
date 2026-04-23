@@ -5,6 +5,7 @@ import Script from "next/script";
 import { notFound } from "next/navigation";
 import { MetadataGrid } from "@/components/ui/metadata-grid";
 import { ProjectMedia } from "@/components/sections/project-media";
+import { ProjectImageCarousel } from "@/components/sections/project-image-carousel";
 import { LinkButton } from "@/components/ui/link-button";
 import { Reveal } from "@/components/ui/reveal";
 import { RevealList } from "@/components/ui/reveal-list";
@@ -107,6 +108,15 @@ export default async function ProjectPage({
     galleryImages: project.galleryImages,
     galleryCaptions: project.galleryCaptions ?? []
   });
+  const carouselImages = (() => {
+    const seen = new Set<string>();
+    return [project.coverImage, ...normalizedGallery.images].filter((img) => {
+      if (!img || seen.has(img)) return false;
+      seen.add(img);
+      return true;
+    });
+  })();
+
   const heroStill = normalizedGallery.images[0] ?? null;
   const supportingStillItems = normalizedGallery.images
     .slice(1)
@@ -220,6 +230,17 @@ export default async function ProjectPage({
           </div>
         </div>
       </section>
+
+      {carouselImages.length > 1 ? (
+        <section className="section-shell section-space-tight pt-0">
+          <Reveal delay={0.05}>
+            <ProjectImageCarousel
+              images={carouselImages}
+              title={project.title}
+            />
+          </Reveal>
+        </section>
+      ) : null}
 
       <section className="section-shell section-space-tight pt-0">
         <div className="space-y-6">
