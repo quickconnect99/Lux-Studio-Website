@@ -19,6 +19,7 @@ import {
   getPublishedProjects,
   getSiteSettings
 } from "@/lib/supabase";
+import { siteConfig } from "@/lib/site-config";
 
 type ProjectPageProps = {
   params: Promise<{ slug: string }>;
@@ -115,6 +116,30 @@ export default async function ProjectPage({
     }));
 
   const videoUrl = project.videoUrl || project.uploadedVideo;
+  const breadcrumbSchema = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      {
+        "@type": "ListItem",
+        position: 1,
+        name: "Home",
+        item: siteConfig.siteUrl
+      },
+      {
+        "@type": "ListItem",
+        position: 2,
+        name: "Work",
+        item: `${siteConfig.siteUrl}/work`
+      },
+      {
+        "@type": "ListItem",
+        position: 3,
+        name: project.title,
+        item: `${siteConfig.siteUrl}/work/${project.slug}`
+      }
+    ]
+  };
   const videoSchema = videoUrl
     ? {
         "@context": "https://schema.org",
@@ -129,6 +154,11 @@ export default async function ProjectPage({
 
   return (
     <div>
+      <Script
+        id={`schema-breadcrumb-${project.slug}`}
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }}
+      />
       {videoSchema && (
         <Script
           id={`schema-video-${project.slug}`}

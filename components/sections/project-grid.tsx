@@ -126,7 +126,7 @@ export function ProjectGrid({
               whileTap={{ scale: 0.94 }}
               transition={{ duration: 0.15 }}
               className={cn(
-                "rounded-full border px-4 py-2 text-xs font-medium uppercase tracking-ui",
+                "min-h-11 rounded-full border px-4 py-2 text-xs font-medium uppercase tracking-ui",
                 "transition-colors duration-150",
                 activeBusiness === business
                   ? "border-foreground bg-foreground text-background"
@@ -148,7 +148,7 @@ export function ProjectGrid({
             whileTap={{ scale: 0.94 }}
             transition={{ duration: 0.15 }}
             className={cn(
-              "rounded-full border px-4 py-2 text-xs font-medium uppercase tracking-ui",
+              "min-h-11 rounded-full border px-4 py-2 text-xs font-medium uppercase tracking-ui",
               "transition-colors duration-150",
               activeCategory === category
                 ? "border-foreground bg-foreground text-background"
@@ -182,7 +182,7 @@ export function ProjectGrid({
                   setActiveCategory(ALL);
                   selectBusiness(ALL);
                 }}
-                className="rounded-full border border-line bg-panel px-5 py-3 text-xs font-medium uppercase tracking-ui text-foreground transition-colors duration-150 hover:border-accent hover:bg-panel-secondary"
+                className="min-h-11 rounded-full border border-line bg-panel px-5 py-3 text-xs font-medium uppercase tracking-ui text-foreground transition-colors duration-150 hover:border-accent hover:bg-panel-secondary"
               >
                 Show All Projects
               </button>
@@ -270,7 +270,7 @@ export function ProjectGrid({
             whileTap={{ scale: 0.96 }}
             onClick={loadMore}
             className={cn(
-              "inline-flex items-center gap-3 rounded-full border px-6 py-3",
+              "inline-flex min-h-11 items-center gap-3 rounded-full border px-6 py-3",
               "text-xs font-medium uppercase tracking-ui",
               "border-line bg-panel-secondary text-foreground",
               "transition-colors duration-150 hover:border-accent hover:bg-panel"

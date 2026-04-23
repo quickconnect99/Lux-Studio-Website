@@ -7,7 +7,10 @@ import { getPublishedProjects } from "@/lib/supabase";
 export const metadata: Metadata = {
   title: "Work",
   description:
-    "Curated automotive and hospitality films, stills, and premium motion campaigns."
+    "Curated automotive and hospitality films, stills, and premium motion campaigns.",
+  alternates: {
+    canonical: "/work"
+  }
 };
 
 type WorkPageProps = {

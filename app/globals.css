@@ -58,12 +58,12 @@
 
   /* ─── Buttons / pills ──────────────────────────────────────────────── */
   .control-pill {
-    @apply inline-flex items-center gap-2 rounded-full border border-line bg-panel px-4 py-2
+    @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-full border border-line bg-panel px-4 py-2
       text-xs uppercase tracking-ui text-foreground;
   }
 
   .action-button {
-    @apply inline-flex items-center gap-3 rounded-full border border-foreground bg-foreground
+    @apply inline-flex min-h-11 items-center justify-center gap-3 rounded-full border border-foreground bg-foreground
       px-5 py-3 text-xs uppercase tracking-ui text-background
       transition-all duration-150 ease-out
       hover:bg-accent hover:text-accent-contrast
@@ -72,7 +72,7 @@
   }
 
   .muted-pill {
-    @apply rounded-full border border-line bg-panel-secondary px-4 py-2 text-xs uppercase tracking-ui text-muted;
+    @apply inline-flex min-h-11 items-center justify-center rounded-full border border-line bg-panel-secondary px-4 py-2 text-xs uppercase tracking-ui text-muted;
   }
 
   .toggle-row {
