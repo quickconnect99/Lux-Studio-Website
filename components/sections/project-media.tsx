@@ -9,6 +9,7 @@ type ProjectMediaProps = {
 
 export function ProjectMedia({ project }: ProjectMediaProps) {
   const videoSource = getProjectVideoSource(project);
+  const showMetaOverlay = !videoSource || videoSource.kind === "file";
   const overlayPaddingClass = videoSource ? "p-6 pb-20 sm:pb-24" : "p-6";
 
   return (
@@ -43,18 +44,20 @@ export function ProjectMedia({ project }: ProjectMediaProps) {
         />
       )}
 
-      <div
-        className={`pointer-events-none absolute inset-x-0 bottom-0 z-10 bg-gradient-to-t from-black/70 via-black/10 to-transparent text-white ${overlayPaddingClass}`}
-      >
-        <div className="flex flex-wrap items-center justify-between gap-4 text-[0.65rem] uppercase tracking-eyebrow text-white/75">
-          <span>
-            {videoSource
-              ? `Project film / ${videoSource.label}`
-              : "Cover still"}
-          </span>
-          <span>{project.location}</span>
+      {showMetaOverlay ? (
+        <div
+          className={`pointer-events-none absolute inset-x-0 bottom-0 z-10 bg-gradient-to-t from-black/70 via-black/10 to-transparent text-white ${overlayPaddingClass}`}
+        >
+          <div className="flex flex-wrap items-center justify-between gap-4 text-[0.65rem] uppercase tracking-eyebrow text-white/75">
+            <span>
+              {videoSource
+                ? `Project film / ${videoSource.label}`
+                : "Cover still"}
+            </span>
+            <span>{project.location}</span>
+          </div>
         </div>
-      </div>
+      ) : null}
     </div>
   );
 }
