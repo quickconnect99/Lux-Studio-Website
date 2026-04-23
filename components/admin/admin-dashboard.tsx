@@ -1,8 +1,20 @@
 "use client";
 
-import { FolderOpen, LogIn, LogOut, RefreshCw, Settings } from "lucide-react";
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import {
+  AlertTriangle,
+  CheckCircle2,
+  FolderOpen,
+  Info,
+  LogIn,
+  LogOut,
+  RefreshCw,
+  Settings
+} from "lucide-react";
 import { isSupabaseConfigured, SUPABASE_BUCKET } from "@/lib/supabase";
 import { useAdminData } from "@/hooks/use-admin-data";
+import { AdminConfirmModal } from "@/components/admin/admin-confirm-modal";
 import { ProjectSidebar } from "@/components/admin/project-sidebar";
 import { ProjectEditor } from "@/components/admin/project-editor";
 import {
@@ -12,15 +24,21 @@ import {
 } from "@/components/admin/live-preview";
 import { SiteSettingsForm } from "@/components/admin/site-settings-form";
 import { slugify } from "@/lib/admin-utils";
+import type { AdminProjectFieldKey } from "@/lib/admin-types";
 
 export function AdminDashboard() {
+  const router = useRouter();
   const data = useAdminData();
+  const [activeField, setActiveField] = useState<AdminProjectFieldKey | null>(
+    null
+  );
 
   const {
     activeTab,
     setActiveTab,
+    templateProjects,
     projects,
-    selectedSlug,
+    selectedProjectKey,
     saveCount,
     sessionEmail,
     authFormState,
@@ -28,22 +46,30 @@ export function AdminDashboard() {
     handleSignIn,
     handleSignOut,
     statusMessage,
+    saveReport,
     working,
     uploadProgress,
     coverFile,
+    coverPreviewImage,
     setCoverFile,
     galleryFiles,
     videoFile,
     setVideoFile,
     formState,
+    isTemplateProject,
     updateField,
     completionIssues,
     isProjectComplete,
     isDirty,
     galleryImageList,
     captionRawLines,
-    deleteConfirmPending,
-    resetConfirmPending,
+    slugValidation,
+    handleSlugBlur,
+    applySuggestedSlug,
+    confirmDialog,
+    closeConfirmDialog,
+    updateConfirmDialogInput,
+    confirmDialogAction,
     updateCaption,
     handleFileSelection,
     addGalleryFiles,
@@ -58,6 +84,21 @@ export function AdminDashboard() {
     updateSiteSettingsField,
     handleSaveSiteSettings
   } = data;
+
+  const liveProjectHref =
+    formState.id && formState.published ? `/work/${formState.slug}` : null;
+
+  function renderSaveReportIcon(tone: "success" | "warning" | "info") {
+    if (tone === "success") {
+      return <CheckCircle2 className="h-4 w-4 text-success" />;
+    }
+
+    if (tone === "warning") {
+      return <AlertTriangle className="h-4 w-4 text-warning" />;
+    }
+
+    return <Info className="h-4 w-4 text-accent" />;
+  }
 
   function handlePreviewFieldUpdate(
     field: PreviewEditableField,
@@ -96,6 +137,7 @@ export function AdminDashboard() {
         updateField("behindTheScenes", value);
         break;
       case "coverImage":
+        setCoverFile(null);
         updateField("coverImage", value);
         break;
       case "videoUrl":
@@ -126,6 +168,13 @@ export function AdminDashboard() {
     while (lines.length <= index) lines.push("");
     lines[index] = value;
     updateField("galleryImagesText", lines.join("\n"));
+  }
+
+  async function handleExitAdmin() {
+    await handleSignOut();
+    await fetch("/api/admin-gate/logout", { method: "POST" });
+    router.push("/admin/login");
+    router.refresh();
   }
 
   return (
@@ -180,30 +229,71 @@ export function AdminDashboard() {
           ) : null}
           <button
             type="button"
+            onClick={handleExitAdmin}
+            className="control-pill"
+          >
+            <LogOut className="h-4 w-4" />
+            Exit Admin
+          </button>
+          <button
+            type="button"
             onClick={handleResetClick}
-            className={`control-pill transition-colors ${
-              resetConfirmPending
-                ? "bg-warning/10 border-warning text-warning"
-                : ""
-            }`}
+            className="control-pill"
           >
             <RefreshCw className="h-4 w-4" />
-            {resetConfirmPending ? "Confirm reset?" : "Reset Form"}
+            Reset Form
           </button>
         </div>
       </div>
 
       {/* CMS status + Supabase access */}
-      <div className="grid gap-6 sm:grid-cols-[1fr_260px]">
+      <div
+        className={`grid gap-6 ${
+          sessionEmail ? "sm:grid-cols-[1fr_320px]" : "grid-cols-1"
+        }`}
+      >
         <div className="panel-2xl p-6">
           <p className="text-xs uppercase tracking-eyebrow text-muted">
             CMS state
           </p>
-          <p className="mt-2 text-sm leading-7 text-muted">
-            {uploadProgress
-              ? `Uploading file ${uploadProgress.current} of ${uploadProgress.total}: ${uploadProgress.filename}`
-              : statusMessage}
-          </p>
+          <div aria-live="polite" className="mt-3">
+            {uploadProgress ? (
+              <p className="text-sm leading-7 text-muted">
+                Uploading file {uploadProgress.current} of {uploadProgress.total}
+                : {uploadProgress.filename}
+              </p>
+            ) : saveReport ? (
+              <div className="space-y-3">
+                <p className="text-sm font-medium text-foreground">
+                  {saveReport.title}
+                </p>
+                <div className="space-y-2">
+                  {saveReport.items.map((item) => (
+                    <div
+                      key={item.id}
+                      className="flex items-start gap-3 rounded-[1rem] border border-line bg-panel-secondary px-3 py-2.5"
+                    >
+                      <span className="mt-0.5 shrink-0">
+                        {renderSaveReportIcon(item.tone)}
+                      </span>
+                      <div className="min-w-0">
+                        <p className="text-sm leading-6 text-foreground">
+                          {item.label}
+                        </p>
+                        {item.detail ? (
+                          <p className="text-xs uppercase tracking-meta text-muted">
+                            {item.detail}
+                          </p>
+                        ) : null}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ) : (
+              <p className="text-sm leading-7 text-muted">{statusMessage}</p>
+            )}
+          </div>
         </div>
 
         <div className="panel-2xl p-6">
@@ -217,7 +307,7 @@ export function AdminDashboard() {
                 <p>Uploads target the `{SUPABASE_BUCKET}` storage bucket.</p>
               </div>
             ) : (
-              <div className="mt-4 space-y-3">
+              <div className="mt-4 grid gap-3 md:grid-cols-2">
                 <input
                   type="email"
                   value={authFormState.email}
@@ -238,7 +328,7 @@ export function AdminDashboard() {
                   type="button"
                   onClick={handleSignIn}
                   disabled={working}
-                  className="control-pill border-foreground bg-foreground text-background disabled:opacity-70"
+                  className="control-pill w-fit border-foreground bg-foreground text-background disabled:opacity-70 md:col-span-2"
                 >
                   <LogIn className="h-4 w-4" />
                   Sign In
@@ -259,8 +349,9 @@ export function AdminDashboard() {
       {activeTab === "projects" ? (
         <div className="grid gap-6 lg:grid-cols-[1fr_320px] xl:grid-cols-[240px_minmax(0,1fr)_360px]">
           <ProjectSidebar
+            templates={templateProjects}
             projects={projects}
-            selectedSlug={selectedSlug}
+            selectedProjectKey={selectedProjectKey}
             isDirty={isDirty}
             onSelect={selectProject}
             onNew={newProject}
@@ -276,28 +367,38 @@ export function AdminDashboard() {
             addGalleryFiles={addGalleryFiles}
             removeGalleryFile={removeGalleryFile}
             coverFile={coverFile}
+            coverPreviewSrc={coverPreviewImage}
             setCoverFile={setCoverFile}
             videoFile={videoFile}
             setVideoFile={setVideoFile}
             galleryFiles={galleryFiles}
             working={working}
             isDirty={isDirty}
+            isTemplate={isTemplateProject}
             completionIssues={completionIssues}
             isProjectComplete={isProjectComplete}
-            deleteConfirmPending={deleteConfirmPending}
             galleryImageList={galleryImageList}
             captionRawLines={captionRawLines}
             uploadProgress={uploadProgress}
+            slugValidation={slugValidation}
+            onSlugBlur={handleSlugBlur}
+            onApplySuggestedSlug={applySuggestedSlug}
+            activeField={activeField}
+            onActiveFieldChange={setActiveField}
           />
           <LivePreview
             formState={formState}
+            coverPreviewSrc={coverPreviewImage}
             isDirty={isDirty}
             galleryImageList={galleryImageList}
             captionRawLines={captionRawLines}
+            activeField={activeField}
+            onActiveFieldChange={setActiveField}
             onUpdateField={handlePreviewFieldUpdate}
             onUpdateCaption={updateCaption}
             onReplaceGalleryImage={handlePreviewGalleryImageUpdate}
             onToggleField={handlePreviewToggle}
+            liveProjectHref={liveProjectHref}
           />
         </div>
       ) : null}
@@ -311,6 +412,14 @@ export function AdminDashboard() {
           working={working}
         />
       ) : null}
+
+      <AdminConfirmModal
+        dialog={confirmDialog}
+        working={working}
+        onClose={closeConfirmDialog}
+        onConfirm={() => void confirmDialogAction()}
+        onInputChange={updateConfirmDialogInput}
+      />
     </section>
   );
 }

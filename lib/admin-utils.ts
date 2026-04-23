@@ -7,6 +7,7 @@ import type {
   SocialLink
 } from "@/lib/types";
 import type {
+  AdminProjectListItem,
   CompletionContext,
   ProjectFormState,
   SiteSettingsFormState
@@ -25,12 +26,65 @@ export const categories: ProjectCategory[] = [
 
 export const businesses: ProjectBusiness[] = projectBusinesses;
 
+const currentYear = new Date().getFullYear();
+
+export function getAdminProjectKey(project: {
+  id?: string;
+  slug: string;
+  isTemplate?: boolean;
+  templateBusiness?: ProjectBusiness;
+}) {
+  if (project.isTemplate && project.templateBusiness) {
+    return `template:${project.templateBusiness.toLowerCase()}`;
+  }
+
+  return `project:${project.id ?? project.slug}`;
+}
+
 export function slugify(value: string): string {
   return value
     .toLowerCase()
     .trim()
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/(^-|-$)/g, "");
+}
+
+export function buildUniqueSlugSuggestion(
+  value: string,
+  existingSlugs: string[],
+  fallback = "project"
+) {
+  const baseSlug = slugify(value) || fallback;
+  const seen = new Set(existingSlugs);
+
+  if (!seen.has(baseSlug)) {
+    return baseSlug;
+  }
+
+  let suffix = 2;
+  let candidate = `${baseSlug}-${suffix}`;
+
+  while (seen.has(candidate)) {
+    suffix += 1;
+    candidate = `${baseSlug}-${suffix}`;
+  }
+
+  return candidate;
+}
+
+export function formatFileSize(bytes: number) {
+  if (!Number.isFinite(bytes) || bytes <= 0) {
+    return "0 B";
+  }
+
+  const units = ["B", "KB", "MB", "GB"];
+  const exponent = Math.min(
+    Math.floor(Math.log(bytes) / Math.log(1024)),
+    units.length - 1
+  );
+  const value = bytes / 1024 ** exponent;
+
+  return `${value >= 10 || exponent === 0 ? value.toFixed(0) : value.toFixed(1)} ${units[exponent]}`;
 }
 
 export function parseMultilineInput(value: string): string[] {
@@ -67,9 +121,13 @@ export function getProjectCompletionIssues(
   return issues;
 }
 
-export function toFormState(project: Project): ProjectFormState {
+export function toFormState(project: Project & {
+  isTemplate?: boolean;
+  templateBusiness?: ProjectBusiness;
+}): ProjectFormState {
   return {
     id: project.id,
+    templateBusiness: project.isTemplate ? project.templateBusiness : undefined,
     business: project.business,
     title: project.title,
     slug: project.slug,
@@ -90,6 +148,76 @@ export function toFormState(project: Project): ProjectFormState {
     behindTheScenes: project.behindTheScenes ?? ""
   };
 }
+
+export function toAdminProjectListItem(project: Project): AdminProjectListItem {
+  return {
+    ...project,
+    adminKey: getAdminProjectKey(project)
+  };
+}
+
+export function createProjectTemplate(
+  business: ProjectBusiness
+): AdminProjectListItem {
+  const base =
+    business === "Car"
+      ? {
+          title: "Car Project Template",
+          shortDescription:
+            "Replace this with a concise one-line summary for the automotive project.",
+          fullDescription:
+            "Use this template to outline the shoot, campaign angle, deliverables, and how the visual system should feel across stills, motion, and rollout placements.",
+          category: "Brand Film" as const,
+          carModel: "Brand / Model",
+          location: "City",
+          year: currentYear,
+          coverImage: "/images/demo-car-01.jpg",
+          galleryImages: ["/images/demo-car-02.jpg"],
+          galleryCaptions: [
+            "Starter gallery frame for the automotive template. Replace with the first supporting still."
+          ]
+        }
+      : {
+          title: "Hospitality Project Template",
+          shortDescription:
+            "Replace this with a concise one-line summary for the hospitality project.",
+          fullDescription:
+            "Use this template to define the property story, atmosphere, guest journey, deliverables, and the role of stills, motion, and rollout assets.",
+          category: "Launch Campaign" as const,
+          carModel: "Property / Venue",
+          location: "City",
+          year: currentYear,
+          coverImage: "/images/hospitality/quiet-arrival-cover.svg",
+          galleryImages: ["/images/hospitality/quiet-arrival-frame.svg"],
+          galleryCaptions: [
+            "Starter gallery frame for the hospitality template. Replace with the first supporting still."
+          ]
+        };
+
+  return {
+    business,
+    slug: `${business.toLowerCase()}-project-template`,
+    featured: false,
+    published: false,
+    createdAt: new Date(currentYear, 0, 1).toISOString(),
+    behindTheScenes: "",
+    videoUrl: "",
+    uploadedVideo: "",
+    isTemplate: true,
+    templateBusiness: business,
+    adminKey: getAdminProjectKey({
+      slug: `${business.toLowerCase()}-project-template`,
+      isTemplate: true,
+      templateBusiness: business
+    }),
+    ...base
+  };
+}
+
+export const projectTemplates: AdminProjectListItem[] = [
+  createProjectTemplate("Car"),
+  createProjectTemplate("Hospitality")
+];
 
 export function formatSocialLinksText(links: SocialLink[]): string {
   return links.map((link) => `${link.label} | ${link.href}`).join("\n");
@@ -191,6 +319,7 @@ export function toSiteSettingsFormState(
 
 export function createEmptyProject(): ProjectFormState {
   return {
+    templateBusiness: undefined,
     business: "Car",
     title: "New Project",
     slug: "new-project",
