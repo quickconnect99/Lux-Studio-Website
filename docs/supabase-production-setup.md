@@ -11,6 +11,7 @@ Fuer die zusaetzliche Admin-Schutzschicht werden ausserdem empfohlen:
 
 - `ADMIN_GATE_USER`
 - `ADMIN_GATE_PASSWORD`
+- `ADMIN_GATE_SECRET`
 
 ## Was du im Supabase-Dashboard holen musst
 
@@ -61,13 +62,14 @@ NEXT_PUBLIC_SUPABASE_STORAGE_BUCKET=projects
 NEXT_PUBLIC_ENABLE_ADMIN=true
 ADMIN_GATE_USER=<separater-admin-gate-user>
 ADMIN_GATE_PASSWORD=<langes-zufalls-passwort>
+ADMIN_GATE_SECRET=<weiteres-langes-zufalls-secret>
 ```
 
 ## Admin-Schutzschicht
 
 Der Zugriff auf `/admin` ist jetzt in Production zweistufig:
 
-1. HTTP Basic Auth ueber `ADMIN_GATE_USER` + `ADMIN_GATE_PASSWORD`
+1. interne Admin-Gate-Login-Seite mit signiertem Session-Cookie
 2. danach Supabase-Login im eigentlichen Admin-Bereich
 
 Damit ist die Route nicht mehr offen sichtbar nutzbar, selbst wenn jemand die

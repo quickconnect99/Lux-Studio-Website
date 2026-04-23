@@ -1,0 +1,15 @@
+.git
+.next
+node_modules
+.claude
+_Test Material
+car pictures
+docs
+supabase
+scripts
+DESIGN_SYSTEM.md
+README.md
+.env
+.env.local
+.env.*.local
+*.log

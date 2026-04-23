@@ -1,4 +1,3 @@
-import { cache } from "react";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { projects as fallbackProjects } from "@/lib/content";
 import { normalizeProjectBusiness } from "@/lib/project-business";
@@ -196,31 +195,27 @@ export function normalizeSiteSettingsRecord(
   };
 }
 
-export const getPublishedProjects = cache(
-  async function getPublishedProjects() {
-    const client = createServerSupabaseClient();
+export async function getPublishedProjects() {
+  const client = createServerSupabaseClient();
 
-    if (!client) {
-      return fallbackProjects.filter((project) => project.published);
-    }
-
-    const { data, error } = await client
-      .from("projects")
-      .select("*")
-      .eq("published", true)
-      .order("created_at", { ascending: false });
-
-    if (error || !data) {
-      return fallbackProjects.filter((project) => project.published);
-    }
-
-    return (data as SupabaseProjectRow[]).map(normalizeProjectRecord);
+  if (!client) {
+    return fallbackProjects.filter((project) => project.published);
   }
-);
 
-export const getProjectBySlug = cache(async function getProjectBySlug(
-  slug: string
-) {
+  const { data, error } = await client
+    .from("projects")
+    .select("*")
+    .eq("published", true)
+    .order("created_at", { ascending: false });
+
+  if (error || !data) {
+    return fallbackProjects.filter((project) => project.published);
+  }
+
+  return (data as SupabaseProjectRow[]).map(normalizeProjectRecord);
+}
+
+export async function getProjectBySlug(slug: string) {
   const client = createServerSupabaseClient();
 
   if (!client) {
@@ -239,10 +234,9 @@ export const getProjectBySlug = cache(async function getProjectBySlug(
   }
 
   return normalizeProjectRecord(data as SupabaseProjectRow);
-});
+}
 
-// cache() deduplicates calls within the same request (generateMetadata + RootLayout)
-export const getSiteSettings = cache(async function getSiteSettings() {
+export async function getSiteSettings() {
   const client = createServerSupabaseClient();
 
   if (!client) {
@@ -260,4 +254,4 @@ export const getSiteSettings = cache(async function getSiteSettings() {
   }
 
   return normalizeSiteSettingsRecord(data as SupabaseSiteSettingsRow);
-});
+}

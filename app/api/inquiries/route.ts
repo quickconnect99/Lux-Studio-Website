@@ -34,7 +34,26 @@ function getClientKey(headers: Headers) {
   return `${forwardedFor || realIp || "unknown"}:${userAgent.slice(0, 120)}`;
 }
 
+function pruneRateLimitStore() {
+  const now = Date.now();
+  for (const [key, timestamps] of rateLimitStore) {
+    const recent = timestamps.filter((t) => now - t < INQUIRY_RATE_LIMIT_WINDOW_MS);
+    if (recent.length === 0) {
+      rateLimitStore.delete(key);
+    } else {
+      rateLimitStore.set(key, recent);
+    }
+  }
+}
+
+let pruneCallCount = 0;
+
 function isRateLimited(key: string) {
+  pruneCallCount += 1;
+  if (pruneCallCount % 50 === 0) {
+    pruneRateLimitStore();
+  }
+
   const now = Date.now();
   const recentRequests = (rateLimitStore.get(key) ?? []).filter(
     (timestamp) => now - timestamp < INQUIRY_RATE_LIMIT_WINDOW_MS

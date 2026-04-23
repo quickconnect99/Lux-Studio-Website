@@ -3,6 +3,7 @@ import { HorizontalStillStrip } from "@/components/sections/horizontal-still-str
 import { PageHeader } from "@/components/sections/page-header";
 import { Reveal } from "@/components/ui/reveal";
 import { RevealList } from "@/components/ui/reveal-list";
+import { dedupeImageUrls } from "@/lib/project-images";
 import { getPublishedProjects, getSiteSettings } from "@/lib/supabase";
 
 export const metadata: Metadata = {
@@ -17,9 +18,9 @@ export default async function AboutPage() {
     getSiteSettings()
   ]);
 
-  const stills = projects
-    .flatMap((project) => project.galleryImages)
-    .slice(0, 6);
+  const stills = dedupeImageUrls(
+    projects.flatMap((project) => project.galleryImages)
+  ).slice(0, 6);
 
   const { about } = settings;
 

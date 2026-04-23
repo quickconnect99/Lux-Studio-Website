@@ -97,6 +97,40 @@ with check (auth.role() = 'authenticated');
 create index if not exists projects_created_at_idx on public.projects (created_at desc);
 create index if not exists inquiries_created_at_idx on public.inquiries (created_at desc);
 
+insert into storage.buckets (id, name, public)
+values ('projects', 'projects', true)
+on conflict (id) do update
+set public = excluded.public;
+
+drop policy if exists "Public can view project media" on storage.objects;
+create policy "Public can view project media"
+on storage.objects
+for select
+to public
+using (bucket_id = 'projects');
+
+drop policy if exists "Authenticated users can upload project media" on storage.objects;
+create policy "Authenticated users can upload project media"
+on storage.objects
+for insert
+to authenticated
+with check (bucket_id = 'projects');
+
+drop policy if exists "Authenticated users can update project media" on storage.objects;
+create policy "Authenticated users can update project media"
+on storage.objects
+for update
+to authenticated
+using (bucket_id = 'projects')
+with check (bucket_id = 'projects');
+
+drop policy if exists "Authenticated users can delete project media" on storage.objects;
+create policy "Authenticated users can delete project media"
+on storage.objects
+for delete
+to authenticated
+using (bucket_id = 'projects');
+
 insert into public.site_settings (
   id,
   brand_name,
@@ -138,6 +172,6 @@ alter table public.site_settings
   add column if not exists services         jsonb not null default '[]'::jsonb;
 
 -- Storage setup:
--- 1. Create a public bucket named `projects`.
--- 2. Grant authenticated users upload/update/delete access to that bucket.
--- 3. Store cover images in `covers/`, gallery stills in `gallery/`, and videos in `videos/`.
+-- 1. Bucket + object policies above assume the bucket id is `projects`.
+-- 2. Store cover images in `covers/`, gallery stills in `gallery/`, and videos in `videos/`.
+-- 3. If you want a different bucket id, adjust this SQL and NEXT_PUBLIC_SUPABASE_STORAGE_BUCKET together.

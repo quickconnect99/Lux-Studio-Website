@@ -1,5 +1,8 @@
 import type { SiteSettings } from "@/lib/types";
 
+export const BRAND_NAME = "Lux Studio";
+export const BRAND_MARK = "L/S";
+
 const fallbackSiteUrl = "http://localhost:3000";
 
 function normalizeSiteUrl(value?: string) {
@@ -18,7 +21,7 @@ const baseNavigation = [
 const adminNavigation = { label: "Admin", href: "/admin" } as const;
 
 export const isPublicAdminEnabled =
-  process.env.NEXT_PUBLIC_ENABLE_ADMIN === "true";
+  process.env.NEXT_PUBLIC_SHOW_ADMIN_LINK === "true";
 
 export const navigation = isPublicAdminEnabled
   ? [...baseNavigation, adminNavigation]
@@ -26,8 +29,8 @@ export const navigation = isPublicAdminEnabled
 
 export const defaultSiteSettings: SiteSettings = {
   brand: {
-    name: "Lux Studio",
-    mark: "L/S",
+    name: BRAND_NAME,
+    mark: BRAND_MARK,
     strapline:
       "Cinematic campaign visuals for automotive and hospitality brands."
   },
@@ -42,15 +45,15 @@ export const defaultSiteSettings: SiteSettings = {
     city: "Zurich / Milan / Monaco"
   },
   seo: {
-    title: "Lux Studio | Premium Automotive & Hospitality Campaigns",
+    title: `${BRAND_NAME} | Premium Automotive & Hospitality Campaigns`,
     description:
       "Premium campaign studio for automotive and hospitality films, stills, launches, and editorial brand storytelling.",
     ogImage: "/images/demo-car-01.jpg"
   },
   hero: {
     eyebrow: "Editorial motion for brands and places",
-    headlineLead: "Drive",
-    headlineTrail: "In Motion",
+    headlineLead: "Lux",
+    headlineTrail: "Studio",
     copy: "A boutique studio creating cinematic campaign films, launch content, and premium still systems for automotive brands, hotels, and hospitality spaces that want atmosphere to feel designed.",
     videoUrl: "/media/hero-showreel.mp4"
   },
