@@ -5,10 +5,10 @@ import Script from "next/script";
 import { notFound } from "next/navigation";
 import { MetadataGrid } from "@/components/ui/metadata-grid";
 import { ProjectMedia } from "@/components/sections/project-media";
-import { ProjectImageCarousel } from "@/components/sections/project-image-carousel";
 import { LinkButton } from "@/components/ui/link-button";
 import { Reveal } from "@/components/ui/reveal";
 import { RevealList } from "@/components/ui/reveal-list";
+import { normalizeProjectGallery } from "@/lib/project-images";
 import {
   getProjectPrimaryMetaLabel,
   parseProjectBusinessParam,
@@ -24,14 +24,6 @@ type ProjectPageProps = {
   params: Promise<{ slug: string }>;
   searchParams?: Promise<{ business?: string | string[] }>;
 };
-
-export async function generateStaticParams() {
-  const projects = await getPublishedProjects();
-
-  return projects.map((project) => ({
-    slug: project.slug
-  }));
-}
 
 export async function generateMetadata({
   params
@@ -109,34 +101,18 @@ export default async function ProjectPage({
   );
   const nextProject =
     navigableProjects[(currentIndex + 1) % navigableProjects.length];
-  const galleryCaptions = project.galleryCaptions ?? [];
-  const heroStill = project.galleryImages[0];
-  const supportingStills = project.galleryImages.slice(1);
-
-  function getGalleryCaption(index: number) {
-    const caption = galleryCaptions[index]?.trim();
-    return caption ? caption : null;
-  }
-
-  function buildCarouselImages() {
-    const seen = new Set<string>();
-    const candidates = [
-      project.coverImage,
-      heroStill ?? "",
-      ...supportingStills
-    ];
-
-    return candidates.filter((candidate) => {
-      if (!candidate || seen.has(candidate)) {
-        return false;
-      }
-
-      seen.add(candidate);
-      return true;
-    });
-  }
-
-  const carouselImages = buildCarouselImages();
+  const normalizedGallery = normalizeProjectGallery({
+    coverImage: project.coverImage,
+    galleryImages: project.galleryImages,
+    galleryCaptions: project.galleryCaptions ?? []
+  });
+  const heroStill = normalizedGallery.images[0] ?? null;
+  const supportingStillItems = normalizedGallery.images
+    .slice(1)
+    .map((image, index) => ({
+      image,
+      caption: normalizedGallery.captions[index + 1] ?? ""
+    }));
 
   const videoUrl = project.videoUrl || project.uploadedVideo;
   const videoSchema = videoUrl
@@ -232,30 +208,21 @@ export default async function ProjectPage({
             </Reveal>
           ) : null}
 
-          {carouselImages.length > 1 ? (
-            <Reveal delay={0.05}>
-              <ProjectImageCarousel
-                images={carouselImages}
-                title={project.title}
-              />
-            </Reveal>
-          ) : null}
-
-          {supportingStills.length > 0 ? (
+          {supportingStillItems.length > 0 ? (
             <div className="grid gap-6">
               <RevealList
-                items={supportingStills}
-                getKey={(image) => image}
-                render={(image, index) =>
+                items={supportingStillItems}
+                getKey={(item) => item.image}
+                render={(item, index) =>
                   (() => {
-                    const caption = getGalleryCaption(index + 1);
+                    const caption = item.caption.trim() || null;
 
                     if (!caption) {
                       return (
                         <div className="film-frame relative overflow-hidden rounded-[2rem]">
                           <div className="aspect-[16/9]" />
                           <Image
-                            src={image}
+                            src={item.image}
                             alt={`${project.title} still ${index + 2}`}
                             fill
                             sizes="100vw"
@@ -271,7 +238,7 @@ export default async function ProjectPage({
                           <div className="film-frame relative overflow-hidden rounded-[1.75rem]">
                             <div className="aspect-[4/5]" />
                             <Image
-                              src={image}
+                              src={item.image}
                               alt={`${project.title} still ${index + 2}`}
                               fill
                               sizes="(min-width: 1024px) 46vw, 100vw"

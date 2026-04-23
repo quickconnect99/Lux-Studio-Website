@@ -10,6 +10,7 @@ import {
 } from "react";
 import Image from "next/image";
 import { ExternalLink, PenSquare } from "lucide-react";
+import { getGalleryFrameRole } from "@/lib/admin-project-fields";
 import type { AdminProjectFieldKey, ProjectFormState } from "@/lib/admin-types";
 import { businesses, categories } from "@/lib/admin-utils";
 import { getProjectPrimaryMetaLabel } from "@/lib/project-business";
@@ -675,60 +676,82 @@ export function LivePreview({
             Gallery ({galleryImageList.length}{" "}
             {galleryImageList.length === 1 ? "frame" : "frames"})
           </p>
+          <p className="mb-4 text-[0.72rem] leading-5 text-muted">
+            Live page order: frame 01 becomes the large project image below the
+            narrative. Frame 02+ appear lower on the page as supporting stills.
+          </p>
           <div className="space-y-4">
-            {galleryImageList.map((src, index) => (
-              <div
-                key={`${src}-${index}`}
-                className="rounded-[1.25rem] border border-line bg-panel-secondary p-3"
-              >
-                <div className="flex gap-3">
-                  <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-xl border border-line bg-panel-dark">
-                    <Image
-                      src={src}
-                      alt={`Frame ${index + 1}`}
-                      fill
-                      sizes="64px"
-                      className="object-cover"
-                    />
-                  </div>
+            {galleryImageList.map((src, index) => {
+              const role = getGalleryFrameRole(index);
 
-                  <div className="min-w-0 flex-1 space-y-3">
-                    <div>
-                      <p className="text-[0.58rem] uppercase tracking-[0.28em] text-muted">
-                        Frame 0{index + 1} image
-                      </p>
-                      <EditablePreviewField
-                        fieldKey="coverImage"
-                        value={src}
-                        placeholder="/images/frame.jpg"
-                        onCommit={(_, value) =>
-                          onReplaceGalleryImage(index, value)
-                        }
-                        wrapperClassName="-mx-2 mt-1 px-2 py-1"
-                        displayClassName="block break-all text-xs leading-6 text-muted"
+              return (
+                <div
+                  key={`${src}-${index}`}
+                  className="rounded-[1.25rem] border border-line bg-panel-secondary p-3"
+                >
+                  <div className="flex gap-3">
+                    <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-xl border border-line bg-panel-dark">
+                      <Image
+                        src={src}
+                        alt={`Frame ${index + 1}`}
+                        fill
+                        sizes="64px"
+                        className="object-cover"
                       />
                     </div>
 
-                    <div>
-                      <p className="text-[0.58rem] uppercase tracking-[0.28em] text-muted">
-                        Frame 0{index + 1} caption
-                      </p>
-                      <EditablePreviewField
-                        fieldKey="behindTheScenes"
-                        value={captionRawLines[index] ?? ""}
-                        placeholder="Add a caption for this frame."
-                        kind="textarea"
-                        rows={3}
-                        onCommit={(_, value) => onUpdateCaption(index, value)}
-                        wrapperClassName="-mx-2 mt-1 px-2 py-1"
-                        displayClassName="block whitespace-pre-wrap text-sm leading-6 text-muted"
-                        inputClassName="min-h-[6rem]"
-                      />
+                    <div className="min-w-0 flex-1 space-y-3">
+                      <div className="space-y-1.5">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <p className="text-[0.58rem] uppercase tracking-[0.28em] text-muted">
+                            Frame {String(index + 1).padStart(2, "0")}
+                          </p>
+                          <span className="rounded-full border border-accent/30 bg-accent/10 px-2 py-1 text-[0.55rem] uppercase tracking-[0.24em] text-accent">
+                            {role.label}
+                          </span>
+                        </div>
+                        <p className="text-[0.7rem] leading-5 text-muted">
+                          {role.description}
+                        </p>
+                      </div>
+
+                      <div>
+                        <p className="text-[0.58rem] uppercase tracking-[0.28em] text-muted">
+                          Image URL
+                        </p>
+                        <EditablePreviewField
+                          fieldKey="coverImage"
+                          value={src}
+                          placeholder="/images/frame.jpg"
+                          onCommit={(_, value) =>
+                            onReplaceGalleryImage(index, value)
+                          }
+                          wrapperClassName="-mx-2 mt-1 px-2 py-1"
+                          displayClassName="block break-all text-xs leading-6 text-muted"
+                        />
+                      </div>
+
+                      <div>
+                        <p className="text-[0.58rem] uppercase tracking-[0.28em] text-muted">
+                          Caption
+                        </p>
+                        <EditablePreviewField
+                          fieldKey="behindTheScenes"
+                          value={captionRawLines[index] ?? ""}
+                          placeholder="Add a caption for this frame."
+                          kind="textarea"
+                          rows={3}
+                          onCommit={(_, value) => onUpdateCaption(index, value)}
+                          wrapperClassName="-mx-2 mt-1 px-2 py-1"
+                          displayClassName="block whitespace-pre-wrap text-sm leading-6 text-muted"
+                          inputClassName="min-h-[6rem]"
+                        />
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </PreviewFieldShell>
       ) : null}
