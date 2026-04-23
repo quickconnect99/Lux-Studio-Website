@@ -231,16 +231,12 @@ export default async function ProjectPage({
         </div>
       </section>
 
-      {carouselImages.length >= 1 ? (
-        <section className="section-shell section-space-tight pt-0">
-          <Reveal delay={0.05}>
-            <ProjectImageCarousel
-              images={carouselImages}
-              title={project.title}
-            />
-          </Reveal>
-        </section>
-      ) : null}
+      <section className="section-shell section-space-tight pt-0">
+        <ProjectImageCarousel
+          images={carouselImages}
+          title={project.title}
+        />
+      </section>
 
       <section className="section-shell section-space-tight pt-0">
         <div className="space-y-6">

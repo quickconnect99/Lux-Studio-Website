@@ -40,6 +40,7 @@ export function ProjectMedia({ project }: ProjectMediaProps) {
           alt={project.title}
           fill
           sizes="(min-width: 1024px) 55vw, 100vw"
+          quality={90}
           className="object-cover"
         />
       )}
