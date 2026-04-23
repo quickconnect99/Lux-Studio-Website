@@ -21,10 +21,10 @@ export const legalProfile = {
   editorialResponsibility: LEGAL_PLACEHOLDER,
   editorialLine:
     "Vorstellung des Unternehmens, seiner Dienstleistungen sowie veröffentlichter Referenz- und Projektarbeiten.",
-  hostingProviderName: LEGAL_PLACEHOLDER,
-  hostingProviderLocation: LEGAL_PLACEHOLDER,
+  hostingProviderName: "Vercel Inc.",
+  hostingProviderLocation: "EU (Frankfurt, Deutschland)",
   databaseProviderName: "Supabase",
-  databaseProviderLocation: LEGAL_PLACEHOLDER,
+  databaseProviderLocation: "EU (Irland)",
   privacyContactEmail: ""
 } as const;
 

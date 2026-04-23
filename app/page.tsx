@@ -6,6 +6,7 @@ import { HorizontalStillStrip } from "@/components/sections/horizontal-still-str
 import { LinkButton } from "@/components/ui/link-button";
 import { Reveal } from "@/components/ui/reveal";
 import { RevealList } from "@/components/ui/reveal-list";
+import { dedupeImageUrls } from "@/lib/project-images";
 import { projectBusinessToParam } from "@/lib/project-business";
 import { isPublicAdminEnabled } from "@/lib/site-config";
 import { getPublishedProjects, getSiteSettings } from "@/lib/supabase";
@@ -19,9 +20,9 @@ export default async function HomePage() {
   const featuredProjects = projects
     .filter((project) => project.featured)
     .slice(0, 3);
-  const galleryImages = projects
-    .flatMap((project) => project.galleryImages)
-    .slice(0, 8);
+  const galleryImages = dedupeImageUrls(
+    projects.flatMap((project) => project.galleryImages)
+  ).slice(0, 8);
   const carProject = projects.find((project) => project.business === "Car");
   const hospitalityProject = projects.find(
     (project) => project.business === "Hospitality"

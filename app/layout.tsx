@@ -11,6 +11,8 @@ import { siteConfig } from "@/lib/site-config";
 import { getSiteSettings } from "@/lib/supabase";
 import { DEFAULT_THEME, themeIds } from "@/lib/themes";
 
+export const dynamic = "force-dynamic";
+
 export async function generateMetadata(): Promise<Metadata> {
   const settings = await getSiteSettings();
   return {

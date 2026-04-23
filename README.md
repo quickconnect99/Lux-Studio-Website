@@ -32,11 +32,12 @@ Premium automotive video portfolio and marketing site scaffolded with Next.js, T
 - SQL schema is in `supabase/schema.sql`.
 - Create a public storage bucket named `projects` or change `NEXT_PUBLIC_SUPABASE_STORAGE_BUCKET`.
 - Add `SUPABASE_SERVICE_ROLE_KEY` on the server so `/api/inquiries` can persist contact requests without exposing open client-side inserts.
-- For a hardened production admin route, add `ADMIN_GATE_USER` and `ADMIN_GATE_PASSWORD` so `/admin` is challenged before the Supabase login is shown.
+- For a hardened production admin route, add `ADMIN_GATE_USER`, `ADMIN_GATE_PASSWORD`, and `ADMIN_GATE_SECRET` so `/admin` is protected by an internal gate session before the Supabase login is shown.
 - Public pages fall back to local placeholder content if Supabase is not configured.
 - The admin page works in demo mode without Supabase and persists to Supabase once auth/env vars are added.
 - Global settings are read from the `site_settings` table when available.
 - See `docs/supabase-production-setup.md` for the production checklist.
+- See `docs/live-launch-checklist.md` for the launch sequence and smoke test command.
 
 ## Replace later
 
