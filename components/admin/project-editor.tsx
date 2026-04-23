@@ -11,7 +11,10 @@ import {
 } from "lucide-react";
 import { FieldError } from "@/components/ui/field-error";
 import { GalleryEditor } from "@/components/admin/gallery-editor";
-import { adminProjectFieldMeta } from "@/lib/admin-project-fields";
+import {
+  adminProjectFieldMeta,
+  getGalleryFrameRole
+} from "@/lib/admin-project-fields";
 import type {
   AdminProjectFieldKey,
   ProjectFormState,
@@ -550,8 +553,8 @@ export function ProjectEditor({
               </div>
             </div>
             <p className="text-xs leading-6 text-muted">
-              The cover image is managed separately and is not added to the
-              gallery automatically.
+              This image stays separate from the gallery. It drives the top hero
+              on the project page, the video poster, and the project cards.
             </p>
           </div>
         </EditorFieldShell>
@@ -565,6 +568,11 @@ export function ProjectEditor({
         >
           <div className="space-y-2 text-sm text-muted">
             <FieldLabel fieldKey="gallery" required />
+            <p className="text-xs leading-6 text-muted">
+              Order matters: frame 01 is used as the{" "}
+              {getGalleryFrameRole(0).label.toLowerCase()} below the narrative.
+              Frame 02+ appear lower on the page as supporting stills.
+            </p>
             <GalleryEditor
               key={galleryKey}
               images={galleryImageList}

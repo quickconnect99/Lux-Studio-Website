@@ -20,6 +20,7 @@ import {
   verticalListSortingStrategy
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
+import { getGalleryFrameRole } from "@/lib/admin-project-fields";
 import { cn } from "@/lib/utils";
 
 // ── Types ────────────────────────────────────────────────────────────────────
@@ -40,6 +41,8 @@ type GalleryEditorProps = {
 type SortableItemProps = {
   item: GalleryItem;
   displayIndex: number;
+  roleLabel: string;
+  roleDescription: string;
   onRemove: () => void;
   onCaptionChange: (value: string) => void;
 };
@@ -47,6 +50,8 @@ type SortableItemProps = {
 function SortableItem({
   item,
   displayIndex,
+  roleLabel,
+  roleDescription,
   onRemove,
   onCaptionChange
 }: SortableItemProps) {
@@ -97,12 +102,23 @@ function SortableItem({
       </div>
 
       {/* Caption */}
-      <textarea
-        value={item.caption}
-        onChange={(e) => onCaptionChange(e.target.value)}
-        className="textarea-field min-h-[4rem] text-xs"
-        placeholder={`Caption for frame ${displayIndex + 1}…`}
-      />
+      <div className="space-y-2">
+        <div className="flex flex-wrap items-center gap-2">
+          <p className="text-[0.58rem] uppercase tracking-[0.28em] text-muted">
+            Frame {String(displayIndex + 1).padStart(2, "0")}
+          </p>
+          <span className="rounded-full border border-accent/30 bg-accent/10 px-2 py-1 text-[0.55rem] uppercase tracking-[0.24em] text-accent">
+            {roleLabel}
+          </span>
+        </div>
+        <p className="text-[0.7rem] leading-5 text-muted">{roleDescription}</p>
+        <textarea
+          value={item.caption}
+          onChange={(e) => onCaptionChange(e.target.value)}
+          className="textarea-field min-h-[4rem] text-xs"
+          placeholder={`Caption for frame ${displayIndex + 1}…`}
+        />
+      </div>
 
       {/* Remove */}
       <button
@@ -217,6 +233,11 @@ export function GalleryEditor({
   // ── Render ───────────────────────────────────────────────────────────────
   return (
     <div className="space-y-2">
+      <p className="text-[0.72rem] leading-5 text-muted">
+        Gallery order controls the live page: frame 01 becomes the large
+        project image below the narrative, frame 02+ appear lower on the page.
+      </p>
+
       {/* Sortable image list */}
       {items.length > 0 ? (
         <DndContext
@@ -227,13 +248,21 @@ export function GalleryEditor({
           <SortableContext items={ids} strategy={verticalListSortingStrategy}>
             <div className="space-y-2">
               {items.map((item, displayIndex) => (
-                <SortableItem
-                  key={item.id}
-                  item={item}
-                  displayIndex={displayIndex}
-                  onRemove={() => handleRemove(item.id)}
-                  onCaptionChange={(v) => handleCaptionChange(item.id, v)}
-                />
+                (() => {
+                  const role = getGalleryFrameRole(displayIndex);
+
+                  return (
+                    <SortableItem
+                      key={item.id}
+                      item={item}
+                      displayIndex={displayIndex}
+                      roleLabel={role.label}
+                      roleDescription={role.description}
+                      onRemove={() => handleRemove(item.id)}
+                      onCaptionChange={(v) => handleCaptionChange(item.id, v)}
+                    />
+                  );
+                })()
               ))}
             </div>
           </SortableContext>
@@ -244,28 +273,44 @@ export function GalleryEditor({
       {pendingFiles.length > 0 ? (
         <div className="space-y-1.5">
           {pendingFiles.map((file, i) => (
-            <div
-              key={`${file.name}-${i}`}
-              className="flex items-center justify-between gap-3 rounded-[1.25rem] border border-dashed border-accent/40 bg-accent/5 px-4 py-2.5"
-            >
-              <div className="flex min-w-0 items-center gap-3">
-                <span className="flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-accent/25 text-[0.48rem] font-medium text-accent">
-                  {items.length + i + 1}
-                </span>
-                <span className="truncate text-xs text-muted">{file.name}</span>
-                <span className="shrink-0 text-[0.62rem] uppercase tracking-eyebrow text-accent">
-                  Queued
-                </span>
-              </div>
-              <button
-                type="button"
-                onClick={() => onFileRemove(i)}
-                className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md text-muted transition-colors hover:text-error"
-                aria-label="Remove queued file"
-              >
-                <X className="h-4 w-4" />
-              </button>
-            </div>
+            (() => {
+              const frameIndex = items.length + i;
+              const role = getGalleryFrameRole(frameIndex);
+
+              return (
+                <div
+                  key={`${file.name}-${i}`}
+                  className="flex items-center justify-between gap-3 rounded-[1.25rem] border border-dashed border-accent/40 bg-accent/5 px-4 py-2.5"
+                >
+                  <div className="flex min-w-0 items-start gap-3">
+                    <span className="mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-accent/25 text-[0.48rem] font-medium text-accent">
+                      {frameIndex + 1}
+                    </span>
+                    <div className="min-w-0 space-y-1">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <span className="truncate text-xs text-muted">
+                          {file.name}
+                        </span>
+                        <span className="shrink-0 text-[0.62rem] uppercase tracking-eyebrow text-accent">
+                          Queued
+                        </span>
+                      </div>
+                      <p className="text-[0.62rem] uppercase tracking-[0.24em] text-accent/85">
+                        {role.label}
+                      </p>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => onFileRemove(i)}
+                    className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md text-muted transition-colors hover:text-error"
+                    aria-label="Remove queued file"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                </div>
+              );
+            })()
           ))}
         </div>
       ) : null}

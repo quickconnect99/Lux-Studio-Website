@@ -5,6 +5,11 @@ type AdminProjectFieldMeta = {
   helpText: string;
 };
 
+export type GalleryFrameRole = {
+  label: string;
+  description: string;
+};
+
 export const adminProjectFieldMeta: Record<
   AdminProjectFieldKey,
   AdminProjectFieldMeta
@@ -62,12 +67,12 @@ export const adminProjectFieldMeta: Record<
   coverImage: {
     label: "Cover Image",
     helpText:
-      "Ist das Hauptvisual der Projektdetailseite, Video-Poster und die Bildquelle fuer Karten auf der Start- und Work-Seite."
+      "Ist das Top-Hauptvisual der Projektdetailseite, dient als Video-Poster und ist die Bildquelle fuer Karten auf der Start- und Work-Seite."
   },
   gallery: {
     label: "Gallery",
     helpText:
-      "Versorgt die Supporting-Stills unterhalb des Hauptvisuals. Captions erscheinen dort neben einzelnen Bildern als Textkarten."
+      "Die Reihenfolge steuert die Detailseite: Bild 1 wird als grosses Projektbild unter dem Narrative gezeigt, Bild 2+ erscheinen darunter als weitere Stills. Captions bleiben mit dem jeweiligen Bild verknuepft."
   },
   video: {
     label: "Video",
@@ -90,3 +95,18 @@ export const adminProjectFieldMeta: Record<
       "Nur veroeffentlichte Projekte sind auf der oeffentlichen Website sichtbar und unter /work/<slug> erreichbar."
   }
 };
+
+export function getGalleryFrameRole(index: number): GalleryFrameRole {
+  if (index === 0) {
+    return {
+      label: "Large project image",
+      description:
+        "Appears directly below the narrative section as the main still."
+    };
+  }
+
+  return {
+    label: "Supporting still",
+    description: "Appears lower on the project page in the supporting gallery."
+  };
+}
