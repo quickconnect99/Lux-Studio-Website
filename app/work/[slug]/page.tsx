@@ -108,14 +108,9 @@ export default async function ProjectPage({
     galleryImages: project.galleryImages,
     galleryCaptions: project.galleryCaptions ?? []
   });
-  const carouselImages = (() => {
-    const seen = new Set<string>();
-    return [project.coverImage, ...normalizedGallery.images].filter((img) => {
-      if (!img || seen.has(img)) return false;
-      seen.add(img);
-      return true;
-    });
-  })();
+  const carouselImages = [project.coverImage, ...project.galleryImages].filter(
+    (img, index, arr) => img && arr.indexOf(img) === index
+  );
 
   const heroStill = normalizedGallery.images[0] ?? null;
   const supportingStillItems = normalizedGallery.images
