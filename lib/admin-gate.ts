@@ -45,12 +45,26 @@ function constantTimeEqual(left: string, right: string) {
   return result === 0;
 }
 
-function getAdminGateUser() {
-  return process.env.ADMIN_GATE_USER?.trim() ?? "";
+type AdminGateUser = { username: string; password: string };
+
+function parseAdminGateUsers(value: string) {
+  try {
+    const parsed = JSON.parse(value);
+    if (Array.isArray(parsed)) return parsed;
+  } catch {}
+
+  return [];
 }
 
-function getAdminGatePassword() {
-  return process.env.ADMIN_GATE_PASSWORD?.trim() ?? "";
+function getAdminGateUsers(): AdminGateUser[] {
+  const raw = process.env.ADMIN_GATE_USERS?.trim() ?? "";
+  const parsed = parseAdminGateUsers(raw);
+
+  if (parsed.length > 0) {
+    return parsed;
+  }
+
+  return parseAdminGateUsers(raw.replace(/\\\$/g, "$"));
 }
 
 function getAdminGateSecret() {
@@ -69,19 +83,17 @@ export function isAdminGateConfigured() {
     return true;
   }
 
-  return Boolean(
-    getAdminGateUser() && getAdminGatePassword() && getAdminGateSecret()
-  );
+  return getAdminGateUsers().length > 0 && Boolean(getAdminGateSecret());
 }
 
 export function areAdminGateCredentialsValid(username: string, password: string) {
-  const expectedUser = getAdminGateUser();
-  const expectedPassword = getAdminGatePassword();
+  const users = getAdminGateUsers();
 
-  return (
-    Boolean(expectedUser && expectedPassword) &&
-    constantTimeEqual(username, expectedUser) &&
-    constantTimeEqual(password, expectedPassword)
+  return users.some(
+    (u) =>
+      Boolean(u.username && u.password) &&
+      constantTimeEqual(username, u.username) &&
+      constantTimeEqual(password, u.password)
   );
 }
 
@@ -145,8 +157,11 @@ export async function verifyAdminGateCookieValue(value: string | undefined) {
       new TextDecoder().decode(base64UrlToBytes(encodedPayload))
     ) as Partial<AdminGatePayload>;
 
+    const validUsernames = getAdminGateUsers().map((u) => u.username);
+
     return (
-      payload.user === getAdminGateUser() &&
+      typeof payload.user === "string" &&
+      validUsernames.includes(payload.user) &&
       typeof payload.exp === "number" &&
       payload.exp > Date.now()
     );

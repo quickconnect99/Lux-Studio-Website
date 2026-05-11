@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Palette } from "lucide-react";
+import { Palette, Sun, Moon } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
 import { themes } from "@/lib/themes";
 import { useTheme } from "@/components/ui/theme-provider";
@@ -10,6 +10,7 @@ import { cn } from "@/lib/utils";
 export function ThemeSwitcher() {
   const { theme, mounted, setTheme } = useTheme();
   const [open, setOpen] = useState(false);
+  const currentThemeData = themes.find((t) => t.id === theme);
   const containerRef = useRef<HTMLDivElement>(null);
 
   // Close panel on outside click
@@ -135,24 +136,44 @@ export function ThemeSwitcher() {
         )}
       </AnimatePresence>
 
-      {/* Toggle button – uses current accent colour as background */}
-      <button
-        type="button"
-        onClick={() => setOpen((v) => !v)}
-        aria-expanded={open}
-        aria-label="Toggle theme switcher"
-        className={cn(
-          "flex h-11 w-11 items-center justify-center rounded-full",
-          "border border-line shadow-card backdrop-blur-xl",
-          "transition-all duration-200 hover:scale-110 active:scale-95"
-        )}
-        style={{ backgroundColor: "var(--accent)" }}
-      >
-        <Palette
-          className="h-4 w-4"
-          style={{ color: "var(--accent-contrast)" }}
-        />
-      </button>
+      <div className="flex items-center gap-2">
+        {/* Day/Night toggle */}
+        <button
+          type="button"
+          onClick={() => setTheme(currentThemeData?.dark ? "vintage-light" : "vintage")}
+          aria-label="Toggle day/night theme"
+          className={cn(
+            "flex h-11 w-11 items-center justify-center rounded-full",
+            "border border-line shadow-card backdrop-blur-xl",
+            "transition-all duration-200 hover:scale-110 active:scale-95"
+          )}
+          style={{ backgroundColor: "var(--panel)" }}
+        >
+          {currentThemeData?.dark
+            ? <Sun className="h-4 w-4" style={{ color: "var(--foreground)" }} />
+            : <Moon className="h-4 w-4" style={{ color: "var(--foreground)" }} />
+          }
+        </button>
+
+        {/* Palette toggle – uses current accent colour as background */}
+        <button
+          type="button"
+          onClick={() => setOpen((v) => !v)}
+          aria-expanded={open}
+          aria-label="Toggle theme switcher"
+          className={cn(
+            "flex h-11 w-11 items-center justify-center rounded-full",
+            "border border-line shadow-card backdrop-blur-xl",
+            "transition-all duration-200 hover:scale-110 active:scale-95"
+          )}
+          style={{ backgroundColor: "var(--accent)" }}
+        >
+          <Palette
+            className="h-4 w-4"
+            style={{ color: "var(--accent-contrast)" }}
+          />
+        </button>
+      </div>
     </div>
   );
 }

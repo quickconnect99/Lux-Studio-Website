@@ -7,7 +7,7 @@ import {
   useSyncExternalStore,
   type ReactNode,
 } from "react";
-import { type ThemeId, DEFAULT_THEME, resolveTheme } from "@/lib/themes";
+import { type ThemeId, DEFAULT_THEME, resolveTheme, isThemeId } from "@/lib/themes";
 
 interface ThemeContextValue {
   theme: ThemeId;
@@ -30,6 +30,14 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     if (typeof document === "undefined") {
       return DEFAULT_THEME;
     }
+
+    try {
+      const stored = localStorage.getItem("theme");
+      if (isThemeId(stored)) {
+        document.documentElement.setAttribute("data-theme", stored);
+        return stored;
+      }
+    } catch {}
 
     return resolveTheme(document.documentElement.getAttribute("data-theme"));
   });

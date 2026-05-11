@@ -39,7 +39,7 @@ export const themes: Theme[] = [
   { id: "bloodline",       label: "Bloodline", bg: "#0d0a0a", accent: "#c41230", accentContrast: "#f0ebe8", dark: true },
 ];
 
-export const DEFAULT_THEME: ThemeId = "cream";
+export const DEFAULT_THEME: ThemeId = "vintage";
 
 export const themeIds = themes.map((theme) => theme.id);
 
