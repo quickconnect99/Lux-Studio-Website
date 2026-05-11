@@ -12,6 +12,7 @@ import {
   RefreshCw,
   Settings
 } from "lucide-react";
+import { AdminThemeChip } from "@/components/admin/admin-theme-chip";
 import { isSupabaseConfigured, SUPABASE_BUCKET } from "@/lib/supabase";
 import { useAdminData } from "@/hooks/use-admin-data";
 import { AdminConfirmModal } from "@/components/admin/admin-confirm-modal";
@@ -181,34 +182,37 @@ export function AdminDashboard() {
     <section className="section-shell space-y-6 pb-24">
       {/* Tab bar + session controls */}
       <div className="flex flex-wrap items-center justify-between gap-4">
-        <div className="inline-flex gap-1 rounded-full border border-line bg-panel-secondary p-1">
-          <button
-            type="button"
-            onClick={() => setActiveTab("projects")}
-            className={`inline-flex items-center gap-2 rounded-full px-4 py-2 text-xs uppercase tracking-eyebrow transition-colors ${
-              activeTab === "projects"
-                ? "bg-foreground text-background"
-                : "text-muted hover:text-foreground"
-            }`}
-          >
-            <FolderOpen className="h-3.5 w-3.5" />
-            Projects
-            {isDirty && activeTab !== "projects" ? (
-              <span className="h-1.5 w-1.5 rounded-full bg-warning" />
-            ) : null}
-          </button>
-          <button
-            type="button"
-            onClick={() => setActiveTab("settings")}
-            className={`inline-flex items-center gap-2 rounded-full px-4 py-2 text-xs uppercase tracking-eyebrow transition-colors ${
-              activeTab === "settings"
-                ? "bg-foreground text-background"
-                : "text-muted hover:text-foreground"
-            }`}
-          >
-            <Settings className="h-3.5 w-3.5" />
-            Site Settings
-          </button>
+        <div className="flex flex-wrap items-center gap-3">
+          <div className="inline-flex gap-1 rounded-full border border-line bg-panel-secondary p-1">
+            <button
+              type="button"
+              onClick={() => setActiveTab("projects")}
+              className={`inline-flex items-center gap-2 rounded-full px-4 py-2 text-xs uppercase tracking-eyebrow transition-colors ${
+                activeTab === "projects"
+                  ? "bg-foreground text-background"
+                  : "text-muted hover:text-foreground"
+              }`}
+            >
+              <FolderOpen className="h-3.5 w-3.5" />
+              Projects
+              {isDirty && activeTab !== "projects" ? (
+                <span className="h-1.5 w-1.5 rounded-full bg-warning" />
+              ) : null}
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveTab("settings")}
+              className={`inline-flex items-center gap-2 rounded-full px-4 py-2 text-xs uppercase tracking-eyebrow transition-colors ${
+                activeTab === "settings"
+                  ? "bg-foreground text-background"
+                  : "text-muted hover:text-foreground"
+              }`}
+            >
+              <Settings className="h-3.5 w-3.5" />
+              Site Settings
+            </button>
+          </div>
+          <AdminThemeChip />
         </div>
 
         <div className="flex flex-wrap items-center gap-3">
@@ -252,7 +256,7 @@ export function AdminDashboard() {
           sessionEmail ? "sm:grid-cols-[1fr_320px]" : "grid-cols-1"
         }`}
       >
-        <div className="panel-2xl p-6">
+        <div className="panel-2xl admin-theme-surface p-6">
           <p className="text-xs uppercase tracking-eyebrow text-muted">
             CMS state
           </p>
@@ -296,7 +300,7 @@ export function AdminDashboard() {
           </div>
         </div>
 
-        <div className="panel-2xl p-6">
+        <div className="panel-2xl admin-theme-surface p-6">
           <p className="text-xs uppercase tracking-eyebrow text-muted">
             Supabase access
           </p>

@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Lock, RefreshCw } from "lucide-react";
+import { AdminThemeChip } from "@/components/admin/admin-theme-chip";
 import { cn } from "@/lib/utils";
 
 export function AdminGateLoginForm() {
@@ -55,12 +56,15 @@ export function AdminGateLoginForm() {
   return (
     <form
       onSubmit={handleSubmit}
-      className="panel-2xl grid gap-8 p-6 sm:p-8 lg:grid-cols-[minmax(0,1.15fr)_minmax(320px,0.85fr)] lg:p-10"
+      className="panel-2xl admin-theme-surface grid gap-8 p-6 sm:p-8 lg:grid-cols-[minmax(0,1.15fr)_minmax(320px,0.85fr)] lg:p-10"
     >
       <div className="space-y-5">
-        <p className="text-xs uppercase tracking-eyebrow text-muted">
-          Admin gate
-        </p>
+        <div className="flex flex-wrap items-center gap-3">
+          <p className="text-xs uppercase tracking-eyebrow text-muted">
+            Admin gate
+          </p>
+          <AdminThemeChip />
+        </div>
         <h2 className="font-[family:var(--font-display)] text-4xl uppercase leading-none text-foreground sm:text-5xl lg:text-6xl">
           Internal
           <span className="block pl-8 text-accent sm:pl-12">Access</span>
@@ -92,7 +96,7 @@ export function AdminGateLoginForm() {
         </div>
       </div>
 
-      <div className="space-y-6 rounded-[1.75rem] border border-line bg-panel-secondary p-5 sm:p-6">
+      <div className="space-y-6 rounded-[1.75rem] border border-line bg-panel-secondary/90 p-5 sm:p-6">
         <div className="grid gap-4">
           <label className="space-y-2 text-sm text-muted">
             <span className="text-xs uppercase tracking-eyebrow">Gate user</span>
