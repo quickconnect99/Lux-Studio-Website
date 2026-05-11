@@ -7,6 +7,7 @@ import {
   CheckCircle2,
   FolderOpen,
   Info,
+  Lock,
   LogIn,
   LogOut,
   RefreshCw,
@@ -250,6 +251,56 @@ export function AdminDashboard() {
         </div>
       </div>
 
+      {/* Supabase sign-in banner — shown prominently when not authenticated */}
+      {isSupabaseConfigured && !sessionEmail ? (
+        <div className="panel-2xl admin-theme-surface border-2 border-accent/50 p-6 sm:p-8">
+          <div className="flex flex-col gap-5 sm:flex-row sm:items-start">
+            <div className="shrink-0 rounded-2xl bg-accent/10 p-3.5">
+              <Lock className="h-7 w-7 text-accent" />
+            </div>
+            <div className="flex-1">
+              <p className="text-lg font-semibold tracking-tight text-foreground">
+                Sign in to Supabase
+              </p>
+              <p className="mt-1.5 text-sm leading-relaxed text-muted">
+                File uploads, image management, and live CMS changes require an
+                authenticated Supabase session. Sign in first before editing any
+                project fields.
+              </p>
+              <div className="mt-5 grid gap-3 sm:grid-cols-[1fr_1fr_auto] items-end">
+                <input
+                  type="email"
+                  value={authFormState.email}
+                  onChange={(e) =>
+                    updateAuthFormField("email", e.target.value)
+                  }
+                  className="input-field text-sm"
+                  placeholder="Admin email"
+                />
+                <input
+                  type="password"
+                  value={authFormState.password}
+                  onChange={(e) =>
+                    updateAuthFormField("password", e.target.value)
+                  }
+                  className="input-field text-sm"
+                  placeholder="Password"
+                />
+                <button
+                  type="button"
+                  onClick={handleSignIn}
+                  disabled={working}
+                  className="control-pill border-foreground bg-foreground text-background disabled:opacity-70"
+                >
+                  <LogIn className="h-4 w-4" />
+                  Sign In
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      ) : null}
+
       {/* CMS status + Supabase access */}
       <div
         className={`grid gap-6 ${
@@ -300,53 +351,25 @@ export function AdminDashboard() {
           </div>
         </div>
 
-        <div className="panel-2xl admin-theme-surface p-6">
-          <p className="text-xs uppercase tracking-eyebrow text-muted">
-            Supabase access
-          </p>
-          {isSupabaseConfigured ? (
-            sessionEmail ? (
+        {sessionEmail || !isSupabaseConfigured ? (
+          <div className="panel-2xl admin-theme-surface p-6">
+            <p className="text-xs uppercase tracking-eyebrow text-muted">
+              Supabase access
+            </p>
+            {isSupabaseConfigured && sessionEmail ? (
               <div className="mt-4 space-y-3 text-sm leading-7 text-muted">
                 <p>Signed in as {sessionEmail}</p>
                 <p>Uploads target the `{SUPABASE_BUCKET}` storage bucket.</p>
               </div>
             ) : (
-              <div className="mt-4 grid gap-3 md:grid-cols-2">
-                <input
-                  type="email"
-                  value={authFormState.email}
-                  onChange={(e) => updateAuthFormField("email", e.target.value)}
-                  className="input-field text-sm"
-                  placeholder="Admin email"
-                />
-                <input
-                  type="password"
-                  value={authFormState.password}
-                  onChange={(e) =>
-                    updateAuthFormField("password", e.target.value)
-                  }
-                  className="input-field text-sm"
-                  placeholder="Password"
-                />
-                <button
-                  type="button"
-                  onClick={handleSignIn}
-                  disabled={working}
-                  className="control-pill w-fit border-foreground bg-foreground text-background disabled:opacity-70 md:col-span-2"
-                >
-                  <LogIn className="h-4 w-4" />
-                  Sign In
-                </button>
-              </div>
-            )
-          ) : (
-            <p className="mt-4 text-sm leading-7 text-muted">
-              Add `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`,
-              and `NEXT_PUBLIC_SUPABASE_STORAGE_BUCKET` to enable live CMS
-              mode.
-            </p>
-          )}
-        </div>
+              <p className="mt-4 text-sm leading-7 text-muted">
+                Add `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`,
+                and `NEXT_PUBLIC_SUPABASE_STORAGE_BUCKET` to enable live CMS
+                mode.
+              </p>
+            )}
+          </div>
+        ) : null}
       </div>
 
       {/* TAB: PROJECTS */}

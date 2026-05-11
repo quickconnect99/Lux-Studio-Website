@@ -47,10 +47,23 @@ function constantTimeEqual(left: string, right: string) {
 
 type AdminGateUser = { username: string; password: string };
 
-function parseAdminGateUsers(value: string) {
+function isAdminGateUser(value: unknown): value is AdminGateUser {
+  return (
+    Boolean(value) &&
+    typeof value === "object" &&
+    typeof (value as Partial<AdminGateUser>).username === "string" &&
+    typeof (value as Partial<AdminGateUser>).password === "string"
+  );
+}
+
+function unescapeEnvDollar(value: string) {
+  return value.replace(/\\\$/g, "$");
+}
+
+function parseAdminGateUsers(value: string): AdminGateUser[] {
   try {
     const parsed = JSON.parse(value);
-    if (Array.isArray(parsed)) return parsed;
+    if (Array.isArray(parsed)) return parsed.filter(isAdminGateUser);
   } catch {}
 
   return [];
@@ -64,7 +77,20 @@ function getAdminGateUsers(): AdminGateUser[] {
     return parsed;
   }
 
-  return parseAdminGateUsers(raw.replace(/\\\$/g, "$"));
+  const unescapedParsed = parseAdminGateUsers(unescapeEnvDollar(raw));
+
+  if (unescapedParsed.length > 0) {
+    return unescapedParsed;
+  }
+
+  const username = process.env.ADMIN_GATE_USER?.trim() ?? "";
+  const password = process.env.ADMIN_GATE_PASSWORD ?? "";
+
+  if (username && password) {
+    return [{ username, password: unescapeEnvDollar(password) }];
+  }
+
+  return [];
 }
 
 function getAdminGateSecret() {
