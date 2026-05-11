@@ -89,6 +89,7 @@ export function AdminDashboard() {
 
   const liveProjectHref =
     formState.id && formState.published ? `/work/${formState.slug}` : null;
+  const canEditCms = !isSupabaseConfigured || Boolean(sessionEmail);
 
   function renderSaveReportIcon(tone: "success" | "warning" | "info") {
     if (tone === "success") {
@@ -184,35 +185,37 @@ export function AdminDashboard() {
       {/* Tab bar + session controls */}
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div className="flex flex-wrap items-center gap-3">
-          <div className="inline-flex gap-1 rounded-full border border-line bg-panel-secondary p-1">
-            <button
-              type="button"
-              onClick={() => setActiveTab("projects")}
-              className={`inline-flex items-center gap-2 rounded-full px-4 py-2 text-xs uppercase tracking-eyebrow transition-colors ${
-                activeTab === "projects"
-                  ? "bg-foreground text-background"
-                  : "text-muted hover:text-foreground"
-              }`}
-            >
-              <FolderOpen className="h-3.5 w-3.5" />
-              Projects
-              {isDirty && activeTab !== "projects" ? (
-                <span className="h-1.5 w-1.5 rounded-full bg-warning" />
-              ) : null}
-            </button>
-            <button
-              type="button"
-              onClick={() => setActiveTab("settings")}
-              className={`inline-flex items-center gap-2 rounded-full px-4 py-2 text-xs uppercase tracking-eyebrow transition-colors ${
-                activeTab === "settings"
-                  ? "bg-foreground text-background"
-                  : "text-muted hover:text-foreground"
-              }`}
-            >
-              <Settings className="h-3.5 w-3.5" />
-              Site Settings
-            </button>
-          </div>
+          {canEditCms ? (
+            <div className="inline-flex gap-1 rounded-full border border-line bg-panel-secondary p-1">
+              <button
+                type="button"
+                onClick={() => setActiveTab("projects")}
+                className={`inline-flex items-center gap-2 rounded-full px-4 py-2 text-xs uppercase tracking-eyebrow transition-colors ${
+                  activeTab === "projects"
+                    ? "bg-foreground text-background"
+                    : "text-muted hover:text-foreground"
+                }`}
+              >
+                <FolderOpen className="h-3.5 w-3.5" />
+                Projects
+                {isDirty && activeTab !== "projects" ? (
+                  <span className="h-1.5 w-1.5 rounded-full bg-warning" />
+                ) : null}
+              </button>
+              <button
+                type="button"
+                onClick={() => setActiveTab("settings")}
+                className={`inline-flex items-center gap-2 rounded-full px-4 py-2 text-xs uppercase tracking-eyebrow transition-colors ${
+                  activeTab === "settings"
+                    ? "bg-foreground text-background"
+                    : "text-muted hover:text-foreground"
+                }`}
+              >
+                <Settings className="h-3.5 w-3.5" />
+                Site Settings
+              </button>
+            </div>
+          ) : null}
           <AdminThemeChip />
         </div>
 
@@ -240,14 +243,16 @@ export function AdminDashboard() {
             <LogOut className="h-4 w-4" />
             Exit Admin
           </button>
-          <button
-            type="button"
-            onClick={handleResetClick}
-            className="control-pill"
-          >
-            <RefreshCw className="h-4 w-4" />
-            Reset Form
-          </button>
+          {canEditCms ? (
+            <button
+              type="button"
+              onClick={handleResetClick}
+              className="control-pill"
+            >
+              <RefreshCw className="h-4 w-4" />
+              Reset Form
+            </button>
+          ) : null}
         </div>
       </div>
 
@@ -373,7 +378,7 @@ export function AdminDashboard() {
       </div>
 
       {/* TAB: PROJECTS */}
-      {activeTab === "projects" ? (
+      {canEditCms && activeTab === "projects" ? (
         <div className="grid gap-6 lg:grid-cols-[1fr_320px] xl:grid-cols-[240px_minmax(0,1fr)_360px]">
           <ProjectSidebar
             templates={templateProjects}
@@ -431,7 +436,7 @@ export function AdminDashboard() {
       ) : null}
 
       {/* TAB: SITE SETTINGS */}
-      {activeTab === "settings" ? (
+      {canEditCms && activeTab === "settings" ? (
         <SiteSettingsForm
           formState={siteSettingsFormState}
           updateField={updateSiteSettingsField}
