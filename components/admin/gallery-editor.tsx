@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
 import { GripVertical, Plus, X } from "lucide-react";
 import {
@@ -44,6 +44,7 @@ type SortableItemProps = {
   roleLabel: string;
   roleDescription: string;
   onRemove: () => void;
+  onImageChange: (value: string) => void;
   onCaptionChange: (value: string) => void;
 };
 
@@ -53,8 +54,10 @@ function SortableItem({
   roleLabel,
   roleDescription,
   onRemove,
+  onImageChange,
   onCaptionChange
 }: SortableItemProps) {
+  const [imageDraft, setImageDraft] = useState(item.image);
   const {
     attributes,
     listeners,
@@ -63,6 +66,19 @@ function SortableItem({
     transition,
     isDragging
   } = useSortable({ id: item.id });
+
+  useEffect(() => {
+    setImageDraft(item.image);
+  }, [item.image]);
+
+  function commitImagePath() {
+    const nextImage = imageDraft.trim();
+    if (!nextImage) {
+      setImageDraft(item.image);
+      return;
+    }
+    onImageChange(nextImage);
+  }
 
   return (
     <div
@@ -101,7 +117,7 @@ function SortableItem({
         </span>
       </div>
 
-      {/* Caption */}
+      {/* Image path and caption */}
       <div className="space-y-2">
         <div className="flex flex-wrap items-center gap-2">
           <p className="text-[0.58rem] uppercase tracking-[0.28em] text-muted">
@@ -112,6 +128,26 @@ function SortableItem({
           </span>
         </div>
         <p className="text-[0.7rem] leading-5 text-muted">{roleDescription}</p>
+        <input
+          data-gallery-image-index={displayIndex}
+          value={imageDraft}
+          onChange={(event) => setImageDraft(event.target.value)}
+          onBlur={commitImagePath}
+          onKeyDown={(event) => {
+            if (event.key === "Enter") {
+              event.preventDefault();
+              commitImagePath();
+              event.currentTarget.blur();
+            }
+            if (event.key === "Escape") {
+              setImageDraft(item.image);
+              event.currentTarget.blur();
+            }
+          }}
+          className="input-field text-xs"
+          aria-label={`Image path for frame ${displayIndex + 1}`}
+          placeholder="https://… or /images/…"
+        />
         <textarea
           value={item.caption}
           onChange={(e) => onCaptionChange(e.target.value)}
@@ -212,6 +248,14 @@ export function GalleryEditor({
     emit(next);
   }
 
+  function handleImageChange(id: string, image: string) {
+    const next = items.map((item) =>
+      item.id === id ? { ...item, image } : item
+    );
+    setItems(next);
+    emit(next);
+  }
+
   // ── Add URL ──────────────────────────────────────────────────────────────
   function handleAddUrl() {
     const trimmed = urlDraft.trim();
@@ -259,6 +303,9 @@ export function GalleryEditor({
                       roleLabel={role.label}
                       roleDescription={role.description}
                       onRemove={() => handleRemove(item.id)}
+                      onImageChange={(value) =>
+                        handleImageChange(item.id, value)
+                      }
                       onCaptionChange={(v) => handleCaptionChange(item.id, v)}
                     />
                   );

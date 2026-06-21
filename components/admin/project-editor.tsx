@@ -89,6 +89,7 @@ function EditorFieldShell({
 
   return (
     <div
+      data-admin-editor-field={fieldKey}
       onMouseEnter={() => onActiveFieldChange(fieldKey)}
       onMouseLeave={() => onActiveFieldChange(null)}
       onFocusCapture={() => onActiveFieldChange(fieldKey)}

@@ -6,6 +6,8 @@ import {
   Lock,
   LogIn,
   LogOut,
+  PanelLeftClose,
+  PanelLeftOpen,
   RefreshCw,
   Settings,
   UserRound
@@ -30,6 +32,7 @@ export function AdminDashboard() {
   const [activeField, setActiveField] = useState<AdminProjectFieldKey | null>(
     null
   );
+  const [isProjectSidebarVisible, setIsProjectSidebarVisible] = useState(true);
 
   const {
     activeTab,
@@ -156,6 +159,34 @@ export function AdminDashboard() {
     updateField("galleryImagesText", lines.join("\n"));
   }
 
+  function handlePreviewImageNavigate(
+    field: "coverImage" | "gallery",
+    galleryIndex?: number
+  ) {
+    setActiveField(field);
+
+    requestAnimationFrame(() => {
+      const fieldElement = document.querySelector<HTMLElement>(
+        `[data-admin-editor-field="${field}"]`
+      );
+      const target =
+        field === "gallery" && galleryIndex !== undefined
+          ? fieldElement?.querySelector<HTMLElement>(
+              `[data-gallery-image-index="${galleryIndex}"]`
+            )
+          : fieldElement?.querySelector<HTMLElement>(
+              'input:not([type="file"]), textarea, select'
+            );
+
+      (target ?? fieldElement)?.scrollIntoView({
+        behavior: "smooth",
+        block: "center"
+      });
+
+      window.setTimeout(() => target?.focus({ preventScroll: true }), 450);
+    });
+  }
+
   return (
     <section className="section-shell space-y-6 pb-24">
       {/* Tab bar + session controls */}
@@ -238,6 +269,23 @@ export function AdminDashboard() {
               Reset Form
             </button>
           ) : null}
+          {canEditCms && activeTab === "projects" ? (
+            <button
+              type="button"
+              onClick={() =>
+                setIsProjectSidebarVisible((isVisible) => !isVisible)
+              }
+              className="control-pill"
+              aria-pressed={!isProjectSidebarVisible}
+            >
+              {isProjectSidebarVisible ? (
+                <PanelLeftClose className="h-4 w-4" />
+              ) : (
+                <PanelLeftOpen className="h-4 w-4" />
+              )}
+              {isProjectSidebarVisible ? "Hide Projects" : "Show Projects"}
+            </button>
+          ) : null}
         </div>
       </div>
 
@@ -291,15 +339,23 @@ export function AdminDashboard() {
 
       {/* TAB: PROJECTS */}
       {canEditCms && activeTab === "projects" ? (
-        <div className="grid gap-6 lg:grid-cols-[1fr_320px] xl:grid-cols-[240px_minmax(0,1fr)_360px]">
-          <ProjectSidebar
-            templates={templateProjects}
-            projects={projects}
-            selectedProjectKey={selectedProjectKey}
-            isDirty={isDirty}
-            onSelect={selectProject}
-            onNew={newProject}
-          />
+        <div
+          className={`grid gap-6 ${
+            isProjectSidebarVisible
+              ? "lg:grid-cols-[1fr_320px] xl:grid-cols-[240px_minmax(0,1fr)_360px]"
+              : "lg:grid-cols-[minmax(0,1fr)_320px] xl:grid-cols-[minmax(0,1fr)_360px]"
+          }`}
+        >
+          {isProjectSidebarVisible ? (
+            <ProjectSidebar
+              templates={templateProjects}
+              projects={projects}
+              selectedProjectKey={selectedProjectKey}
+              isDirty={isDirty}
+              onSelect={selectProject}
+              onNew={newProject}
+            />
+          ) : null}
           <ProjectEditor
             galleryKey={`${formState.id ?? formState.slug}-${saveCount}`}
             formState={formState}
@@ -342,6 +398,7 @@ export function AdminDashboard() {
             onUpdateCaption={updateCaption}
             onReplaceGalleryImage={handlePreviewGalleryImageUpdate}
             onToggleField={handlePreviewToggle}
+            onNavigateToImageField={handlePreviewImageNavigate}
             liveProjectHref={liveProjectHref}
           />
         </div>

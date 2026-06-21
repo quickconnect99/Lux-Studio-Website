@@ -46,6 +46,10 @@ type LivePreviewProps = {
   onUpdateCaption: (index: number, value: string) => void;
   onReplaceGalleryImage: (index: number, value: string) => void;
   onToggleField: (field: PreviewToggleField) => void;
+  onNavigateToImageField: (
+    field: "coverImage" | "gallery",
+    galleryIndex?: number
+  ) => void;
   liveProjectHref: string | null;
 };
 
@@ -318,6 +322,7 @@ export function LivePreview({
   onUpdateCaption,
   onReplaceGalleryImage,
   onToggleField,
+  onNavigateToImageField,
   liveProjectHref
 }: LivePreviewProps) {
   const primaryMetaLabel = getProjectPrimaryMetaLabel(formState.business);
@@ -331,7 +336,8 @@ export function LivePreview({
               Quick Preview
             </p>
             <p className="mt-1 text-xs leading-6 text-muted">
-              Double-click any text to edit it directly in the preview.
+              Double-click text to edit it. Double-click an image to open its
+              field in the editor.
             </p>
           </div>
           <div className="flex items-center gap-2">
@@ -359,16 +365,24 @@ export function LivePreview({
             onActiveFieldChange={onActiveFieldChange}
             className="absolute inset-0 overflow-hidden rounded-none"
           >
-            {coverPreviewSrc ? (
-              <Image
-                src={coverPreviewSrc}
-                alt={formState.title || "Project preview"}
-                fill
-                sizes="360px"
-                unoptimized
-                className="object-cover"
-              />
-            ) : null}
+            <button
+              type="button"
+              onDoubleClick={() => onNavigateToImageField("coverImage")}
+              className="absolute inset-0 block w-full cursor-pointer"
+              title="Double-click to open the cover image field"
+              aria-label="Open cover image field"
+            >
+              {coverPreviewSrc ? (
+                <Image
+                  src={coverPreviewSrc}
+                  alt={formState.title || "Project preview"}
+                  fill
+                  sizes="360px"
+                  unoptimized
+                  className="object-cover"
+                />
+              ) : null}
+            </button>
           </PreviewFieldShell>
           <div className="absolute inset-x-0 bottom-0 flex flex-wrap gap-1.5 p-3">
             <PreviewToggleChip
@@ -690,7 +704,15 @@ export function LivePreview({
                   className="rounded-[1.25rem] border border-line bg-panel-secondary p-3"
                 >
                   <div className="flex gap-3">
-                    <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-xl border border-line bg-panel-dark">
+                    <button
+                      type="button"
+                      onDoubleClick={() =>
+                        onNavigateToImageField("gallery", index)
+                      }
+                      className="relative h-16 w-16 shrink-0 cursor-pointer overflow-hidden rounded-xl border border-line bg-panel-dark"
+                      title={`Double-click to open the path for frame ${index + 1}`}
+                      aria-label={`Open image path for frame ${index + 1}`}
+                    >
                       <Image
                         src={src}
                         alt={`Frame ${index + 1}`}
@@ -698,7 +720,7 @@ export function LivePreview({
                         sizes="64px"
                         className="object-cover"
                       />
-                    </div>
+                    </button>
 
                     <div className="min-w-0 flex-1 space-y-3">
                       <div className="space-y-1.5">
