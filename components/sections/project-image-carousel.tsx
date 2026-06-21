@@ -33,107 +33,105 @@ export function ProjectImageCarousel({
 
   return (
     <div className="overflow-hidden rounded-[1.5rem] border border-line bg-panel-secondary p-3 shadow-card sm:rounded-[2rem] sm:p-5">
-      <div className="grid gap-5 lg:grid-cols-[0.84fr_1.16fr] lg:items-center">
-        <div className="space-y-4 rounded-[1.25rem] border border-line bg-panel p-4 sm:rounded-[1.5rem] sm:p-5">
-          <div className="flex items-center justify-between gap-3">
-            <p className="metadata-number">Image Cluster</p>
-            <span className="text-[0.62rem] uppercase tracking-meta text-muted">
-              {String(activeIndex + 1).padStart(2, "0")} / {String(images.length).padStart(2, "0")}
-            </span>
-          </div>
-
-          <h2 className="font-[family:var(--font-display)] text-3xl uppercase leading-none text-foreground sm:text-4xl">
-            Supporting
-            <span className="block pl-6 text-accent sm:pl-10">
-              Frames
-            </span>
-          </h2>
-
-          <p className="text-sm leading-7 text-muted">
-            Use the arrow controls to move through the supporting project stills
-            without mixing them into the Frame cards below.
-          </p>
-
-          <div className="flex items-center gap-3">
-            <button
-              type="button"
-              onClick={prev}
-              aria-label="Previous image"
-              className={cn(
-                "inline-flex h-11 w-11 items-center justify-center rounded-full",
-                "border border-line bg-panel-secondary text-foreground",
-                "transition-colors duration-150 hover:border-accent hover:bg-panel"
-              )}
+      <div className="space-y-3">
+        <div className="film-frame relative overflow-hidden rounded-[1.25rem] sm:rounded-[1.5rem]">
+          <div className="aspect-[4/3] sm:aspect-[16/9]" />
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={activeImage}
+              initial={{ opacity: 0, scale: 1.015 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.985 }}
+              transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+              className="absolute inset-0"
             >
-              <ChevronLeft className="h-4 w-4" />
-            </button>
+              <Image
+                src={activeImage}
+                alt={`${title} carousel image ${activeIndex + 1}`}
+                fill
+                sizes="(min-width: 1440px) 1360px, 100vw"
+                className="object-cover"
+              />
+            </motion.div>
+          </AnimatePresence>
 
-            <button
-              type="button"
-              onClick={next}
-              aria-label="Next image"
-              className={cn(
-                "inline-flex h-11 w-11 items-center justify-center rounded-full",
-                "border border-line bg-panel-secondary text-foreground",
-                "transition-colors duration-150 hover:border-accent hover:bg-panel"
-              )}
-            >
-              <ChevronRight className="h-4 w-4" />
-            </button>
-          </div>
-        </div>
-
-        <div className="space-y-3">
-          <div className="film-frame relative overflow-hidden rounded-[1.25rem] sm:rounded-[1.5rem]">
-            <div className="aspect-[4/3] sm:aspect-[16/10]" />
-            <AnimatePresence mode="wait">
-              <motion.div
-                key={activeImage}
-                initial={{ opacity: 0, x: 28 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -28 }}
-                transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
-                className="absolute inset-0"
-              >
-                <Image
-                  src={activeImage}
-                  alt={`${title} carousel image ${activeIndex + 1}`}
-                  fill
-                  sizes="(min-width: 1024px) 38vw, 100vw"
-                  className="object-cover"
-                />
-              </motion.div>
-            </AnimatePresence>
+          <div className="pointer-events-none absolute inset-x-0 top-0 z-10 flex items-center justify-between bg-gradient-to-b from-black/65 via-black/20 to-transparent p-4 text-white sm:p-6">
+            <p className="text-[0.62rem] uppercase tracking-meta text-white/75">
+              Project stills
+            </p>
+            <span className="font-[family:var(--font-mono)] text-[0.62rem] uppercase tracking-meta text-white/75">
+              {String(activeIndex + 1).padStart(2, "0")} /{" "}
+              {String(images.length).padStart(2, "0")}
+            </span>
           </div>
 
           {images.length > 1 ? (
-            <div className="no-scrollbar flex gap-2 overflow-x-auto pb-1 sm:grid sm:grid-cols-3 sm:gap-3">
-              {images.map((image, index) => (
+            <div className="absolute inset-x-0 bottom-0 z-20 flex items-end justify-between bg-gradient-to-t from-black/70 via-black/15 to-transparent p-4 sm:p-6">
+              <p className="max-w-[60%] truncate text-xs uppercase tracking-ui text-white/70">
+                {title}
+              </p>
+              <div className="flex items-center gap-2">
                 <button
-                  key={`${image}-${index}`}
                   type="button"
-                  onClick={() => setActiveIndex(index)}
-                  aria-label={`Show image ${index + 1}`}
+                  onClick={prev}
+                  aria-label="Previous image"
                   className={cn(
-                    "relative w-24 shrink-0 overflow-hidden rounded-[1rem] border transition-colors duration-150 sm:w-auto sm:rounded-[1.1rem]",
-                    activeIndex === index
-                      ? "border-accent"
-                      : "border-line hover:border-foreground/35"
+                    "inline-flex h-11 w-11 items-center justify-center rounded-full",
+                    "border border-white/25 bg-black/25 text-white backdrop-blur-md",
+                    "transition-colors duration-150 hover:border-accent hover:bg-black/45"
                   )}
                 >
-                  <div className="aspect-[1.08/1]" />
-                  <Image
-                    src={image}
-                    alt={`${title} thumbnail ${index + 1}`}
-                    fill
-                    sizes="(min-width: 1024px) 12vw, 30vw"
-                    className="object-cover"
-                  />
+                  <ChevronLeft className="h-4 w-4" />
                 </button>
-              ))}
+
+                <button
+                  type="button"
+                  onClick={next}
+                  aria-label="Next image"
+                  className={cn(
+                    "inline-flex h-11 w-11 items-center justify-center rounded-full",
+                    "border border-white/25 bg-black/25 text-white backdrop-blur-md",
+                    "transition-colors duration-150 hover:border-accent hover:bg-black/45"
+                  )}
+                >
+                  <ChevronRight className="h-4 w-4" />
+                </button>
+              </div>
             </div>
           ) : null}
         </div>
+
+        {images.length > 1 ? (
+          <div className="no-scrollbar flex gap-2 overflow-x-auto pb-1 sm:grid sm:grid-cols-4 sm:gap-3 lg:grid-cols-6">
+            {images.map((image, index) => (
+              <button
+                key={`${image}-${index}`}
+                type="button"
+                onClick={() => setActiveIndex(index)}
+                aria-label={`Show image ${index + 1}`}
+                aria-current={activeIndex === index ? "true" : undefined}
+                className={cn(
+                  "relative w-28 shrink-0 overflow-hidden rounded-[1rem] border transition-all duration-150 sm:w-auto sm:rounded-[1.1rem]",
+                  activeIndex === index
+                    ? "border-accent ring-2 ring-accent/25"
+                    : "border-line opacity-70 hover:border-foreground/35 hover:opacity-100"
+                )}
+              >
+                <div className="aspect-[4/3]" />
+                <Image
+                  src={image}
+                  alt={`${title} thumbnail ${index + 1}`}
+                  fill
+                  sizes="(min-width: 1024px) 15vw, 112px"
+                  className="object-cover"
+                />
+                <span className="absolute bottom-1.5 right-1.5 rounded-full bg-black/55 px-2 py-1 font-[family:var(--font-mono)] text-[0.55rem] text-white/80 backdrop-blur">
+                  {String(index + 1).padStart(2, "0")}
+                </span>
+              </button>
+            ))}
+          </div>
+        ) : null}
       </div>
     </div>
   );
