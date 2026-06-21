@@ -6,6 +6,11 @@ import {
   createAdminGateCookieValue,
   isAdminGateConfigured
 } from "@/lib/admin-gate";
+import {
+  clearRateLimit,
+  isRateLimited,
+  recordRateLimitAttempt
+} from "@/lib/rate-limit";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -33,19 +38,23 @@ function getLoginClientKey(request: Request) {
 }
 
 function isLoginRateLimited(key: string) {
-  const now = Date.now();
-  const recent = (loginRateLimitStore.get(key) ?? []).filter(
-    (t) => now - t < LOGIN_RATE_LIMIT_WINDOW_MS
-  );
+  return isRateLimited(loginRateLimitStore, {
+    key,
+    maxAttempts: LOGIN_RATE_LIMIT_MAX,
+    windowMs: LOGIN_RATE_LIMIT_WINDOW_MS
+  });
+}
 
-  if (recent.length >= LOGIN_RATE_LIMIT_MAX) {
-    loginRateLimitStore.set(key, recent);
-    return true;
-  }
+function recordLoginFailure(key: string) {
+  recordRateLimitAttempt(loginRateLimitStore, {
+    key,
+    maxAttempts: LOGIN_RATE_LIMIT_MAX,
+    windowMs: LOGIN_RATE_LIMIT_WINDOW_MS
+  });
+}
 
-  recent.push(now);
-  loginRateLimitStore.set(key, recent);
-  return false;
+function clearLoginFailures(key: string) {
+  clearRateLimit(loginRateLimitStore, key);
 }
 
 function isAllowedOrigin(request: Request) {
@@ -122,12 +131,14 @@ export async function POST(request: Request) {
   const redirectTo = normalizeRedirectTarget(body.redirectTo);
 
   if (!areAdminGateCredentialsValid(username, password)) {
+    recordLoginFailure(clientKey);
     return NextResponse.json(
       { message: "Invalid admin gate credentials." },
       { status: 401 }
     );
   }
 
+  clearLoginFailures(clientKey);
   const response = NextResponse.json({ redirectTo });
   response.cookies.set({
     name: ADMIN_GATE_COOKIE,

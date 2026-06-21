@@ -2,7 +2,14 @@ import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { projects as fallbackProjects } from "@/lib/content";
 import { normalizeProjectBusiness } from "@/lib/project-business";
 import { defaultSiteSettings } from "@/lib/site-config";
-import type { Project, Service, SiteSettings, SocialLink } from "@/lib/types";
+import type {
+  NavigationVisibility,
+  Project,
+  Service,
+  SiteCopy,
+  SiteSettings,
+  SocialLink
+} from "@/lib/types";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
@@ -103,6 +110,8 @@ type SupabaseSiteSettingsRow = {
   about_positioning: string | null;
   about_values: Array<{ title: string; copy: string }> | null;
   services: Service[] | null;
+  navigation_visibility: Partial<NavigationVisibility> | null;
+  site_copy: Partial<SiteCopy> | null;
 };
 
 function normalizeSocialLinks(links: SocialLink[] | null | undefined) {
@@ -116,6 +125,34 @@ function normalizeSocialLinks(links: SocialLink[] | null | undefined) {
       href: link?.href?.trim() ?? ""
     }))
     .filter((link) => link.label && link.href);
+}
+
+function normalizeNavigationVisibility(
+  visibility: Partial<NavigationVisibility> | null | undefined
+): NavigationVisibility {
+  const fallback = defaultSiteSettings.navigation;
+
+  return {
+    home: visibility?.home ?? fallback.home,
+    work: visibility?.work ?? fallback.work,
+    services: visibility?.services ?? fallback.services,
+    about: visibility?.about ?? fallback.about,
+    contact: visibility?.contact ?? fallback.contact
+  };
+}
+
+function normalizeSiteCopy(
+  copy: Partial<SiteCopy> | null | undefined
+): SiteCopy {
+  const fallback = defaultSiteSettings.copy;
+
+  return {
+    home: { ...fallback.home, ...copy?.home },
+    services: { ...fallback.services, ...copy?.services },
+    about: { ...fallback.about, ...copy?.about },
+    contact: { ...fallback.contact, ...copy?.contact },
+    footer: { ...fallback.footer, ...copy?.footer }
+  };
 }
 
 export function normalizeProjectRecord(record: SupabaseProjectRow): Project {
@@ -191,7 +228,9 @@ export function normalizeSiteSettingsRecord(
     services:
       Array.isArray(record.services) && record.services.length > 0
         ? record.services
-        : defaultSiteSettings.services
+        : defaultSiteSettings.services,
+    navigation: normalizeNavigationVisibility(record.navigation_visibility),
+    copy: normalizeSiteCopy(record.site_copy)
   };
 }
 
@@ -208,8 +247,13 @@ export async function getPublishedProjects() {
     .eq("published", true)
     .order("created_at", { ascending: false });
 
-  if (error || !data) {
-    return fallbackProjects.filter((project) => project.published);
+  if (error) {
+    console.error("[supabase] Failed to load published projects", error);
+    return [];
+  }
+
+  if (!data) {
+    return [];
   }
 
   return (data as SupabaseProjectRow[]).map(normalizeProjectRecord);
@@ -229,8 +273,13 @@ export async function getProjectBySlug(slug: string) {
     .eq("published", true)
     .maybeSingle();
 
-  if (error || !data) {
-    return fallbackProjects.find((project) => project.slug === slug);
+  if (error) {
+    console.error(`[supabase] Failed to load project "${slug}"`, error);
+    return undefined;
+  }
+
+  if (!data) {
+    return undefined;
   }
 
   return normalizeProjectRecord(data as SupabaseProjectRow);
@@ -249,7 +298,12 @@ export async function getSiteSettings() {
     .eq("id", SITE_SETTINGS_ID)
     .maybeSingle();
 
-  if (error || !data) {
+  if (error) {
+    console.error("[supabase] Failed to load site settings", error);
+    return defaultSiteSettings;
+  }
+
+  if (!data) {
     return defaultSiteSettings;
   }
 

@@ -121,10 +121,12 @@ export function getProjectCompletionIssues(
   return issues;
 }
 
-export function toFormState(project: Project & {
-  isTemplate?: boolean;
-  templateBusiness?: ProjectBusiness;
-}): ProjectFormState {
+export function toFormState(
+  project: Project & {
+    isTemplate?: boolean;
+    templateBusiness?: ProjectBusiness;
+  }
+): ProjectFormState {
   return {
     id: project.id,
     templateBusiness: project.isTemplate ? project.templateBusiness : undefined,
@@ -313,7 +315,13 @@ export function toSiteSettingsFormState(
     aboutFounderNote: settings.about.founderNote,
     aboutPositioning: settings.about.positioning,
     aboutValuesText: formatValuesText(settings.about.values),
-    servicesText: formatServicesText(settings.services)
+    servicesText: formatServicesText(settings.services),
+    navigationHome: settings.navigation.home,
+    navigationWork: settings.navigation.work,
+    navigationServices: settings.navigation.services,
+    navigationAbout: settings.navigation.about,
+    navigationContact: settings.navigation.contact,
+    copy: settings.copy
   };
 }
 

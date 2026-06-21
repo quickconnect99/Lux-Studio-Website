@@ -41,6 +41,64 @@ export type Service = {
   deliverables: string[];
 };
 
+export type NavigationVisibility = {
+  home: boolean;
+  work: boolean;
+  services: boolean;
+  about: boolean;
+  contact: boolean;
+};
+
+export type SiteCopy = {
+  home: {
+    selectedWorkLabel: string;
+    heroPrimaryCta: string;
+    heroSecondaryCta: string;
+    videoHeadlineLead: string;
+    videoHeadlineTrail: string;
+    brandEyebrow: string;
+    brandHeadlineLead: string;
+    brandHeadlineTrail: string;
+    servicesEyebrow: string;
+    servicesHeadlineLead: string;
+    servicesHeadlineTrail: string;
+    ctaEyebrow: string;
+    ctaHeadlineLead: string;
+    ctaHeadlineTrail: string;
+    ctaCopy: string;
+    ctaButton: string;
+  };
+  services: {
+    eyebrow: string;
+    headlineLead: string;
+    headlineTrail: string;
+    copy: string;
+  };
+  about: {
+    eyebrow: string;
+    headlineLead: string;
+    headlineTrail: string;
+    founderLabel: string;
+    positioningLabel: string;
+  };
+  contact: {
+    eyebrow: string;
+    headlineLead: string;
+    headlineTrail: string;
+    copy: string;
+    directLabel: string;
+    directCopy: string;
+    formLabel: string;
+    submitLabel: string;
+  };
+  footer: {
+    headline: string;
+    navigationLabel: string;
+    connectLabel: string;
+    mediaNotice: string;
+  };
+};
+
 export type SiteSettings = {
   brand: {
     name: string;
@@ -71,6 +129,8 @@ export type SiteSettings = {
     values: Array<{ title: string; copy: string }>;
   };
   services: Service[];
+  navigation: NavigationVisibility;
+  copy: SiteCopy;
 };
 
 export type InquiryServiceType =

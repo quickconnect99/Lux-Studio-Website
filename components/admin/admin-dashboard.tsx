@@ -3,18 +3,16 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import {
-  AlertTriangle,
-  CheckCircle2,
   FolderOpen,
-  Info,
   Lock,
   LogIn,
   LogOut,
   RefreshCw,
-  Settings
+  Settings,
+  UserRound
 } from "lucide-react";
 import { AdminThemeChip } from "@/components/admin/admin-theme-chip";
-import { isSupabaseConfigured, SUPABASE_BUCKET } from "@/lib/supabase";
+import { isSupabaseConfigured } from "@/lib/supabase";
 import { useAdminData } from "@/hooks/use-admin-data";
 import { AdminConfirmModal } from "@/components/admin/admin-confirm-modal";
 import { ProjectSidebar } from "@/components/admin/project-sidebar";
@@ -47,8 +45,6 @@ export function AdminDashboard() {
     updateAuthFormField,
     handleSignIn,
     handleSignOut,
-    statusMessage,
-    saveReport,
     working,
     uploadProgress,
     coverFile,
@@ -83,6 +79,7 @@ export function AdminDashboard() {
     newProject,
     duplicateProject,
     siteSettingsFormState,
+    isSettingsDirty,
     updateSiteSettingsField,
     handleSaveSiteSettings
   } = data;
@@ -90,18 +87,6 @@ export function AdminDashboard() {
   const liveProjectHref =
     formState.id && formState.published ? `/work/${formState.slug}` : null;
   const canEditCms = !isSupabaseConfigured || Boolean(sessionEmail);
-
-  function renderSaveReportIcon(tone: "success" | "warning" | "info") {
-    if (tone === "success") {
-      return <CheckCircle2 className="h-4 w-4 text-success" />;
-    }
-
-    if (tone === "warning") {
-      return <AlertTriangle className="h-4 w-4 text-warning" />;
-    }
-
-    return <Info className="h-4 w-4 text-accent" />;
-  }
 
   function handlePreviewFieldUpdate(
     field: PreviewEditableField,
@@ -213,6 +198,9 @@ export function AdminDashboard() {
               >
                 <Settings className="h-3.5 w-3.5" />
                 Site Settings
+                {isSettingsDirty && activeTab !== "settings" ? (
+                  <span className="h-1.5 w-1.5 rounded-full bg-warning" />
+                ) : null}
               </button>
             </div>
           ) : null}
@@ -221,9 +209,23 @@ export function AdminDashboard() {
 
         <div className="flex flex-wrap items-center gap-3">
           {sessionEmail ? (
-            <p className="text-xs uppercase tracking-eyebrow text-muted">
-              {sessionEmail}
-            </p>
+            <div className="flex items-center gap-3 rounded-full border border-line bg-panel-secondary py-1.5 pl-2 pr-4 shadow-sm">
+              <span className="relative flex h-9 w-9 items-center justify-center rounded-full bg-foreground text-background">
+                <UserRound className="h-4 w-4" />
+                <span
+                  className="absolute bottom-0 right-0 h-2.5 w-2.5 rounded-full border-2 border-panel bg-success"
+                  aria-hidden
+                />
+              </span>
+              <span className="min-w-0">
+                <span className="block text-[0.58rem] uppercase tracking-eyebrow text-muted">
+                  Signed in
+                </span>
+                <span className="block max-w-52 truncate text-sm font-medium text-foreground">
+                  {sessionEmail}
+                </span>
+              </span>
+            </div>
           ) : null}
           {sessionEmail ? (
             <button
@@ -258,9 +260,9 @@ export function AdminDashboard() {
 
       {/* Supabase sign-in banner — shown prominently when not authenticated */}
       {isSupabaseConfigured && !sessionEmail ? (
-        <div className="panel-2xl admin-theme-surface border-2 border-accent/50 p-6 sm:p-8">
+        <div className="panel-2xl admin-theme-surface border-accent/50 border-2 p-6 sm:p-8">
           <div className="flex flex-col gap-5 sm:flex-row sm:items-start">
-            <div className="shrink-0 rounded-2xl bg-accent/10 p-3.5">
+            <div className="bg-accent/10 shrink-0 rounded-2xl p-3.5">
               <Lock className="h-7 w-7 text-accent" />
             </div>
             <div className="flex-1">
@@ -272,13 +274,11 @@ export function AdminDashboard() {
                 authenticated Supabase session. Sign in first before editing any
                 project fields.
               </p>
-              <div className="mt-5 grid gap-3 sm:grid-cols-[1fr_1fr_auto] items-end">
+              <div className="mt-5 grid items-end gap-3 sm:grid-cols-[1fr_1fr_auto]">
                 <input
                   type="email"
                   value={authFormState.email}
-                  onChange={(e) =>
-                    updateAuthFormField("email", e.target.value)
-                  }
+                  onChange={(e) => updateAuthFormField("email", e.target.value)}
                   className="input-field text-sm"
                   placeholder="Admin email"
                 />
@@ -305,77 +305,6 @@ export function AdminDashboard() {
           </div>
         </div>
       ) : null}
-
-      {/* CMS status + Supabase access */}
-      <div
-        className={`grid gap-6 ${
-          sessionEmail ? "sm:grid-cols-[1fr_320px]" : "grid-cols-1"
-        }`}
-      >
-        <div className="panel-2xl admin-theme-surface p-6">
-          <p className="text-xs uppercase tracking-eyebrow text-muted">
-            CMS state
-          </p>
-          <div aria-live="polite" className="mt-3">
-            {uploadProgress ? (
-              <p className="text-sm leading-7 text-muted">
-                Uploading file {uploadProgress.current} of {uploadProgress.total}
-                : {uploadProgress.filename}
-              </p>
-            ) : saveReport ? (
-              <div className="space-y-3">
-                <p className="text-sm font-medium text-foreground">
-                  {saveReport.title}
-                </p>
-                <div className="space-y-2">
-                  {saveReport.items.map((item) => (
-                    <div
-                      key={item.id}
-                      className="flex items-start gap-3 rounded-[1rem] border border-line bg-panel-secondary px-3 py-2.5"
-                    >
-                      <span className="mt-0.5 shrink-0">
-                        {renderSaveReportIcon(item.tone)}
-                      </span>
-                      <div className="min-w-0">
-                        <p className="text-sm leading-6 text-foreground">
-                          {item.label}
-                        </p>
-                        {item.detail ? (
-                          <p className="text-xs uppercase tracking-meta text-muted">
-                            {item.detail}
-                          </p>
-                        ) : null}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            ) : (
-              <p className="text-sm leading-7 text-muted">{statusMessage}</p>
-            )}
-          </div>
-        </div>
-
-        {sessionEmail || !isSupabaseConfigured ? (
-          <div className="panel-2xl admin-theme-surface p-6">
-            <p className="text-xs uppercase tracking-eyebrow text-muted">
-              Supabase access
-            </p>
-            {isSupabaseConfigured && sessionEmail ? (
-              <div className="mt-4 space-y-3 text-sm leading-7 text-muted">
-                <p>Signed in as {sessionEmail}</p>
-                <p>Uploads target the `{SUPABASE_BUCKET}` storage bucket.</p>
-              </div>
-            ) : (
-              <p className="mt-4 text-sm leading-7 text-muted">
-                Add `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`,
-                and `NEXT_PUBLIC_SUPABASE_STORAGE_BUCKET` to enable live CMS
-                mode.
-              </p>
-            )}
-          </div>
-        ) : null}
-      </div>
 
       {/* TAB: PROJECTS */}
       {canEditCms && activeTab === "projects" ? (
@@ -439,6 +368,7 @@ export function AdminDashboard() {
       {canEditCms && activeTab === "settings" ? (
         <SiteSettingsForm
           formState={siteSettingsFormState}
+          isDirty={isSettingsDirty}
           updateField={updateSiteSettingsField}
           onSubmit={handleSaveSiteSettings}
           working={working}

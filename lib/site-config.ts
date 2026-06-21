@@ -1,4 +1,4 @@
-import type { SiteSettings } from "@/lib/types";
+import type { NavigationVisibility, SiteSettings } from "@/lib/types";
 
 export const BRAND_NAME = "Lux Studio";
 export const BRAND_MARK = "L/S";
@@ -11,11 +11,11 @@ function normalizeSiteUrl(value?: string) {
 }
 
 const baseNavigation = [
-  { label: "Home", href: "/" },
-  { label: "Work", href: "/work" },
-  { label: "Services", href: "/services" },
-  { label: "About", href: "/about" },
-  { label: "Contact", href: "/contact" }
+  { key: "home", label: "Home", href: "/" },
+  { key: "work", label: "Work", href: "/work" },
+  { key: "services", label: "Services", href: "/services" },
+  { key: "about", label: "About", href: "/about" },
+  { key: "contact", label: "Contact", href: "/contact" }
 ] as const;
 
 const adminNavigation = { label: "Admin", href: "/admin" } as const;
@@ -26,6 +26,10 @@ export const isPublicAdminEnabled =
 export const navigation = isPublicAdminEnabled
   ? [...baseNavigation, adminNavigation]
   : [...baseNavigation];
+
+export function getVisibleNavigation(visibility: NavigationVisibility) {
+  return navigation.filter((item) => !("key" in item) || visibility[item.key]);
+}
 
 export const defaultSiteSettings: SiteSettings = {
   brand: {
@@ -123,7 +127,66 @@ export const defaultSiteSettings: SiteSettings = {
         "Localization"
       ]
     }
-  ]
+  ],
+  navigation: {
+    home: true,
+    work: true,
+    services: true,
+    about: true,
+    contact: true
+  },
+  copy: {
+    home: {
+      selectedWorkLabel: "Selected work",
+      heroPrimaryCta: "View Portfolio",
+      heroSecondaryCta: "Start An Inquiry",
+      videoHeadlineLead: "Built",
+      videoHeadlineTrail: "To Be Seen",
+      brandEyebrow: "Brand statement",
+      brandHeadlineLead: "Cinematic",
+      brandHeadlineTrail: "Visual Stories",
+      servicesEyebrow: "Services snapshot",
+      servicesHeadlineLead: "Built",
+      servicesHeadlineTrail: "For Campaigns",
+      ctaEyebrow: "Next Project",
+      ctaHeadlineLead: "Ready",
+      ctaHeadlineTrail: "To Launch",
+      ctaCopy:
+        "Cinematic campaign visuals for automotive and hospitality brands.",
+      ctaButton: "Browse Work"
+    },
+    services: {
+      eyebrow: "What we create",
+      headlineLead: "Visual",
+      headlineTrail: "Services",
+      copy: "Cinematic campaign visuals for automotive and hospitality brands."
+    },
+    about: {
+      eyebrow: "Studio profile",
+      headlineLead: "Story",
+      headlineTrail: "And Intent",
+      founderLabel: "Founder note",
+      positioningLabel: "Positioning"
+    },
+    contact: {
+      eyebrow: "Start a project",
+      headlineLead: "Let's",
+      headlineTrail: "Talk Motion",
+      copy: "A concise inquiry flow for campaign films, stills, launches, properties, and premium brand content.",
+      directLabel: "Direct contact",
+      directCopy:
+        "Typical inquiries: launch films, campaign visuals, property content, social cutdowns, guest-experience edits, and premium event coverage.",
+      formLabel: "Project inquiry",
+      submitLabel: "Send Inquiry"
+    },
+    footer: {
+      headline:
+        "Built for brands and spaces that want to feel seen before they are explained.",
+      navigationLabel: "Navigation",
+      connectLabel: "Connect",
+      mediaNotice: "Externe Medien laden erst nach Klick"
+    }
+  }
 };
 
 export const siteConfig = {

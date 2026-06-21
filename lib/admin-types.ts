@@ -1,4 +1,9 @@
-import type { Project, ProjectBusiness, ProjectCategory } from "@/lib/types";
+import type {
+  Project,
+  ProjectBusiness,
+  ProjectCategory,
+  SiteCopy
+} from "@/lib/types";
 
 export type AdminTab = "projects" | "settings";
 
@@ -70,6 +75,13 @@ export type SiteSettingsFormState = {
   aboutValuesText: string; // one per line: "Title | Copy"
   // Services
   servicesText: string; // one per line: "01 | Title | Description | deliverable1, deliverable2"
+  // Navigation visibility
+  navigationHome: boolean;
+  navigationWork: boolean;
+  navigationServices: boolean;
+  navigationAbout: boolean;
+  navigationContact: boolean;
+  copy: SiteCopy;
 };
 
 export type CompletionContext = {

@@ -43,6 +43,30 @@ create table if not exists public.site_settings (
   updated_at timestamptz not null default now()
 );
 
+create table if not exists public.admin_users (
+  user_id uuid primary key references auth.users(id) on delete cascade,
+  created_at timestamptz not null default now()
+);
+
+alter table public.admin_users enable row level security;
+
+create or replace function public.is_admin()
+returns boolean
+language sql
+stable
+security definer
+set search_path = public
+as $$
+  select exists (
+    select 1
+    from public.admin_users
+    where user_id = auth.uid()
+  );
+$$;
+
+revoke all on function public.is_admin() from public;
+grant execute on function public.is_admin() to authenticated;
+
 alter table public.projects
 add column if not exists gallery_captions text[] not null default '{}';
 
@@ -63,18 +87,22 @@ for select
 using (published = true);
 
 drop policy if exists "Authenticated users can manage projects" on public.projects;
-create policy "Authenticated users can manage projects"
+drop policy if exists "Admins can manage projects" on public.projects;
+create policy "Admins can manage projects"
 on public.projects
 for all
-using (auth.role() = 'authenticated')
-with check (auth.role() = 'authenticated');
+to authenticated
+using (public.is_admin())
+with check (public.is_admin());
 
 drop policy if exists "Anyone can create inquiries" on public.inquiries;
 drop policy if exists "Authenticated users can read inquiries" on public.inquiries;
-create policy "Authenticated users can read inquiries"
+drop policy if exists "Admins can read inquiries" on public.inquiries;
+create policy "Admins can read inquiries"
 on public.inquiries
 for select
-using (auth.role() = 'authenticated');
+to authenticated
+using (public.is_admin());
 
 -- Public inserts are intentionally disabled.
 -- Inquiry submissions should go through the server route using the
@@ -88,11 +116,13 @@ for select
 using (true);
 
 drop policy if exists "Authenticated users can manage site settings" on public.site_settings;
-create policy "Authenticated users can manage site settings"
+drop policy if exists "Admins can manage site settings" on public.site_settings;
+create policy "Admins can manage site settings"
 on public.site_settings
 for all
-using (auth.role() = 'authenticated')
-with check (auth.role() = 'authenticated');
+to authenticated
+using (public.is_admin())
+with check (public.is_admin());
 
 create index if not exists projects_created_at_idx on public.projects (created_at desc);
 create index if not exists inquiries_created_at_idx on public.inquiries (created_at desc);
@@ -110,26 +140,29 @@ to public
 using (bucket_id = 'projects');
 
 drop policy if exists "Authenticated users can upload project media" on storage.objects;
-create policy "Authenticated users can upload project media"
+drop policy if exists "Admins can upload project media" on storage.objects;
+create policy "Admins can upload project media"
 on storage.objects
 for insert
 to authenticated
-with check (bucket_id = 'projects');
+with check (bucket_id = 'projects' and public.is_admin());
 
 drop policy if exists "Authenticated users can update project media" on storage.objects;
-create policy "Authenticated users can update project media"
+drop policy if exists "Admins can update project media" on storage.objects;
+create policy "Admins can update project media"
 on storage.objects
 for update
 to authenticated
-using (bucket_id = 'projects')
-with check (bucket_id = 'projects');
+using (bucket_id = 'projects' and public.is_admin())
+with check (bucket_id = 'projects' and public.is_admin());
 
 drop policy if exists "Authenticated users can delete project media" on storage.objects;
-create policy "Authenticated users can delete project media"
+drop policy if exists "Admins can delete project media" on storage.objects;
+create policy "Admins can delete project media"
 on storage.objects
 for delete
 to authenticated
-using (bucket_id = 'projects');
+using (bucket_id = 'projects' and public.is_admin());
 
 insert into public.site_settings (
   id,
@@ -169,7 +202,10 @@ alter table public.site_settings
   add column if not exists about_founder_note text,
   add column if not exists about_positioning  text,
   add column if not exists about_values     jsonb not null default '[]'::jsonb,
-  add column if not exists services         jsonb not null default '[]'::jsonb;
+  add column if not exists services         jsonb not null default '[]'::jsonb,
+  add column if not exists navigation_visibility jsonb not null default
+    '{"home":true,"work":true,"services":true,"about":true,"contact":true}'::jsonb,
+  add column if not exists site_copy jsonb not null default '{}'::jsonb;
 
 -- Storage setup:
 -- 1. Bucket + object policies above assume the bucket id is `projects`.

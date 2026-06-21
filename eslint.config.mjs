@@ -1,9 +1,23 @@
-import nextVitals from "eslint-config-next/core-web-vitals";
+import { FlatCompat } from "@eslint/eslintrc";
 import typescriptEslint from "@typescript-eslint/eslint-plugin";
 import typescriptParser from "@typescript-eslint/parser";
 
+const compat = new FlatCompat({
+  baseDirectory: import.meta.dirname
+});
+
 const config = [
-  ...nextVitals,
+  {
+    ignores: [
+      ".next/**",
+      "node_modules/**",
+      "public/**",
+      "car pictures/**",
+      "_Test Material/**",
+      "*.tsbuildinfo"
+    ]
+  },
+  ...compat.extends("next/core-web-vitals"),
   {
     files: ["**/*.{ts,tsx}"],
     plugins: {

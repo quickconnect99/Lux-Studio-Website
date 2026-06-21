@@ -7,6 +7,10 @@ import {
   sanitizeInquiry,
   validateInquiry
 } from "@/lib/inquiry";
+import {
+  consumeRateLimitAttempt,
+  pruneRateLimitStore
+} from "@/lib/rate-limit";
 import { createAdminSupabaseClient, isServiceRoleConfigured } from "@/lib/supabase-admin";
 
 export const dynamic = "force-dynamic";
@@ -34,39 +38,19 @@ function getClientKey(headers: Headers) {
   return `${forwardedFor || realIp || "unknown"}:${userAgent.slice(0, 120)}`;
 }
 
-function pruneRateLimitStore() {
-  const now = Date.now();
-  for (const [key, timestamps] of rateLimitStore) {
-    const recent = timestamps.filter((t) => now - t < INQUIRY_RATE_LIMIT_WINDOW_MS);
-    if (recent.length === 0) {
-      rateLimitStore.delete(key);
-    } else {
-      rateLimitStore.set(key, recent);
-    }
-  }
-}
-
 let pruneCallCount = 0;
 
 function isRateLimited(key: string) {
   pruneCallCount += 1;
   if (pruneCallCount % 50 === 0) {
-    pruneRateLimitStore();
+    pruneRateLimitStore(rateLimitStore, INQUIRY_RATE_LIMIT_WINDOW_MS);
   }
 
-  const now = Date.now();
-  const recentRequests = (rateLimitStore.get(key) ?? []).filter(
-    (timestamp) => now - timestamp < INQUIRY_RATE_LIMIT_WINDOW_MS
-  );
-
-  if (recentRequests.length >= INQUIRY_RATE_LIMIT_MAX_REQUESTS) {
-    rateLimitStore.set(key, recentRequests);
-    return true;
-  }
-
-  recentRequests.push(now);
-  rateLimitStore.set(key, recentRequests);
-  return false;
+  return !consumeRateLimitAttempt(rateLimitStore, {
+    key,
+    maxAttempts: INQUIRY_RATE_LIMIT_MAX_REQUESTS,
+    windowMs: INQUIRY_RATE_LIMIT_WINDOW_MS
+  });
 }
 
 function isAllowedOrigin(request: Request) {

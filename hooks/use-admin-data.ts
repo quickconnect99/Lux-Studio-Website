@@ -1,16 +1,26 @@
 "use client";
 
 import {
-  type ChangeEvent,
   useCallback,
   useMemo,
   useEffect,
   useRef,
   useState
 } from "react";
+import { useAdminDraft } from "@/hooks/use-admin-draft";
+import { useAdminMedia } from "@/hooks/use-admin-media";
 import { useForm } from "@/hooks/use-form";
+import {
+  buildLocalProject,
+  buildProjectDatabasePayload,
+  buildSiteSettingsDatabasePayload,
+  getProjectMediaState,
+} from "@/lib/admin-persistence";
+import {
+  buildLocalProjectSaveReport,
+  buildRemoteProjectSaveReport
+} from "@/lib/admin-save-report";
 import { defaultSiteSettings } from "@/lib/site-config";
-import { normalizeProjectGallery } from "@/lib/project-images";
 import {
   SITE_SETTINGS_ID,
   SUPABASE_BUCKET,
@@ -30,8 +40,6 @@ import type {
 } from "@/lib/admin-types";
 import {
   buildUniqueSlugSuggestion,
-  DRAFT_STORAGE_KEY,
-  formatFileSize,
   getAdminProjectKey,
   slugify,
   parseMultilineInput,
@@ -40,16 +48,11 @@ import {
   toAdminProjectListItem,
   toFormState,
   toSiteSettingsFormState,
-  parseSocialLinksText,
-  parseValuesText,
-  parseServicesText,
   createEmptyProject
 } from "@/lib/admin-utils";
 
 type UploadProgress = { current: number; total: number; filename: string };
 
-const MAX_IMAGE_BYTES = 25 * 1024 * 1024;
-const MAX_VIDEO_BYTES = 2 * 1024 * 1024 * 1024;
 const DRAFT_PROJECT_KEY = "draft:new-project";
 const DEFAULT_STATUS_MESSAGE =
   "Two starter templates are always available. Editing one and saving creates a new project.";
@@ -59,9 +62,7 @@ export function useAdminData() {
   const templateProjects = projectTemplates;
   const defaultTemplate = templateProjects[0];
 
-  const projectForm = useForm<ProjectFormState>(
-    toFormState(defaultTemplate)
-  );
+  const projectForm = useForm<ProjectFormState>(toFormState(defaultTemplate));
   const siteSettingsForm = useForm<SiteSettingsFormState>(
     toSiteSettingsFormState(defaultSiteSettings)
   );
@@ -79,12 +80,13 @@ export function useAdminData() {
   const [uploadProgress, setUploadProgress] = useState<UploadProgress | null>(
     null
   );
-  const [coverFile, setCoverFileState] = useState<File | null>(null);
-  const [galleryFiles, setGalleryFiles] = useState<File[]>([]);
-  const [videoFile, setVideoFileState] = useState<File | null>(null);
   const [savedFormSnapshot, setSavedFormSnapshot] = useState<string>(
     JSON.stringify(toFormState(defaultTemplate))
   );
+  const [savedSiteSettingsSnapshot, setSavedSiteSettingsSnapshot] =
+    useState<string>(
+      JSON.stringify(toSiteSettingsFormState(defaultSiteSettings))
+    );
   const [saveCount, setSaveCount] = useState(0);
   const [slugValidation, setSlugValidation] = useState<SlugValidationState>({
     status: "idle",
@@ -112,6 +114,42 @@ export function useAdminData() {
     reset: resetAuthForm
   } = authForm;
 
+  const isSettingsDirty =
+    JSON.stringify(siteSettingsFormState) !== savedSiteSettingsSnapshot;
+
+  const galleryImageList = parseMultilineInput(formState.galleryImagesText);
+  const captionRawLines = formState.galleryCaptionsText.split("\n");
+  const isTemplateProject = Boolean(formState.templateBusiness);
+  const allProjects = useMemo(
+    () => [...templateProjects, ...projects],
+    [projects, templateProjects]
+  );
+
+  const showStatus = useCallback((message: string) => {
+    setSaveReport(null);
+    setStatusMessage(message);
+  }, []);
+
+  const clearSaveReport = useCallback(() => {
+    setSaveReport(null);
+  }, []);
+
+  const {
+    coverFile,
+    galleryFiles,
+    videoFile,
+    coverPreviewUrl,
+    setCoverFile,
+    setVideoFile,
+    addGalleryFiles,
+    removeGalleryFile,
+    handleFileSelection,
+    clearMedia
+  } = useAdminMedia({
+    onChange: clearSaveReport,
+    onError: showStatus
+  });
+
   const completionIssues = getProjectCompletionIssues(formState, {
     hasQueuedCover: Boolean(coverFile),
     queuedGalleryCount: galleryFiles.length
@@ -124,35 +162,32 @@ export function useAdminData() {
     galleryFiles.length > 0 ||
     Boolean(videoFile);
 
-  const galleryImageList = parseMultilineInput(formState.galleryImagesText);
-  const captionRawLines = formState.galleryCaptionsText.split("\n");
-  const [coverPreviewUrl, setCoverPreviewUrl] = useState<string | null>(null);
-
-  useEffect(() => {
-    if (!coverFile) {
-      setCoverPreviewUrl(null);
-      return;
-    }
-
-    const objectUrl = URL.createObjectURL(coverFile);
-    setCoverPreviewUrl(objectUrl);
-
-    return () => {
-      URL.revokeObjectURL(objectUrl);
-    };
-  }, [coverFile]);
-
   const coverPreviewImage = coverPreviewUrl ?? formState.coverImage;
-  const isTemplateProject = Boolean(formState.templateBusiness);
-  const allProjects = useMemo(
-    () => [...templateProjects, ...projects],
-    [projects, templateProjects]
+
+  const restoreDraft = useCallback(
+    (restoredDraft: ProjectFormState) => {
+      replaceProjectForm(restoredDraft);
+      setSelectedProjectKey(
+        restoredDraft.templateBusiness
+          ? getAdminProjectKey({
+              slug: restoredDraft.slug,
+              isTemplate: true,
+              templateBusiness: restoredDraft.templateBusiness
+            })
+          : DRAFT_PROJECT_KEY
+      );
+      setSavedFormSnapshot(JSON.stringify(restoredDraft));
+      showStatus("Draft restored from browser storage.");
+    },
+    [replaceProjectForm, showStatus]
   );
 
-  const showStatus = useCallback((message: string) => {
-    setSaveReport(null);
-    setStatusMessage(message);
-  }, []);
+  const { clearDraft } = useAdminDraft({
+    enabled: !isSupabaseConfigured,
+    sessionEmail,
+    formState,
+    onRestore: restoreDraft
+  });
 
   const updateField = useCallback(
     <K extends keyof ProjectFormState>(key: K, value: ProjectFormState[K]) => {
@@ -181,16 +216,6 @@ export function useAdminData() {
     [updateSiteSettingsFormField]
   );
 
-  const setCoverFile = useCallback((file: File | null) => {
-    setSaveReport(null);
-    setCoverFileState(file);
-  }, []);
-
-  const setVideoFile = useCallback((file: File | null) => {
-    setSaveReport(null);
-    setVideoFileState(file);
-  }, []);
-
   function updateCaption(index: number, value: string) {
     const lines = formState.galleryCaptionsText.split("\n");
     while (lines.length <= index) lines.push("");
@@ -205,9 +230,7 @@ export function useAdminData() {
       replaceProjectForm(state);
       setSavedFormSnapshot(JSON.stringify(state));
       setSaveReport(null);
-      setCoverFileState(null);
-      setGalleryFiles([]);
-      setVideoFileState(null);
+      clearMedia();
       setConfirmDialog(null);
       setSlugValidation({
         status: "idle",
@@ -216,7 +239,7 @@ export function useAdminData() {
         suggestedSlug: null
       });
     },
-    [replaceProjectForm]
+    [clearMedia, replaceProjectForm]
   );
 
   function resetToNewProject() {
@@ -225,9 +248,7 @@ export function useAdminData() {
     replaceProjectForm(fresh);
     setSavedFormSnapshot(JSON.stringify(fresh));
     setSaveReport(null);
-    setCoverFileState(null);
-    setGalleryFiles([]);
-    setVideoFileState(null);
+    clearMedia();
     setConfirmDialog(null);
     setSlugValidation({
       status: "idle",
@@ -269,9 +290,7 @@ export function useAdminData() {
     replaceProjectForm(copy);
     setSavedFormSnapshot("");
     setSaveReport(null);
-    setCoverFileState(null);
-    setGalleryFiles([]);
-    setVideoFileState(null);
+    clearMedia();
     setConfirmDialog(null);
     setSlugValidation({
       status: "idle",
@@ -280,23 +299,6 @@ export function useAdminData() {
       suggestedSlug: null
     });
     showStatus("Project duplicated. Update the title and slug, then save.");
-  }
-
-  function addGalleryFiles(newFiles: File[]) {
-    const oversized = newFiles.filter((f) => f.size > MAX_IMAGE_BYTES);
-    if (oversized.length > 0) {
-      showStatus(
-        `Files too large: ${oversized.map((f) => f.name).join(", ")}. Maximum 25 MB per image.`
-      );
-      return;
-    }
-    setSaveReport(null);
-    setGalleryFiles((prev) => [...prev, ...newFiles]);
-  }
-
-  function removeGalleryFile(index: number) {
-    setSaveReport(null);
-    setGalleryFiles((prev) => prev.filter((_, i) => i !== index));
   }
 
   async function checkSlugAvailability(
@@ -387,8 +389,7 @@ export function useAdminData() {
     }
 
     setSlugValidation({
-      status:
-        options?.showAvailableState === false ? "idle" : "available",
+      status: options?.showAvailableState === false ? "idle" : "available",
       slug: targetSlug,
       message:
         options?.showAvailableState === false ? null : "Slug is available.",
@@ -412,7 +413,9 @@ export function useAdminData() {
 
   function handleResetClick() {
     if (!isDirty) {
-      const current = allProjects.find((p) => p.adminKey === selectedProjectKey);
+      const current = allProjects.find(
+        (p) => p.adminKey === selectedProjectKey
+      );
       current ? applyProject(current) : resetToNewProject();
       return;
     }
@@ -430,7 +433,9 @@ export function useAdminData() {
 
   function openDeleteDialog() {
     if (formState.templateBusiness) {
-      showStatus("Templates are permanent starting points and cannot be deleted.");
+      showStatus(
+        "Templates are permanent starting points and cannot be deleted."
+      );
       return;
     }
 
@@ -518,7 +523,9 @@ export function useAdminData() {
 
   const loadSiteSettings = useCallback(async () => {
     if (!supabase) {
-      replaceSiteSettingsForm(toSiteSettingsFormState(defaultSiteSettings));
+      const state = toSiteSettingsFormState(defaultSiteSettings);
+      replaceSiteSettingsForm(state);
+      setSavedSiteSettingsSnapshot(JSON.stringify(state));
       return;
     }
     const { data } = await supabase
@@ -527,12 +534,14 @@ export function useAdminData() {
       .eq("id", SITE_SETTINGS_ID)
       .maybeSingle();
     if (!data) {
-      replaceSiteSettingsForm(toSiteSettingsFormState(defaultSiteSettings));
+      const state = toSiteSettingsFormState(defaultSiteSettings);
+      replaceSiteSettingsForm(state);
+      setSavedSiteSettingsSnapshot(JSON.stringify(state));
       return;
     }
-    replaceSiteSettingsForm(
-      toSiteSettingsFormState(normalizeSiteSettingsRecord(data))
-    );
+    const state = toSiteSettingsFormState(normalizeSiteSettingsRecord(data));
+    replaceSiteSettingsForm(state);
+    setSavedSiteSettingsSnapshot(JSON.stringify(state));
   }, [supabase, replaceSiteSettingsForm]);
 
   useEffect(() => {
@@ -583,44 +592,6 @@ export function useAdminData() {
     return () => window.removeEventListener("keydown", onKeyDown);
   }, []);
 
-  useEffect(() => {
-    if (isSupabaseConfigured) return;
-    try {
-      const raw = localStorage.getItem(DRAFT_STORAGE_KEY);
-      if (!raw) return;
-      const draft = JSON.parse(raw) as Partial<ProjectFormState>;
-      const restoredDraft: ProjectFormState = {
-        ...createEmptyProject(),
-        ...draft,
-        business: draft.business === "Hospitality" ? "Hospitality" : "Car"
-      };
-      replaceProjectForm(restoredDraft);
-      setSelectedProjectKey(
-        restoredDraft.templateBusiness
-          ? getAdminProjectKey({
-              slug: restoredDraft.slug,
-              isTemplate: true,
-              templateBusiness: restoredDraft.templateBusiness
-            })
-          : DRAFT_PROJECT_KEY
-      );
-      setSavedFormSnapshot(JSON.stringify(restoredDraft));
-      showStatus("Draft restored from browser storage.");
-    } catch {
-      // ignore malformed storage
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  useEffect(() => {
-    if (sessionEmail) return;
-    try {
-      localStorage.setItem(DRAFT_STORAGE_KEY, JSON.stringify(formState));
-    } catch {
-      // ignore storage errors
-    }
-  }, [formState, sessionEmail]);
-
   async function uploadFile(file: File, folder: string): Promise<string> {
     if (!supabase) throw new Error("Supabase is not configured.");
     const filePath = `${folder}/${Date.now()}-${slugify(file.name)}`;
@@ -644,9 +615,12 @@ export function useAdminData() {
       return;
     }
 
-    const slugResult = await checkSlugAvailability(formState.slug || formState.title, {
-      showAvailableState: false
-    });
+    const slugResult = await checkSlugAvailability(
+      formState.slug || formState.title,
+      {
+        showAvailableState: false
+      }
+    );
     if (!slugResult.ok) {
       showStatus("Project not saved. Resolve the slug conflict before saving.");
       return;
@@ -670,9 +644,7 @@ export function useAdminData() {
 
       if (supabase && sessionEmail) {
         const totalFiles =
-          (coverFile ? 1 : 0) +
-          (videoFile ? 1 : 0) +
-          galleryFiles.length;
+          (coverFile ? 1 : 0) + (videoFile ? 1 : 0) + galleryFiles.length;
         let uploadedCount = 0;
 
         if (coverFile) {
@@ -705,38 +677,17 @@ export function useAdminData() {
         }
         setUploadProgress(null);
 
-        const normalizedGallery = normalizeProjectGallery({
+        const media = getProjectMediaState(formState, {
           coverImage,
           galleryImages,
-          galleryCaptions
+          galleryCaptions,
+          uploadedVideo
         });
-        galleryImages = normalizedGallery.images;
-        galleryCaptions = normalizedGallery.captions;
-
-        const createdAt = isTemplateSource
-          ? new Date().toISOString()
-          : formState.createdAt;
-        const payload = {
-          id: isTemplateSource ? undefined : formState.id,
-          business: formState.business,
-          title: formState.title,
+        const payload = buildProjectDatabasePayload({
+          formState,
           slug: targetSlug,
-          short_description: formState.shortDescription,
-          full_description: formState.fullDescription,
-          category: formState.category,
-          car_model: formState.carModel,
-          location: formState.location,
-          year: Number(formState.year),
-          cover_image: coverImage,
-          gallery_images: galleryImages,
-          gallery_captions: galleryCaptions,
-          video_url: formState.videoUrl || null,
-          uploaded_video: uploadedVideo || null,
-          featured: formState.featured,
-          published: formState.published,
-          created_at: createdAt,
-          behind_the_scenes: formState.behindTheScenes || null
-        };
+          media
+        });
 
         const { data, error } = await supabase
           .from("projects")
@@ -749,9 +700,7 @@ export function useAdminData() {
         const saved = toAdminProjectListItem(normalizeProjectRecord(data));
         const nextProjects = [
           saved,
-          ...projects.filter(
-            (p) => p.id !== saved.id && p.slug !== saved.slug
-          )
+          ...projects.filter((p) => p.id !== saved.id && p.slug !== saved.slug)
         ].sort((a, b) => b.createdAt.localeCompare(a.createdAt));
 
         setProjects(nextProjects);
@@ -765,100 +714,30 @@ export function useAdminData() {
             ? "New project created from template and saved to Supabase."
             : "Project saved to Supabase."
         );
-        nextReport = {
-          title: isTemplateSource
-            ? "New project created and synced"
-            : "Project saved to Supabase",
-          items: [
-            {
-              id: "project",
-              label: "Project data saved",
-              detail: "Supabase",
-              tone: "success"
-            },
-            ...(coverFile
-              ? [
-                  {
-                    id: "cover",
-                    label: "Cover uploaded",
-                    detail: formatFileSize(coverFile.size),
-                    tone: "success" as const
-                  }
-                ]
-              : []),
-            ...(galleryFiles.length > 0
-              ? [
-                  {
-                    id: "gallery",
-                    label: `${galleryFiles.length} gallery ${galleryFiles.length === 1 ? "image" : "images"} uploaded`,
-                    detail: formatFileSize(
-                      galleryFiles.reduce((sum, file) => sum + file.size, 0)
-                    ),
-                    tone: "success" as const
-                  }
-                ]
-              : []),
-            ...(videoFile
-              ? [
-                  {
-                    id: "video",
-                    label: "Video uploaded",
-                    detail: formatFileSize(videoFile.size),
-                    tone: "success" as const
-                  }
-                ]
-              : []),
-            ...(!coverFile && galleryFiles.length === 0 && !videoFile
-              ? [
-                  {
-                    id: "metadata-only",
-                    label: "No media uploads in this save",
-                    detail: "Metadata only",
-                    tone: "info" as const
-                  }
-                ]
-              : [])
-          ]
-        };
-      } else {
-        const normalizedGallery = normalizeProjectGallery({
-          coverImage,
-          galleryImages,
-          galleryCaptions
+        nextReport = buildRemoteProjectSaveReport({
+          isTemplateSource,
+          coverFile,
+          galleryFiles,
+          videoFile
         });
-        galleryImages = normalizedGallery.images;
-        galleryCaptions = normalizedGallery.captions;
-
-        const createdAt = isTemplateSource
-          ? new Date().toISOString()
-          : formState.createdAt;
-        const saved = toAdminProjectListItem({
-          id: isTemplateSource ? undefined : formState.id,
-          business: formState.business,
-          title: formState.title,
-          slug: targetSlug,
-          shortDescription: formState.shortDescription,
-          fullDescription: formState.fullDescription,
-          category: formState.category,
-          carModel: formState.carModel,
-          location: formState.location,
-          year: Number(formState.year),
+      } else {
+        const media = getProjectMediaState(formState, {
           coverImage,
           galleryImages,
           galleryCaptions,
-          videoUrl: formState.videoUrl || undefined,
-          uploadedVideo: uploadedVideo || undefined,
-          featured: formState.featured,
-          published: formState.published,
-          createdAt,
-          behindTheScenes: formState.behindTheScenes || undefined
+          uploadedVideo
         });
+        const saved = toAdminProjectListItem(
+          buildLocalProject({
+            formState,
+            slug: targetSlug,
+            media
+          })
+        );
 
         const nextProjects = [
           saved,
-          ...projects.filter(
-            (p) => p.id !== saved.id && p.slug !== saved.slug
-          )
+          ...projects.filter((p) => p.id !== saved.id && p.slug !== saved.slug)
         ];
         setProjects(nextProjects);
         const nextState = toFormState(saved);
@@ -875,57 +754,16 @@ export function useAdminData() {
               ? "New project created locally from template."
               : "Draft saved to browser storage."
         );
-        nextReport = {
-          title: isSupabaseConfigured
-            ? "Saved locally only"
-            : "Local draft saved",
-          items: [
-            {
-              id: "project",
-              label: isSupabaseConfigured
-                ? "Project data saved in this browser session"
-                : "Project data saved in browser storage",
-              detail: isSupabaseConfigured ? "Session only" : "localStorage",
-              tone: "info"
-            },
-            ...(coverFile
-              ? [
-                  {
-                    id: "cover-warning",
-                    label: "Cover upload still pending",
-                    detail: "Sign in to Supabase to persist this file",
-                    tone: "warning" as const
-                  }
-                ]
-              : []),
-            ...(galleryFiles.length > 0
-              ? [
-                  {
-                    id: "gallery-warning",
-                    label: `${galleryFiles.length} gallery ${galleryFiles.length === 1 ? "image is" : "images are"} still pending`,
-                    detail: "Sign in to Supabase to upload queued media",
-                    tone: "warning" as const
-                  }
-                ]
-              : []),
-            ...(videoFile
-              ? [
-                  {
-                    id: "video-warning",
-                    label: "Video upload still pending",
-                    detail: "Sign in to Supabase to persist this file",
-                    tone: "warning" as const
-                  }
-                ]
-              : [])
-          ]
-        };
+        nextReport = buildLocalProjectSaveReport({
+          isSupabaseConfigured,
+          coverFile,
+          galleryFiles,
+          videoFile
+        });
       }
 
       if (shouldClearQueuedMedia) {
-        setCoverFileState(null);
-        setGalleryFiles([]);
-        setVideoFileState(null);
+        clearMedia();
       }
 
       setSaveReport(nextReport);
@@ -955,14 +793,14 @@ export function useAdminData() {
 
   async function performDelete() {
     if (formState.templateBusiness) {
-      showStatus("Templates are permanent starting points and cannot be deleted.");
+      showStatus(
+        "Templates are permanent starting points and cannot be deleted."
+      );
       return;
     }
 
     if (!formState.id) {
-      showStatus(
-        "This project has no database ID and cannot be deleted."
-      );
+      showStatus("This project has no database ID and cannot be deleted.");
       return;
     }
 
@@ -1026,30 +864,7 @@ export function useAdminData() {
         return;
       }
 
-      const payload = {
-        id: SITE_SETTINGS_ID,
-        brand_name: siteSettingsFormState.brandName,
-        brand_mark: siteSettingsFormState.brandMark,
-        brand_strapline: siteSettingsFormState.brandStrapline,
-        contact_email: siteSettingsFormState.contactEmail,
-        contact_phone: siteSettingsFormState.contactPhone,
-        contact_city: siteSettingsFormState.contactCity,
-        social_links: parseSocialLinksText(
-          siteSettingsFormState.socialLinksText
-        ),
-        seo_title: siteSettingsFormState.seoTitle,
-        seo_description: siteSettingsFormState.seoDescription,
-        seo_og_image: siteSettingsFormState.seoOgImage,
-        hero_eyebrow: siteSettingsFormState.heroEyebrow,
-        hero_headline_lead: siteSettingsFormState.heroHeadlineLead,
-        hero_headline_trail: siteSettingsFormState.heroHeadlineTrail,
-        hero_copy: siteSettingsFormState.heroCopy,
-        hero_video_url: siteSettingsFormState.heroVideoUrl,
-        about_founder_note: siteSettingsFormState.aboutFounderNote,
-        about_positioning: siteSettingsFormState.aboutPositioning,
-        about_values: parseValuesText(siteSettingsFormState.aboutValuesText),
-        services: parseServicesText(siteSettingsFormState.servicesText)
-      };
+      const payload = buildSiteSettingsDatabasePayload(siteSettingsFormState);
 
       const { data, error } = await supabase
         .from("site_settings")
@@ -1059,9 +874,11 @@ export function useAdminData() {
 
       if (error) throw error;
 
-      replaceSiteSettingsForm(
-        toSiteSettingsFormState(normalizeSiteSettingsRecord(data))
+      const savedState = toSiteSettingsFormState(
+        normalizeSiteSettingsRecord(data)
       );
+      replaceSiteSettingsForm(savedState);
+      setSavedSiteSettingsSnapshot(JSON.stringify(savedState));
       setStatusMessage("Global site settings saved to Supabase.");
       setSaveReport({
         title: "Site settings saved",
@@ -1096,11 +913,7 @@ export function useAdminData() {
       });
       if (error) throw error;
       showStatus("Signed in. Project syncing is now enabled.");
-      try {
-        localStorage.removeItem(DRAFT_STORAGE_KEY);
-      } catch {
-        /* ignore */
-      }
+      clearDraft();
       resetAuthForm();
     } catch (err) {
       showStatus(err instanceof Error ? err.message : "Sign-in failed.");
@@ -1116,29 +929,9 @@ export function useAdminData() {
     setSessionEmail(null);
     setProjects([]);
     applyProject(defaultTemplate);
-    showStatus("Signed out. Templates remain available for new project drafts.");
-  }
-
-  function handleFileSelection(
-    event: ChangeEvent<HTMLInputElement>,
-    type: "cover" | "video"
-  ) {
-    const files = Array.from(event.target.files ?? []);
-    const limit = type === "video" ? MAX_VIDEO_BYTES : MAX_IMAGE_BYTES;
-    const limitLabel = type === "video" ? "2 GB" : "25 MB";
-
-    const oversized = files.filter((f) => f.size > limit);
-    if (oversized.length > 0) {
-      showStatus(
-        `File too large: ${oversized.map((f) => f.name).join(", ")}. Maximum size for ${type === "video" ? "videos" : "images"} is ${limitLabel}.`
-      );
-      event.target.value = "";
-      return;
-    }
-
-    setSaveReport(null);
-    if (type === "cover") setCoverFile(files[0] ?? null);
-    if (type === "video") setVideoFile(files[0] ?? null);
+    showStatus(
+      "Signed out. Templates remain available for new project drafts."
+    );
   }
 
   return {
@@ -1189,6 +982,7 @@ export function useAdminData() {
     newProject,
     duplicateProject,
     siteSettingsFormState,
+    isSettingsDirty,
     updateSiteSettingsField,
     handleSaveSiteSettings
   };
