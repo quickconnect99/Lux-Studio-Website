@@ -73,7 +73,9 @@ export function adaptSiteSettingsToPublishedProjects(
   settings: SiteSettings,
   projects: Project[]
 ) {
-  return hasPublishedHospitalityProject(projects)
-    ? settings
-    : sanitizeValue(settings);
+  if (hasPublishedHospitalityProject(projects)) {
+    return settings;
+  }
+
+  return sanitizeValue(settings);
 }

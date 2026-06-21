@@ -45,8 +45,8 @@ const checks = [
   },
   {
     path: "/admin",
-    expectStatus: [200, 307, 308],
-    expectText: []
+    expectStatus: 200,
+    expectText: ["Sign in to Supabase"]
   }
 ];
 

@@ -7,6 +7,7 @@ import {
   useRef,
   useState
 } from "react";
+import type { Session } from "@supabase/supabase-js";
 import { useAdminDraft } from "@/hooks/use-admin-draft";
 import { useAdminMedia } from "@/hooks/use-admin-media";
 import { useForm } from "@/hooks/use-form";
@@ -544,6 +545,34 @@ export function useAdminData() {
     setSavedSiteSettingsSnapshot(JSON.stringify(state));
   }, [supabase, replaceSiteSettingsForm]);
 
+  const authorizeSession = useCallback(
+    async (session: Session | null) => {
+      if (!supabase || !session?.user.email) {
+        setSessionEmail(null);
+        setProjects([]);
+        return false;
+      }
+
+      const { data: isAdmin, error } = await supabase.rpc("is_admin");
+
+      if (error || isAdmin !== true) {
+        await supabase.auth.signOut();
+        setSessionEmail(null);
+        setProjects([]);
+        applyProject(defaultTemplate);
+        showStatus(
+          "This Supabase account is not authorized for the admin workspace."
+        );
+        return false;
+      }
+
+      setSessionEmail(session.user.email);
+      await loadProjects();
+      return true;
+    },
+    [applyProject, defaultTemplate, loadProjects, showStatus, supabase]
+  );
+
   useEffect(() => {
     if (!supabase) return;
     const supabaseClient = supabase;
@@ -555,8 +584,7 @@ export function useAdminData() {
         data: { session }
       } = await supabaseClient.auth.getSession();
       if (!active) return;
-      setSessionEmail(session?.user.email ?? null);
-      if (session?.user.email) await loadProjects();
+      await authorizeSession(session);
     }
 
     void bootstrap();
@@ -564,9 +592,8 @@ export function useAdminData() {
     const {
       data: { subscription }
     } = supabaseClient.auth.onAuthStateChange((_event, session) => {
-      setSessionEmail(session?.user.email ?? null);
       if (session?.user.email) {
-        void loadProjects();
+        void authorizeSession(session);
       } else {
         setProjects([]);
         void loadSiteSettings();
@@ -578,7 +605,13 @@ export function useAdminData() {
       active = false;
       subscription.unsubscribe();
     };
-  }, [loadProjects, loadSiteSettings, applyProject, supabase, defaultTemplate]);
+  }, [
+    authorizeSession,
+    loadSiteSettings,
+    applyProject,
+    supabase,
+    defaultTemplate
+  ]);
 
   const handleSaveRef = useRef<(() => void) | null>(null);
   useEffect(() => {
@@ -907,11 +940,13 @@ export function useAdminData() {
     setSaveReport(null);
     setWorking(true);
     try {
-      const { error } = await supabase.auth.signInWithPassword({
+      const { data, error } = await supabase.auth.signInWithPassword({
         email: authFormState.email,
         password: authFormState.password
       });
       if (error) throw error;
+      const authorized = await authorizeSession(data.session);
+      if (!authorized) return;
       showStatus("Signed in. Project syncing is now enabled.");
       clearDraft();
       resetAuthForm();

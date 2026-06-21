@@ -7,12 +7,6 @@ Diese Website erwartet fuer den Live-Betrieb die folgenden Supabase-Werte:
 - `SUPABASE_SERVICE_ROLE_KEY`
 - optional `NEXT_PUBLIC_SUPABASE_STORAGE_BUCKET` falls der Bucket nicht `projects` heisst
 
-Fuer die zusaetzliche Admin-Schutzschicht werden ausserdem empfohlen:
-
-- `ADMIN_GATE_USER`
-- `ADMIN_GATE_PASSWORD`
-- `ADMIN_GATE_SECRET`
-
 ## Was du im Supabase-Dashboard holen musst
 
 1. `Project URL`
@@ -71,20 +65,17 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=<anon-key>
 SUPABASE_SERVICE_ROLE_KEY=<service-role-key>
 NEXT_PUBLIC_SUPABASE_STORAGE_BUCKET=projects
 NEXT_PUBLIC_ENABLE_ADMIN=true
-ADMIN_GATE_USER=<separater-admin-gate-user>
-ADMIN_GATE_PASSWORD=<langes-zufalls-passwort>
-ADMIN_GATE_SECRET=<weiteres-langes-zufalls-secret>
 ```
 
-## Admin-Schutzschicht
+## Admin-Zugriff
 
-Der Zugriff auf `/admin` ist jetzt in Production zweistufig:
+Der Zugriff auf `/admin` verwendet direkt Supabase Auth:
 
-1. interne Admin-Gate-Login-Seite mit signiertem Session-Cookie
-2. danach Supabase-Login im eigentlichen Admin-Bereich
+1. Anmeldung mit E-Mail und Passwort im Admin-Bereich
+2. RLS prueft, ob die User-ID in `public.admin_users` eingetragen ist
 
-Damit ist die Route nicht mehr offen sichtbar nutzbar, selbst wenn jemand die
-URL kennt.
+Die Kenntnis der URL oder ein normaler Supabase-Account reichen nicht fuer
+Datenbank- oder Storage-Zugriff aus.
 
 ## Nach dem Eintragen testen
 

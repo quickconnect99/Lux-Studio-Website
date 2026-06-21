@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import {
   FolderOpen,
   Lock,
@@ -27,7 +26,6 @@ import { slugify } from "@/lib/admin-utils";
 import type { AdminProjectFieldKey } from "@/lib/admin-types";
 
 export function AdminDashboard() {
-  const router = useRouter();
   const data = useAdminData();
   const [activeField, setActiveField] = useState<AdminProjectFieldKey | null>(
     null
@@ -158,13 +156,6 @@ export function AdminDashboard() {
     updateField("galleryImagesText", lines.join("\n"));
   }
 
-  async function handleExitAdmin() {
-    await handleSignOut();
-    await fetch("/api/admin-gate/logout", { method: "POST" });
-    router.push("/admin/login");
-    router.refresh();
-  }
-
   return (
     <section className="section-shell space-y-6 pb-24">
       {/* Tab bar + session controls */}
@@ -237,14 +228,6 @@ export function AdminDashboard() {
               Sign Out
             </button>
           ) : null}
-          <button
-            type="button"
-            onClick={handleExitAdmin}
-            className="control-pill"
-          >
-            <LogOut className="h-4 w-4" />
-            Exit Admin
-          </button>
           {canEditCms ? (
             <button
               type="button"

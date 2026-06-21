@@ -181,7 +181,7 @@ export const defaultSiteSettings: SiteSettings = {
     },
     footer: {
       headline:
-        "Built for brands and spaces that want to feel seen before they are explained.",
+        "Built for automotive brands, hospitality spaces, and private clients who want to feel seen before they are explained.",
       navigationLabel: "Navigation",
       connectLabel: "Connect",
       mediaNotice: "Externe Medien laden erst nach Klick"

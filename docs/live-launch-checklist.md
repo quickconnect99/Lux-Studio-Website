@@ -21,9 +21,6 @@ SUPABASE_SERVICE_ROLE_KEY=<service-role-key>
 NEXT_PUBLIC_SUPABASE_STORAGE_BUCKET=projects
 NEXT_PUBLIC_ENABLE_ADMIN=true
 NEXT_PUBLIC_SHOW_ADMIN_LINK=false
-ADMIN_GATE_USER=<gate-user>
-ADMIN_GATE_PASSWORD=<langes-passwort>
-ADMIN_GATE_SECRET=<langes-zufalls-secret>
 ```
 
 ## 3. Domain
@@ -42,9 +39,8 @@ npm run smoke:live -- https://deine-domain.tld
 
 Zusatzchecks im Browser:
 
-- `/admin` leitet auf `/admin/login`
-- Admin Gate funktioniert
-- Supabase-Login im Admin funktioniert
+- `/admin` zeigt den Supabase-Login
+- nur User aus `public.admin_users` koennen Inhalte verwalten
 - Bild-Upload im Admin funktioniert
 - neue Bilder werden auf den Projektseiten korrekt gerendert
 - Kontaktformular speichert eine Anfrage
@@ -53,4 +49,4 @@ Zusatzchecks im Browser:
 
 - Git-Remote ohne eingebetteten Token konfigurieren
 - GitHub-Token rotieren, falls noch aktiv
-- starke Werte fuer `ADMIN_GATE_PASSWORD` und `ADMIN_GATE_SECRET` verwenden
+- starke Supabase-Passwoerter verwenden und `public.admin_users` regelmaessig pruefen

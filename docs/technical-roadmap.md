@@ -31,13 +31,13 @@ Priorität: hoch
 - Lokale Demo-Projekte nur verwenden, wenn Supabase nicht konfiguriert ist.
 - Datenbankfehler protokollieren, aber keine gelöschten Demo-Projekte
   reaktivieren.
-- Admin-Login nur bei fehlgeschlagenen Logins gegen das Rate-Limit zählen.
+- Supabase-Login gegen die explizite Admin-Allowlist pruefen.
 - RLS und Storage-Policies auf eine explizite Admin-Allowlist begrenzen.
 
 Akzeptanzkriterien:
 
 - Ein in Supabase fehlender Slug liefert `notFound` und keinen Demo-Datensatz.
-- Erfolgreiche Admin-Logins erhöhen den Fehlversuchszähler nicht.
+- Ein angemeldeter, aber nicht freigeschalteter Supabase-User sieht keinen Editor.
 - Ein normaler authentifizierter Supabase-User kann keine CMS-Daten verändern.
 
 ## Phase 2 — Toolchain und CI
@@ -82,8 +82,7 @@ Akzeptanzkriterien:
 
 Priorität: mittel
 
-- Unit-Tests für Inquiry-Validierung, Admin-Cookies, Redirects, Slugs und
-  Rate-Limits.
+- Unit-Tests für Inquiry-Validierung, Slugs, Berechtigungen und Rate-Limits.
 - Integrationstests für Supabase-Fallbacks und Berechtigungen.
 - Persistentes Rate-Limit über Upstash/Vercel KV oder eine Supabase-RPC
   einführen; In-Memory-Limits bleiben nur eine lokale Zusatzbarriere.
