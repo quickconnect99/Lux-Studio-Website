@@ -115,9 +115,9 @@ export function ProjectGrid({
   }
 
   return (
-    <section className="section-shell pb-20">
+    <section className="section-shell pb-14 sm:pb-20">
       {availableBusinesses.length > 1 ? (
-        <div className="flex flex-wrap gap-3 border-y border-line py-5">
+        <div className="no-scrollbar -mx-4 flex gap-2 overflow-x-auto border-y border-line px-4 py-4 sm:mx-0 sm:flex-wrap sm:gap-3 sm:px-0 sm:py-5">
           {businessFilters.map((business) => (
             <motion.button
               key={business}
@@ -126,7 +126,7 @@ export function ProjectGrid({
               whileTap={{ scale: 0.94 }}
               transition={{ duration: 0.15 }}
               className={cn(
-                "min-h-11 rounded-full border px-4 py-2 text-xs font-medium uppercase tracking-ui",
+                "min-h-11 shrink-0 whitespace-nowrap rounded-full border px-4 py-2 text-xs font-medium uppercase tracking-ui",
                 "transition-colors duration-150",
                 activeBusiness === business
                   ? "border-foreground bg-foreground text-background"
@@ -139,7 +139,7 @@ export function ProjectGrid({
         </div>
       ) : null}
 
-      <div className="flex flex-wrap gap-3 py-5">
+      <div className="no-scrollbar -mx-4 flex gap-2 overflow-x-auto px-4 py-4 sm:mx-0 sm:flex-wrap sm:gap-3 sm:px-0 sm:py-5">
         {categories.map((category) => (
           <motion.button
             key={category}
@@ -148,7 +148,7 @@ export function ProjectGrid({
             whileTap={{ scale: 0.94 }}
             transition={{ duration: 0.15 }}
             className={cn(
-              "min-h-11 rounded-full border px-4 py-2 text-xs font-medium uppercase tracking-ui",
+              "min-h-11 shrink-0 whitespace-nowrap rounded-full border px-4 py-2 text-xs font-medium uppercase tracking-ui",
               "transition-colors duration-150",
               activeCategory === category
                 ? "border-foreground bg-foreground text-background"
@@ -190,7 +190,7 @@ export function ProjectGrid({
           )}
         </div>
       ) : (
-        <div className="grid gap-6 pt-8 md:grid-cols-2 xl:grid-cols-3">
+        <div className="grid gap-5 pt-5 sm:pt-8 md:grid-cols-2 xl:grid-cols-3">
           <AnimatePresence mode="popLayout">
             {visible.map((project, index) => (
               <motion.div
@@ -207,9 +207,9 @@ export function ProjectGrid({
               >
                 <Link
                   href={`/work/${project.slug}${detailQuery}`}
-                  className="group block overflow-hidden rounded-[2rem] border border-line bg-panel-secondary shadow-card"
+                  className="group block overflow-hidden rounded-[1.5rem] border border-line bg-panel-secondary shadow-card sm:rounded-[2rem]"
                 >
-                  <div className="relative aspect-[4/5] overflow-hidden">
+                  <div className="relative aspect-[4/3] overflow-hidden sm:aspect-[4/5]">
                     <Image
                       src={project.coverImage}
                       alt={project.title}
@@ -218,23 +218,23 @@ export function ProjectGrid({
                       className="object-cover transition-transform duration-700 group-hover:scale-[1.03]"
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/55 via-transparent to-transparent opacity-80 transition-opacity duration-500 group-hover:opacity-100" />
-                    <div className="absolute inset-x-0 bottom-0 p-6 text-white">
+                    <div className="absolute inset-x-0 bottom-0 p-4 text-white sm:p-6">
                       <div className="flex items-center justify-between gap-4 text-[0.64rem] uppercase tracking-meta text-white/80">
                         <span>
                           {project.business} / {project.category}
                         </span>
                         <span>{project.year}</span>
                       </div>
-                      <h3 className="font-[family:var(--font-display)] mt-4 text-3xl uppercase leading-none">
+                      <h3 className="font-[family:var(--font-display)] mt-3 text-[2rem] uppercase leading-none sm:mt-4 sm:text-3xl">
                         {project.title}
                       </h3>
-                      <p className="mt-3 max-w-sm text-sm leading-7 text-white/80">
+                      <p className="mt-2 line-clamp-2 max-w-sm text-sm leading-6 text-white/80 sm:mt-3 sm:line-clamp-none sm:leading-7">
                         {project.shortDescription}
                       </p>
                     </div>
                   </div>
 
-                  <div className="grid gap-4 border-t border-line p-5 sm:grid-cols-[1.1fr_1fr_auto]">
+                  <div className="grid grid-cols-2 gap-4 border-t border-line p-4 sm:grid-cols-[1.1fr_1fr_auto] sm:p-5">
                     <div>
                       <p className="text-[0.58rem] uppercase tracking-[0.22em] text-muted">
                         {getProjectPrimaryMetaLabel(project.business)}
@@ -251,7 +251,7 @@ export function ProjectGrid({
                         {project.location}
                       </p>
                     </div>
-                    <span className="inline-flex items-center gap-1.5 self-end text-[0.72rem] font-medium uppercase tracking-[0.12em] text-foreground transition-colors duration-150 group-hover:text-accent">
+                    <span className="col-span-2 inline-flex items-center justify-between gap-1.5 border-t border-line pt-3 text-[0.72rem] font-medium uppercase tracking-[0.12em] text-foreground transition-colors duration-150 group-hover:text-accent sm:col-span-1 sm:justify-start sm:border-0 sm:pt-0">
                       Open Project
                       <ArrowUpRight className="h-3.5 w-3.5 transition-transform duration-300 group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
                     </span>

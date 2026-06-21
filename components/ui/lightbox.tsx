@@ -63,7 +63,7 @@ export function Lightbox({
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.96 }}
             transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
-            className="relative max-h-[85vh] w-full max-w-5xl px-16"
+            className="relative max-h-[85vh] w-full max-w-5xl px-3 sm:px-16"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="film-frame relative aspect-[4/3] overflow-hidden sm:aspect-[16/9]">
@@ -90,7 +90,7 @@ export function Lightbox({
             aria-label="Previous image"
             onClick={(e) => { e.stopPropagation(); onPrev(); }}
             className={cn(
-              "absolute left-4 top-1/2 -translate-y-1/2",
+              "absolute bottom-5 left-4 sm:bottom-auto sm:top-1/2 sm:-translate-y-1/2",
               "flex h-11 w-11 items-center justify-center rounded-full",
               "border border-white/20 bg-white/10 text-white backdrop-blur",
               "transition-all duration-150 hover:border-accent hover:bg-white/20"
@@ -104,7 +104,7 @@ export function Lightbox({
             aria-label="Next image"
             onClick={(e) => { e.stopPropagation(); onNext(); }}
             className={cn(
-              "absolute right-4 top-1/2 -translate-y-1/2",
+              "absolute bottom-5 right-4 sm:bottom-auto sm:top-1/2 sm:-translate-y-1/2",
               "flex h-11 w-11 items-center justify-center rounded-full",
               "border border-white/20 bg-white/10 text-white backdrop-blur",
               "transition-all duration-150 hover:border-accent hover:bg-white/20"

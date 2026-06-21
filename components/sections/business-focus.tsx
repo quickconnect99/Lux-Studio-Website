@@ -19,23 +19,33 @@ type BusinessFocusProps = {
 };
 
 export function BusinessFocus({ cards }: BusinessFocusProps) {
+  const hasMultipleSectors = cards.length > 1;
+
   return (
     <section className="section-shell section-space-tight pt-0">
       <div className="grid gap-6 lg:grid-cols-[0.72fr_1.28fr]">
         <Reveal className="space-y-5">
           <p className="eyebrow">Business focus</p>
-          <h2 className="font-[family:var(--font-display)] text-4xl uppercase leading-none sm:text-5xl">
-            Choose
-            <span className="block pl-8 text-accent sm:pl-12">Your Sector</span>
+          <h2 className="font-[family:var(--font-display)] text-[2.5rem] uppercase leading-[0.92] sm:text-5xl">
+            {hasMultipleSectors ? "Choose" : "Explore"}
+            <span className="block pl-5 text-accent sm:pl-12">
+              {hasMultipleSectors ? "Your Sector" : "Our Work"}
+            </span>
           </h2>
           <p className="max-w-md text-sm leading-7 text-muted sm:text-base">
-            Move directly into the work overview with automotive or hospitality
-            projects already filtered, so the first click lands in the right
-            context.
+            {hasMultipleSectors
+              ? "Move directly into the right portfolio sector with the work overview already filtered."
+              : "Move directly into the automotive portfolio and explore the latest published campaigns."}
           </p>
         </Reveal>
 
-        <div className="grid gap-4 md:grid-cols-2">
+        <div
+          className={
+            hasMultipleSectors
+              ? "grid gap-4 md:grid-cols-2"
+              : "grid max-w-2xl gap-4"
+          }
+        >
           {cards.map((card, index) => (
             <Reveal
               key={card.business}
@@ -44,9 +54,9 @@ export function BusinessFocus({ cards }: BusinessFocusProps) {
             >
               <Link
                 href={card.href}
-                className="group block overflow-hidden rounded-[2rem] border border-line bg-panel-secondary shadow-card"
+                className="group block overflow-hidden rounded-[1.5rem] border border-line bg-panel-secondary shadow-card sm:rounded-[2rem]"
               >
-                <div className="relative aspect-[4/5] overflow-hidden">
+                <div className="relative aspect-[4/3] overflow-hidden sm:aspect-[4/5]">
                   <Image
                     src={card.imageSrc}
                     alt={card.imageAlt}
@@ -56,14 +66,14 @@ export function BusinessFocus({ cards }: BusinessFocusProps) {
                   />
                   <div className="via-black/18 absolute inset-0 bg-gradient-to-t from-black/80 to-transparent" />
 
-                  <div className="absolute inset-x-0 bottom-0 p-6 text-white">
+                  <div className="absolute inset-x-0 bottom-0 p-4 text-white sm:p-6">
                     <p className="text-white/72 text-[0.62rem] uppercase tracking-[0.28em]">
                       {card.business}
                     </p>
                     <h3 className="font-[family:var(--font-display)] mt-4 text-3xl uppercase leading-none sm:text-4xl">
                       {card.title}
                     </h3>
-                    <p className="mt-3 max-w-sm text-sm leading-7 text-white/80">
+                    <p className="mt-2 line-clamp-2 max-w-sm text-sm leading-6 text-white/80 sm:mt-3 sm:line-clamp-none sm:leading-7">
                       {card.description}
                     </p>
                   </div>

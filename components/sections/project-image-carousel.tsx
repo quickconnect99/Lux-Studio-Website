@@ -32,9 +32,9 @@ export function ProjectImageCarousel({
   }
 
   return (
-    <div className="overflow-hidden rounded-[2rem] border border-line bg-panel-secondary shadow-card p-4 sm:p-5">
+    <div className="overflow-hidden rounded-[1.5rem] border border-line bg-panel-secondary p-3 shadow-card sm:rounded-[2rem] sm:p-5">
       <div className="grid gap-5 lg:grid-cols-[0.84fr_1.16fr] lg:items-center">
-        <div className="space-y-4 rounded-[1.5rem] border border-line bg-panel p-5">
+        <div className="space-y-4 rounded-[1.25rem] border border-line bg-panel p-4 sm:rounded-[1.5rem] sm:p-5">
           <div className="flex items-center justify-between gap-3">
             <p className="metadata-number">Image Cluster</p>
             <span className="text-[0.62rem] uppercase tracking-meta text-muted">
@@ -84,8 +84,8 @@ export function ProjectImageCarousel({
         </div>
 
         <div className="space-y-3">
-          <div className="film-frame relative overflow-hidden rounded-[1.5rem]">
-            <div className="aspect-[16/10]" />
+          <div className="film-frame relative overflow-hidden rounded-[1.25rem] sm:rounded-[1.5rem]">
+            <div className="aspect-[4/3] sm:aspect-[16/10]" />
             <AnimatePresence mode="wait">
               <motion.div
                 key={activeImage}
@@ -107,7 +107,7 @@ export function ProjectImageCarousel({
           </div>
 
           {images.length > 1 ? (
-            <div className="grid grid-cols-3 gap-3">
+            <div className="no-scrollbar flex gap-2 overflow-x-auto pb-1 sm:grid sm:grid-cols-3 sm:gap-3">
               {images.map((image, index) => (
                 <button
                   key={`${image}-${index}`}
@@ -115,7 +115,7 @@ export function ProjectImageCarousel({
                   onClick={() => setActiveIndex(index)}
                   aria-label={`Show image ${index + 1}`}
                   className={cn(
-                    "relative overflow-hidden rounded-[1.1rem] border transition-colors duration-150",
+                    "relative w-24 shrink-0 overflow-hidden rounded-[1rem] border transition-colors duration-150 sm:w-auto sm:rounded-[1.1rem]",
                     activeIndex === index
                       ? "border-accent"
                       : "border-line hover:border-foreground/35"

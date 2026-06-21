@@ -4,12 +4,13 @@ import { PageHeader } from "@/components/sections/page-header";
 import { Reveal } from "@/components/ui/reveal";
 import { RevealList } from "@/components/ui/reveal-list";
 import { dedupeImageUrls } from "@/lib/project-images";
+import { adaptSiteSettingsToPublishedProjects } from "@/lib/public-portfolio";
 import { getPublishedProjects, getSiteSettings } from "@/lib/supabase";
 
 export const metadata: Metadata = {
   title: "About",
   description:
-    "A concise founder and studio story for a premium campaign studio spanning automotive and hospitality."
+    "A concise founder and studio story for a premium campaign studio."
 };
 
 export default async function AboutPage() {
@@ -18,18 +19,22 @@ export default async function AboutPage() {
     getSiteSettings()
   ]);
 
+  const publicSettings = adaptSiteSettingsToPublishedProjects(
+    settings,
+    projects
+  );
   const stills = dedupeImageUrls(
     projects.flatMap((project) => project.galleryImages)
   ).slice(0, 6);
 
-  const { about } = settings;
+  const { about } = publicSettings;
 
   return (
     <>
       <PageHeader
-        eyebrow="Studio profile"
-        lead="Story"
-        trail="And Intent"
+        eyebrow={publicSettings.copy.about.eyebrow}
+        lead={publicSettings.copy.about.headlineLead}
+        trail={publicSettings.copy.about.headlineTrail}
         copy={about.positioning}
       />
 
@@ -37,7 +42,7 @@ export default async function AboutPage() {
         <div className="grid gap-6 lg:grid-cols-[0.9fr_1.1fr]">
           <Reveal className="panel-2xl p-8">
             <p className="text-xs uppercase tracking-eyebrow text-muted">
-              Founder note
+              {publicSettings.copy.about.founderLabel}
             </p>
             <p className="mt-5 text-base leading-8 text-muted">
               {about.founderNote}
@@ -45,7 +50,7 @@ export default async function AboutPage() {
           </Reveal>
           <Reveal delay={0.08} direction="right" className="panel-2xl p-8">
             <p className="text-xs uppercase tracking-eyebrow text-muted">
-              Positioning
+              {publicSettings.copy.about.positioningLabel}
             </p>
             <p className="mt-5 text-base leading-8 text-muted">
               {about.positioning}

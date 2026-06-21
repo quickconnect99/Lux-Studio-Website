@@ -6,15 +6,19 @@ import { SiteFooter } from "@/components/layout/site-footer";
 import { SiteHeader } from "@/components/layout/site-header";
 import { MotionProvider } from "@/components/ui/motion-provider";
 import { ThemeProvider } from "@/components/ui/theme-provider";
-import { ThemeSwitcher } from "@/components/ui/theme-switcher";
+import { adaptSiteSettingsToPublishedProjects } from "@/lib/public-portfolio";
 import { siteConfig } from "@/lib/site-config";
-import { getSiteSettings } from "@/lib/supabase";
+import { getPublishedProjects, getSiteSettings } from "@/lib/supabase";
 import { DEFAULT_THEME, themeIds } from "@/lib/themes";
 
 export const dynamic = "force-dynamic";
 
 export async function generateMetadata(): Promise<Metadata> {
-  const settings = await getSiteSettings();
+  const [rawSettings, projects] = await Promise.all([
+    getSiteSettings(),
+    getPublishedProjects()
+  ]);
+  const settings = adaptSiteSettingsToPublishedProjects(rawSettings, projects);
   return {
     metadataBase: new URL(siteConfig.siteUrl),
     title: {
@@ -73,7 +77,11 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const settings = await getSiteSettings();
+  const [rawSettings, projects] = await Promise.all([
+    getSiteSettings(),
+    getPublishedProjects()
+  ]);
+  const settings = adaptSiteSettingsToPublishedProjects(rawSettings, projects);
 
   /** #19 – Schema.org Organisation structured data */
   const organizationSchema = {
@@ -119,7 +127,6 @@ export default async function RootLayout({
               <SiteHeader settings={settings} />
               {children}
               <SiteFooter settings={settings} />
-              <ThemeSwitcher />
             </div>
           </MotionProvider>
         </ThemeProvider>

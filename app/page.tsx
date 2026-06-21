@@ -8,6 +8,10 @@ import { Reveal } from "@/components/ui/reveal";
 import { RevealList } from "@/components/ui/reveal-list";
 import { dedupeImageUrls } from "@/lib/project-images";
 import { projectBusinessToParam } from "@/lib/project-business";
+import {
+  adaptSiteSettingsToPublishedProjects,
+  hasPublishedHospitalityProject
+} from "@/lib/public-portfolio";
 import { isPublicAdminEnabled } from "@/lib/site-config";
 import { getPublishedProjects, getSiteSettings } from "@/lib/supabase";
 
@@ -17,6 +21,11 @@ export default async function HomePage() {
     getSiteSettings()
   ]);
 
+  const publicSettings = adaptSiteSettingsToPublishedProjects(
+    settings,
+    projects
+  );
+  const hasHospitality = hasPublishedHospitalityProject(projects);
   const featuredProjects = projects
     .filter((project) => project.featured)
     .slice(0, 3);
@@ -39,31 +48,33 @@ export default async function HomePage() {
       imageAlt: carProject?.title ?? "Car project preview",
       href: `/work?business=${projectBusinessToParam("Car")}`
     },
-    {
-      business: "Hospitality" as const,
-      title: "Hospitality Projects",
-      eyebrow:
-        hospitalityProject?.title ??
-        "Hotels, spaces, dining concepts, and launch atmospheres",
-      description:
-        hospitalityProject?.shortDescription ??
-        "Editorial films and stills for hospitality brands that need a property to feel designed before a guest arrives.",
-      imageSrc:
-        hospitalityProject?.coverImage ??
-        "/images/hospitality/quiet-arrival-cover.svg",
-      imageAlt: hospitalityProject?.title ?? "Hospitality project preview",
-      href: `/work?business=${projectBusinessToParam("Hospitality")}`
-    }
+    ...(hasHospitality && hospitalityProject
+      ? [
+          {
+            business: "Hospitality" as const,
+            title: "Hospitality Projects",
+            eyebrow: hospitalityProject.title,
+            description: hospitalityProject.shortDescription,
+            imageSrc: hospitalityProject.coverImage,
+            imageAlt: hospitalityProject.title,
+            href: `/work?business=${projectBusinessToParam("Hospitality")}`
+          }
+        ]
+      : [])
   ];
 
   return (
     <>
-      <HomeHero hero={settings.hero} posterSrc={settings.seo.ogImage} />
+      <HomeHero
+        hero={publicSettings.hero}
+        copy={publicSettings.copy.home}
+        posterSrc={publicSettings.seo.ogImage}
+      />
 
       <section className="section-shell">
-        <div className="flex flex-wrap items-center gap-x-8 gap-y-3 border-y border-line py-5">
-          <p className="shrink-0 text-xs uppercase tracking-eyebrow text-muted">
-            Selected work
+        <div className="no-scrollbar -mx-4 flex items-center gap-5 overflow-x-auto border-y border-line px-4 py-4 sm:mx-0 sm:flex-wrap sm:gap-x-8 sm:gap-y-3 sm:px-0 sm:py-5">
+          <p className="shrink-0 whitespace-nowrap text-xs uppercase tracking-eyebrow text-muted">
+            {publicSettings.copy.home.selectedWorkLabel}
           </p>
           {[
             ...new Set(
@@ -76,7 +87,7 @@ export default async function HomePage() {
                   /
                 </span>
               )}
-              <span className="text-foreground/60 text-sm font-medium uppercase tracking-[0.14em]">
+              <span className="text-foreground/60 shrink-0 whitespace-nowrap text-sm font-medium uppercase tracking-[0.14em]">
                 {brand}
               </span>
             </React.Fragment>
@@ -85,26 +96,26 @@ export default async function HomePage() {
       </section>
 
       <section className="section-shell section-space-tight">
-        <div className="grid gap-10 border-y border-line py-8 lg:grid-cols-[0.85fr_1.15fr]">
+        <div className="grid gap-7 border-y border-line py-7 sm:gap-10 sm:py-8 lg:grid-cols-[0.85fr_1.15fr]">
           <Reveal className="space-y-5">
-            <p className="eyebrow">Brand statement</p>
-            <h2 className="font-[family:var(--font-display)] text-4xl uppercase leading-none sm:text-5xl">
-              Cinematic
-              <span className="block pl-8 text-accent sm:pl-12">
-                Visual Stories
+            <p className="eyebrow">{publicSettings.copy.home.brandEyebrow}</p>
+            <h2 className="font-[family:var(--font-display)] text-[2.5rem] uppercase leading-[0.92] sm:text-5xl">
+              {publicSettings.copy.home.brandHeadlineLead}
+              <span className="block pl-5 text-accent sm:pl-12">
+                {publicSettings.copy.home.brandHeadlineTrail}
               </span>
             </h2>
           </Reveal>
 
           <Reveal delay={0.1} direction="right" className="space-y-5">
             <p className="max-w-2xl text-base leading-8 text-muted sm:text-lg">
-              {settings.brand.strapline}
+              {publicSettings.brand.strapline}
             </p>
             <div className="grid gap-4 sm:grid-cols-2">
-              {settings.services.slice(0, 4).map((service) => (
+              {publicSettings.services.slice(0, 4).map((service) => (
                 <div
                   key={service.number}
-                  className="rounded-[1.5rem] border border-line bg-panel-secondary p-5 text-sm leading-7 text-muted"
+                  className="rounded-[1.25rem] border border-line bg-panel-secondary p-4 text-sm leading-6 text-muted sm:rounded-[1.5rem] sm:p-5 sm:leading-7"
                 >
                   <span className="mb-1 block text-xs uppercase tracking-eyebrow text-accent">
                     {service.title}
@@ -124,23 +135,25 @@ export default async function HomePage() {
       <section className="section-shell section-space-tight pt-0">
         <div className="grid gap-6 lg:grid-cols-[0.8fr_1.2fr]">
           <Reveal className="space-y-5">
-            <p className="eyebrow">Services snapshot</p>
-            <h2 className="font-[family:var(--font-display)] text-4xl uppercase leading-none sm:text-5xl">
-              Built
-              <span className="block pl-8 text-accent sm:pl-12">
-                For Campaigns
+            <p className="eyebrow">
+              {publicSettings.copy.home.servicesEyebrow}
+            </p>
+            <h2 className="font-[family:var(--font-display)] text-[2.5rem] uppercase leading-[0.92] sm:text-5xl">
+              {publicSettings.copy.home.servicesHeadlineLead}
+              <span className="block pl-5 text-accent sm:pl-12">
+                {publicSettings.copy.home.servicesHeadlineTrail}
               </span>
             </h2>
             <p className="max-w-md text-sm leading-7 text-muted sm:text-base">
-              {settings.brand.strapline}
+              {publicSettings.brand.strapline}
             </p>
           </Reveal>
 
           <div className="grid gap-4 sm:grid-cols-2">
             <RevealList
-              items={settings.services.slice(0, 4)}
+              items={publicSettings.services.slice(0, 4)}
               getKey={(service) => service.number}
-              itemClassName="glass-panel rounded-[1.75rem] p-6"
+              itemClassName="glass-panel rounded-[1.35rem] p-5 sm:rounded-[1.75rem] sm:p-6"
               render={(service) => (
                 <>
                   <p className="metadata-number">{service.number}</p>
@@ -160,30 +173,32 @@ export default async function HomePage() {
       <HorizontalStillStrip images={galleryImages.slice(0, 6)} />
 
       <section className="section-shell section-space-tight pt-0">
-        <div className="dark-panel rounded-[2.5rem] p-8 text-white sm:p-12">
+        <div className="dark-panel rounded-[1.5rem] p-5 text-white sm:rounded-[2.5rem] sm:p-12">
           <div className="grid gap-8 lg:grid-cols-[1.2fr_0.8fr]">
             <div className="space-y-5">
               <p className="eyebrow text-white/70 before:bg-accent">
-                Next Project
+                {publicSettings.copy.home.ctaEyebrow}
               </p>
-              <h2 className="font-[family:var(--font-display)] text-4xl uppercase leading-none sm:text-6xl">
-                Ready
-                <span className="block pl-8 text-accent sm:pl-12">
-                  To Launch
+              <h2 className="font-[family:var(--font-display)] text-[2.5rem] uppercase leading-[0.92] sm:text-6xl">
+                {publicSettings.copy.home.ctaHeadlineLead}
+                <span className="block pl-5 text-accent sm:pl-12">
+                  {publicSettings.copy.home.ctaHeadlineTrail}
                 </span>
               </h2>
               <p className="max-w-2xl text-base leading-8 text-white/80">
-                {settings.brand.strapline}
+                {publicSettings.copy.home.ctaCopy}
               </p>
             </div>
             <div className="flex flex-col justify-between gap-6">
-              <p className="rounded-[1.75rem] border border-white/10 bg-white/5 p-6 text-sm leading-7 text-white/70">
-                {settings.brand.strapline}
+              <p className="rounded-[1.25rem] border border-white/10 bg-white/5 p-4 text-sm leading-7 text-white/70 sm:rounded-[1.75rem] sm:p-6">
+                {publicSettings.copy.home.ctaCopy}
               </p>
-              <div className="flex flex-wrap gap-4">
-                <LinkButton href="/work">Browse Work</LinkButton>
+              <div className="grid gap-3 sm:flex sm:flex-wrap sm:gap-4">
+                <LinkButton href="/work" className="w-full sm:w-auto">
+                  {publicSettings.copy.home.ctaButton}
+                </LinkButton>
                 {isPublicAdminEnabled ? (
-                  <LinkButton href="/admin" variant="secondary">
+                  <LinkButton href="/admin" variant="secondary" className="w-full sm:w-auto">
                     Open Admin
                   </LinkButton>
                 ) : null}

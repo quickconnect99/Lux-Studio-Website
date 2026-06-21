@@ -9,7 +9,7 @@
     "start:prod": "next start",
     "lint": "eslint app components hooks lib middleware.ts next.config.mjs scripts tests --max-warnings=0 --cache",
     "typecheck": "tsc --noEmit",
-    "test": "tsx --test tests/rate-limit.test.ts tests/admin-persistence.test.ts",
+    "test": "tsx --test tests/rate-limit.test.ts tests/admin-persistence.test.ts tests/public-portfolio.test.ts",
     "format": "prettier . --write",
     "smoke:live": "node scripts/smoke-test-live.mjs"
   },

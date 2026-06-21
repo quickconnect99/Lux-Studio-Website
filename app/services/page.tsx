@@ -3,7 +3,8 @@ import { Film } from "lucide-react";
 import { PageHeader } from "@/components/sections/page-header";
 import { RevealList } from "@/components/ui/reveal-list";
 import { serviceIcons } from "@/lib/content";
-import { getSiteSettings } from "@/lib/supabase";
+import { adaptSiteSettingsToPublishedProjects } from "@/lib/public-portfolio";
+import { getPublishedProjects, getSiteSettings } from "@/lib/supabase";
 
 export const metadata: Metadata = {
   title: "Services",
@@ -12,15 +13,19 @@ export const metadata: Metadata = {
 };
 
 export default async function ServicesPage() {
-  const settings = await getSiteSettings();
+  const [rawSettings, projects] = await Promise.all([
+    getSiteSettings(),
+    getPublishedProjects()
+  ]);
+  const settings = adaptSiteSettingsToPublishedProjects(rawSettings, projects);
 
   return (
     <>
       <PageHeader
-        eyebrow="What we create"
-        lead="Visual"
-        trail="Services"
-        copy={settings.brand.strapline}
+        eyebrow={settings.copy.services.eyebrow}
+        lead={settings.copy.services.headlineLead}
+        trail={settings.copy.services.headlineTrail}
+        copy={settings.copy.services.copy}
       />
 
       <section className="section-shell section-space-tight pt-0">

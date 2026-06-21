@@ -31,9 +31,9 @@ export function FeaturedProjects({ projects }: FeaturedProjectsProps) {
                 delay: index * 0.03,
                 ease: [0.22, 1, 0.36, 1]
               }}
-              className="py-10 lg:py-14"
+              className="py-8 sm:py-10 lg:py-14"
             >
-              <div className="grid items-center gap-8 lg:grid-cols-[0.9fr_1.1fr] lg:gap-10">
+              <div className="grid items-center gap-6 sm:gap-8 lg:grid-cols-[0.9fr_1.1fr] lg:gap-10">
                 <Reveal
                   variant="default"
                   direction={index % 2 === 0 ? "left" : "right"}
@@ -44,12 +44,12 @@ export function FeaturedProjects({ projects }: FeaturedProjectsProps) {
                 >
                   <span
                     aria-hidden="true"
-                    className="font-[family:var(--font-display)] text-foreground/[0.05] pointer-events-none absolute -right-4 -top-6 select-none text-[8rem] leading-none sm:text-[11rem] lg:text-[14rem]"
+                    className="font-[family:var(--font-display)] text-foreground/[0.05] pointer-events-none absolute -right-2 -top-3 select-none text-[6rem] leading-none sm:-right-4 sm:-top-6 sm:text-[11rem] lg:text-[14rem]"
                   >
                     0{index + 1}
                   </span>
 
-                  <div className="relative space-y-7">
+                  <div className="relative space-y-5 sm:space-y-7">
                     <div className="flex items-center gap-4">
                       <span className="metadata-number">0{index + 1}</span>
                       <div className="h-px flex-1 bg-line" />
@@ -59,9 +59,9 @@ export function FeaturedProjects({ projects }: FeaturedProjectsProps) {
                       <p className="eyebrow">
                         {project.business} / {project.category}
                       </p>
-                      <h2 className="font-[family:var(--font-display)] text-4xl uppercase leading-[0.9] tracking-[-0.05em] text-foreground sm:text-5xl lg:text-7xl">
+                      <h2 className="font-[family:var(--font-display)] text-[2.5rem] uppercase leading-[0.9] tracking-[-0.05em] text-foreground sm:text-5xl lg:text-7xl">
                         {project.title.split(" ")[0]}
-                        <span className="block pl-8 text-accent sm:pl-14">
+                        <span className="block pl-5 text-accent sm:pl-14">
                           {project.title.split(" ").slice(1).join(" ")}
                         </span>
                       </h2>
@@ -82,8 +82,8 @@ export function FeaturedProjects({ projects }: FeaturedProjectsProps) {
                       className="max-w-xl"
                     />
 
-                    <div className="flex flex-wrap items-center gap-4">
-                      <LinkButton href={`/work/${project.slug}`}>
+                    <div className="grid gap-3 sm:flex sm:flex-wrap sm:items-center sm:gap-4">
+                      <LinkButton href={`/work/${project.slug}`} className="w-full sm:w-auto">
                         Open Project
                       </LinkButton>
                       <span className="text-[0.65rem] uppercase tracking-meta text-muted">
@@ -100,7 +100,7 @@ export function FeaturedProjects({ projects }: FeaturedProjectsProps) {
                     index % 2 === 0 ? "order-1 lg:order-2" : "order-1"
                   )}
                 >
-                  <div className="film-frame grain relative aspect-[4/5] overflow-hidden bg-panel-dark">
+                  <div className="film-frame grain relative aspect-[4/3] overflow-hidden bg-panel-dark sm:aspect-[4/5]">
                     <Image
                       src={project.coverImage}
                       alt={project.title}
@@ -109,7 +109,7 @@ export function FeaturedProjects({ projects }: FeaturedProjectsProps) {
                       sizes="(min-width: 1024px) 52vw, 100vw"
                       className="object-cover"
                     />
-                    <div className="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/65 via-black/5 to-transparent p-6 text-white">
+                    <div className="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/65 via-black/5 to-transparent p-4 text-white sm:p-6">
                       <div className="flex items-center justify-between gap-4 text-[0.65rem] uppercase tracking-meta text-white/75">
                         <span>Selected campaign</span>
                         <span>{project.location}</span>

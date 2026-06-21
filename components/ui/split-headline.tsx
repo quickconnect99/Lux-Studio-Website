@@ -45,10 +45,10 @@ export function SplitHeadline({
         </p>
       ) : null}
 
-      <div className="font-[family:var(--font-display)] space-y-1 text-[clamp(3rem,8vw,7rem)] uppercase leading-[0.88] tracking-[-0.04em]">
+      <div className="font-[family:var(--font-display)] space-y-1 break-words text-[clamp(2.75rem,13vw,7rem)] uppercase leading-[0.88] tracking-[-0.04em]">
         <div>{lead}</div>
         {/* split-trail-underline draws the animated accent line (see globals.css) */}
-        <div className="pl-6 text-accent sm:pl-12">
+        <div className="pl-4 text-accent sm:pl-12">
           <span className="split-trail-underline">{trail}</span>
         </div>
       </div>
@@ -56,7 +56,7 @@ export function SplitHeadline({
       {copy ? (
         <p
           className={cn(
-            "max-w-2xl text-base leading-8 text-muted sm:text-lg",
+            "max-w-2xl text-[0.95rem] leading-7 text-muted sm:text-lg sm:leading-8",
             align === "center" && "mx-auto"
           )}
         >

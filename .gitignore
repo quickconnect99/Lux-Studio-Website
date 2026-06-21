@@ -19,6 +19,8 @@ pnpm-debug.log*
 # Build output
 dist
 coverage
+.eslintcache
+.test-dist
 
 # TypeScript
 *.tsbuildinfo
@@ -35,6 +37,10 @@ Thumbs.db
 # Vercel
 .vercel
 _Test Material/
+
+# Private source material must stay outside Git
+car pictures/*.pdf
+**/Rechnung*.pdf
 
 .vercel
 supabase/.temp/

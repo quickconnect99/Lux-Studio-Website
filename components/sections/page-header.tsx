@@ -9,8 +9,8 @@ type PageHeaderProps = Required<Pick<SplitHeadlineProps, "eyebrow" | "lead" | "t
 
 export function PageHeader({ eyebrow, lead, trail, copy }: PageHeaderProps) {
   return (
-    <section className="section-shell pb-10 pt-14 sm:pt-20">
-      <div className="panel-2xl px-6 py-10 sm:px-10 sm:py-14">
+    <section className="section-shell pb-7 pt-7 sm:pb-10 sm:pt-20">
+      <div className="panel-2xl px-5 py-8 sm:px-10 sm:py-14">
         <Reveal variant="bold">
           <SplitHeadline
             eyebrow={eyebrow}

@@ -21,6 +21,16 @@ Fuer die zusaetzliche Admin-Schutzschicht werden ausserdem empfohlen:
 4. Region des Projekts fuer Impressum / Datenschutz
 5. Einen Admin-User in Auth:
    Dazu brauchst du nur E-Mail + Passwort, damit du dich unter `/admin` anmelden kannst.
+6. Die UUID dieses Users in `public.admin_users` eintragen:
+
+```sql
+insert into public.admin_users (user_id)
+values ('<auth-user-uuid>')
+on conflict (user_id) do nothing;
+```
+
+Ein Auth-User ohne Eintrag in `public.admin_users` kann sich authentifizieren,
+aber keine Projekte, Anfragen, Site Settings oder Storage-Dateien verwalten.
 
 ## Was du in Supabase anlegen musst
 
@@ -28,6 +38,7 @@ Fuer die zusaetzliche Admin-Schutzschicht werden ausserdem empfohlen:
 2. Public Storage Bucket `projects` anlegen
 3. Im Bucket die Dateien in diese Pfade hochladen lassen:
    `covers/`, `gallery/`, `videos/`
+4. Jeden CMS-Admin explizit in `public.admin_users` freischalten
 
 ## Wichtiger Unterschied zum alten Setup
 

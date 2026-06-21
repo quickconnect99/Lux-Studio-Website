@@ -5,6 +5,7 @@
 - SQL aus `supabase/schema.sql` im SQL Editor ausfuehren
 - pruefen, dass der Bucket `projects` existiert und public ist
 - in Auth mindestens einen Admin-User anlegen
+- UUID des Admin-Users in `public.admin_users` eintragen
 - `site_settings` mit echten Brand-/Kontaktdaten fuellen
 
 ## 2. Vercel

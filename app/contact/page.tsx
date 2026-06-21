@@ -2,41 +2,44 @@ import type { Metadata } from "next";
 import { InquiryForm } from "@/components/sections/inquiry-form";
 import { PageHeader } from "@/components/sections/page-header";
 import { ContactInfo } from "@/components/ui/contact-info";
-import { getSiteSettings } from "@/lib/supabase";
+import { adaptSiteSettingsToPublishedProjects } from "@/lib/public-portfolio";
+import { getPublishedProjects, getSiteSettings } from "@/lib/supabase";
 
 export const metadata: Metadata = {
   title: "Contact",
   description:
-    "Minimal contact form and direct inquiry details for automotive and hospitality campaign work."
+    "Minimal contact form and direct inquiry details for premium campaign work."
 };
 
 export default async function ContactPage() {
-  const settings = await getSiteSettings();
+  const [rawSettings, projects] = await Promise.all([
+    getSiteSettings(),
+    getPublishedProjects()
+  ]);
+  const settings = adaptSiteSettingsToPublishedProjects(rawSettings, projects);
 
   return (
     <>
       <PageHeader
-        eyebrow="Start a project"
-        lead="Let's"
-        trail="Talk Motion"
-        copy="A concise inquiry flow for campaign films, stills, launches, properties, and premium brand content."
+        eyebrow={settings.copy.contact.eyebrow}
+        lead={settings.copy.contact.headlineLead}
+        trail={settings.copy.contact.headlineTrail}
+        copy={settings.copy.contact.copy}
       />
 
       <section className="section-shell section-space-tight pt-0">
         <div className="grid gap-6 lg:grid-cols-[0.78fr_1.22fr]">
           {/* Direct contact panel */}
-          <div className="panel-2xl p-8">
+          <div className="panel-2xl p-5 sm:p-8">
             <p className="text-xs uppercase tracking-eyebrow text-muted">
-              Direct contact
+              {settings.copy.contact.directLabel}
             </p>
 
             <div className="mt-6">
               <ContactInfo contact={settings.contact} showIcons />
             </div>
             <p className="mt-5 text-sm leading-7 text-muted">
-              Typical inquiries: launch films, campaign visuals, property
-              content, social cutdowns, guest-experience edits, and premium
-              event coverage.
+              {settings.copy.contact.directCopy}
             </p>
 
             <div className="mt-8 flex flex-wrap gap-3">
@@ -54,7 +57,10 @@ export default async function ContactPage() {
             </div>
           </div>
 
-          <InquiryForm />
+          <InquiryForm
+            label={settings.copy.contact.formLabel}
+            submitLabel={settings.copy.contact.submitLabel}
+          />
         </div>
       </section>
     </>

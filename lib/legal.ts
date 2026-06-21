@@ -3,29 +3,29 @@ import type { SiteSettings } from "@/lib/types";
 export const LEGAL_PLACEHOLDER = "Bitte ergaenzen";
 
 export const legalProfile = {
-  legalForm: LEGAL_PLACEHOLDER,
-  representative: LEGAL_PLACEHOLDER,
-  streetAddress: LEGAL_PLACEHOLDER,
-  postalCode: LEGAL_PLACEHOLDER,
-  city: LEGAL_PLACEHOLDER,
-  country: LEGAL_PLACEHOLDER,
+  legalForm: "GmbH",
+  representative: "Reuteler Benjamin, Nico Hagelberger",
+  streetAddress: "Speckibünt 2",
+  postalCode: "9494",
+  city: "Schaan",
+  country: "Liechtenstein",
   companyPurpose:
-    "Foto-, Film- und Social-Media-Produktionen für Marken, Automotive- und Hospitality-Projekte.",
+    "Foto-, Film- und Social-Media-Produktionen für Marken-, Automotive- und Kampagnenprojekte.",
   registerCourt: "",
   registerNumber: "",
   vatId: "",
   supervisoryAuthority: "",
   chamberOrProfessionalAssociation: "",
   professionalTitle: "",
-  mediaOwner: LEGAL_PLACEHOLDER,
-  editorialResponsibility: LEGAL_PLACEHOLDER,
+  mediaOwner: "Lux Studio GmbH",
+  editorialResponsibility: "Reuteler Benjamin, Nico Hagelberger",
   editorialLine:
     "Vorstellung des Unternehmens, seiner Dienstleistungen sowie veröffentlichter Referenz- und Projektarbeiten.",
   hostingProviderName: "Vercel Inc.",
   hostingProviderLocation: "EU (Frankfurt, Deutschland)",
   databaseProviderName: "Supabase",
   databaseProviderLocation: "EU (Irland)",
-  privacyContactEmail: ""
+  privacyContactEmail: "nico.hagelberger@lux-studios.net"
 } as const;
 
 type LegalFieldDescriptor = {

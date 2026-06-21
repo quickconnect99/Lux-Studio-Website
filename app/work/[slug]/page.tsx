@@ -171,15 +171,15 @@ export default async function ProjectPage({
           dangerouslySetInnerHTML={{ __html: JSON.stringify(videoSchema) }}
         />
       )}
-      <section className="section-shell pb-10 pt-14 sm:pt-20">
+      <section className="section-shell pb-8 pt-7 sm:pb-10 sm:pt-20">
         <div className="grid gap-8 lg:grid-cols-[0.85fr_1.15fr]">
           <Reveal className="space-y-6">
             <p className="eyebrow">
               {project.business} / {project.category}
             </p>
-            <h1 className="font-[family:var(--font-display)] text-5xl uppercase leading-[0.9] tracking-[-0.05em] text-foreground sm:text-7xl">
+            <h1 className="font-[family:var(--font-display)] break-words text-[2.8rem] uppercase leading-[0.9] tracking-[-0.05em] text-foreground sm:text-7xl">
               {project.title.split(" ")[0]}
-              <span className="block pl-8 text-accent sm:pl-14">
+              <span className="block pl-5 text-accent sm:pl-14">
                 {project.title.split(" ").slice(1).join(" ")}
               </span>
             </h1>
@@ -213,7 +213,7 @@ export default async function ProjectPage({
               {project.fullDescription}
             </p>
           </div>
-          <div className="glass-panel rounded-[1.75rem] p-6">
+          <div className="glass-panel rounded-[1.35rem] p-5 sm:rounded-[1.75rem] sm:p-6">
             <p className="text-xs uppercase tracking-eyebrow text-muted">
               Behind the scenes
             </p>
@@ -237,8 +237,8 @@ export default async function ProjectPage({
         <div className="space-y-6">
           {heroStill ? (
             <Reveal>
-              <div className="film-frame relative overflow-hidden rounded-[2rem]">
-                <div className="aspect-[16/9]" />
+              <div className="film-frame relative overflow-hidden rounded-[1.35rem] sm:rounded-[2rem]">
+                <div className="aspect-[4/3] sm:aspect-[16/9]" />
                 <Image
                   src={heroStill}
                   alt={`${project.title} still 1`}
@@ -261,8 +261,8 @@ export default async function ProjectPage({
 
                     if (!caption) {
                       return (
-                        <div className="film-frame relative overflow-hidden rounded-[2rem]">
-                          <div className="aspect-[16/9]" />
+                        <div className="film-frame relative overflow-hidden rounded-[1.35rem] sm:rounded-[2rem]">
+                          <div className="aspect-[4/3] sm:aspect-[16/9]" />
                           <Image
                             src={item.image}
                             alt={`${project.title} still ${index + 2}`}
@@ -275,10 +275,10 @@ export default async function ProjectPage({
                     }
 
                     return (
-                      <div className="overflow-hidden rounded-[2rem] border border-line bg-panel-secondary p-4 shadow-card sm:p-5">
+                      <div className="overflow-hidden rounded-[1.5rem] border border-line bg-panel-secondary p-3 shadow-card sm:rounded-[2rem] sm:p-5">
                         <div className="grid gap-5 lg:grid-cols-[minmax(0,0.68fr)_minmax(220px,0.32fr)] lg:items-start">
-                          <div className="film-frame relative overflow-hidden rounded-[1.75rem]">
-                            <div className="aspect-[4/5]" />
+                          <div className="film-frame relative overflow-hidden rounded-[1.25rem] sm:rounded-[1.75rem]">
+                            <div className="aspect-[4/3] sm:aspect-[4/5]" />
                             <Image
                               src={item.image}
                               alt={`${project.title} still ${index + 2}`}
@@ -288,7 +288,7 @@ export default async function ProjectPage({
                             />
                           </div>
 
-                          <div className="flex h-full min-h-[220px] flex-col justify-start gap-6 rounded-[1.5rem] border border-line bg-panel px-5 py-6 sm:px-6">
+                          <div className="flex h-full flex-col justify-start gap-4 rounded-[1.25rem] border border-line bg-panel px-4 py-5 sm:min-h-[220px] sm:gap-6 sm:rounded-[1.5rem] sm:px-6 sm:py-6">
                             <p className="text-accent/90 font-mono text-[0.72rem] uppercase tracking-[0.28em]">
                               Still 0{index + 2}
                             </p>
@@ -308,7 +308,7 @@ export default async function ProjectPage({
       </section>
 
       <section className="section-shell section-space-tight pt-0">
-        <div className="dark-panel rounded-[2.5rem] p-8 text-white sm:p-12">
+        <div className="dark-panel rounded-[1.5rem] p-5 text-white sm:rounded-[2.5rem] sm:p-12">
           <div className="grid gap-8 lg:grid-cols-[1fr_auto] lg:items-end">
             <div className="space-y-4">
               <p className="eyebrow text-white/70 before:bg-accent">
@@ -322,19 +322,20 @@ export default async function ProjectPage({
               </p>
             </div>
 
-            <div className="flex flex-wrap gap-4">
+            <div className="grid gap-3 sm:flex sm:flex-wrap sm:gap-4">
               <LinkButton
                 href={`${`/work/${nextProject.slug}`}${
                   activeBusiness
                     ? `?business=${projectBusinessToParam(activeBusiness)}`
                     : ""
                 }`}
+                className="w-full sm:w-auto"
               >
                 View Next
               </LinkButton>
               <Link
                 href={backHref}
-                className="inline-flex items-center text-xs uppercase tracking-eyebrow text-white/80 hover:text-accent"
+                className="inline-flex min-h-12 items-center justify-center rounded-full border border-white/15 px-5 text-xs uppercase tracking-eyebrow text-white/80 hover:text-accent sm:min-h-0 sm:justify-start sm:border-0 sm:px-0"
               >
                 Back to Work
               </Link>

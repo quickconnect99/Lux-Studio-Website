@@ -9,12 +9,14 @@ import type { SiteSettings } from "@/lib/types";
 
 type HomeHeroProps = {
   hero: SiteSettings["hero"];
+  copy: SiteSettings["copy"]["home"];
   /** OG/poster image — should be a real raster image (JPG/WebP), not SVG */
   posterSrc?: string;
 };
 
 export function HomeHero({
   hero,
+  copy,
   posterSrc = "/images/demo-car-01.jpg"
 }: HomeHeroProps) {
   const shouldReduceMotion = useReducedMotion();
@@ -63,15 +65,15 @@ export function HomeHero({
   }
 
   return (
-    <section className="section-shell relative overflow-hidden pb-10 pt-12 sm:pb-14 sm:pt-16">
+    <section className="section-shell relative overflow-hidden pb-8 pt-7 sm:pb-14 sm:pt-16">
       <div className="absolute inset-x-0 top-8 -z-10 h-[500px] rounded-[3rem] bg-hero-radial blur-3xl" />
-      <div className="grid gap-10 lg:items-center xl:grid-cols-[0.95fr_1.05fr]">
+      <div className="grid gap-7 sm:gap-10 lg:items-center xl:grid-cols-[0.95fr_1.05fr]">
         <motion.div
           initial={{ opacity: 0, y: 28 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
           onAnimationComplete={() => setHeroRevealed(true)}
-          className={heroRevealed ? "group-reveal space-y-8" : "space-y-8"}
+          className={heroRevealed ? "group-reveal space-y-6 sm:space-y-8" : "space-y-6 sm:space-y-8"}
         >
           <p className="eyebrow">{hero.eyebrow}</p>
           <SplitHeadline
@@ -79,14 +81,14 @@ export function HomeHero({
             trail={hero.headlineTrail}
             copy={hero.copy}
           />
-          <div className="flex flex-wrap gap-4">
-            <LinkButton href="/work">View Portfolio</LinkButton>
-            <LinkButton href="/contact" variant="secondary">
-              Start An Inquiry
+          <div className="grid gap-3 sm:flex sm:flex-wrap sm:gap-4">
+            <LinkButton href="/work" className="w-full sm:w-auto">{copy.heroPrimaryCta}</LinkButton>
+            <LinkButton href="/contact" variant="secondary" className="w-full sm:w-auto">
+              {copy.heroSecondaryCta}
             </LinkButton>
           </div>
 
-          <div className="grid gap-5 border-t border-line pt-7 sm:grid-cols-3">
+          <div className="grid gap-3 border-t border-line pt-5 sm:grid-cols-3 sm:gap-5 sm:pt-7">
             {[
               [
                 "Launch-ready films",
@@ -101,11 +103,11 @@ export function HomeHero({
                 "Motion crafted for products, places, and premium arrivals."
               ]
             ].map(([title, copy]) => (
-              <div key={title} className="space-y-2">
-                <p className="text-sm font-medium uppercase tracking-[0.16em] text-foreground">
+              <div key={title} className="rounded-2xl border border-line bg-panel-secondary p-4 sm:space-y-2 sm:border-0 sm:bg-transparent sm:p-0">
+                <p className="text-xs font-medium uppercase tracking-[0.16em] text-foreground sm:text-sm">
                   {title}
                 </p>
-                <p className="text-sm leading-7 text-muted">{copy}</p>
+                <p className="mt-2 text-sm leading-6 text-muted sm:mt-0 sm:leading-7">{copy}</p>
               </div>
             ))}
           </div>
@@ -115,7 +117,7 @@ export function HomeHero({
           initial={{ opacity: 0, scale: 0.96, y: 20 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           transition={{ duration: 0.9, delay: 0.1, ease: [0.22, 1, 0.36, 1] }}
-          className="film-frame grain relative min-h-[300px] border border-white/60 bg-panel-dark text-white shadow-halo sm:min-h-[420px] lg:min-h-[560px]"
+          className="film-frame grain relative min-h-[360px] border border-white/60 bg-panel-dark text-white shadow-halo sm:min-h-[420px] lg:min-h-[560px]"
         >
           <div
             className="absolute inset-0"
@@ -142,7 +144,7 @@ export function HomeHero({
             <source src={hero.videoUrl} type="video/mp4" />
           </video>
 
-          <div className="relative z-10 flex h-full flex-col justify-between p-6 sm:p-8">
+          <div className="relative z-10 flex h-full flex-col justify-between p-5 sm:p-8">
             <div className="flex justify-end">
               <button
                 type="button"
@@ -163,9 +165,11 @@ export function HomeHero({
             </div>
 
             <div className="max-w-xl space-y-5">
-              <h2 className="font-[family:var(--font-display)] text-4xl uppercase leading-none sm:text-6xl">
-                Built
-                <span className="block pl-10 text-accent">To Be Seen</span>
+              <h2 className="font-[family:var(--font-display)] text-[2.65rem] uppercase leading-[0.92] sm:text-6xl">
+                {copy.videoHeadlineLead}
+                <span className="block pl-5 text-accent sm:pl-10">
+                  {copy.videoHeadlineTrail}
+                </span>
               </h2>
             </div>
           </div>

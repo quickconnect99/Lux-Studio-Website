@@ -8,7 +8,13 @@ import { FieldError } from "@/components/ui/field-error";
 import { cn } from "@/lib/utils";
 import type { InquiryServiceType } from "@/lib/types";
 
-export function InquiryForm() {
+export function InquiryForm({
+  label = "Project inquiry",
+  submitLabel = "Send Inquiry"
+}: {
+  label?: string;
+  submitLabel?: string;
+}) {
   const {
     formState,
     errors,
@@ -29,14 +35,9 @@ export function InquiryForm() {
     <form
       onSubmit={handleSubmit}
       noValidate
-      className={cn("panel-2xl p-6 sm:p-8", shaking && "shake")}
+      className={cn("panel-2xl p-5 sm:p-8", shaking && "shake")}
     >
-      <input
-        type="hidden"
-        name="startedAt"
-        value={startedAt}
-        readOnly
-      />
+      <input type="hidden" name="startedAt" value={startedAt} readOnly />
       <label className="hidden" aria-hidden="true">
         Website
         <input
@@ -47,6 +48,10 @@ export function InquiryForm() {
           onChange={(event) => setWebsite(event.target.value)}
         />
       </label>
+
+      <p className="mb-5 text-xs uppercase tracking-eyebrow text-muted">
+        {label}
+      </p>
 
       <div className="grid gap-4 sm:grid-cols-2">
         <label className="space-y-2 text-sm text-muted">
@@ -155,7 +160,7 @@ export function InquiryForm() {
           )}
           placeholder="Tell us about the project, deliverables, timing, location, and campaign context."
         />
-        <div className="flex items-start justify-between gap-4">
+        <div className="grid gap-2 sm:flex sm:items-start sm:justify-between sm:gap-4">
           <p id="inquiry-brief-hint" className="text-xs leading-6 text-muted">
             Include the subject, deliverables, timing, location, and campaign
             context.
@@ -178,11 +183,11 @@ export function InquiryForm() {
         )}
       </label>
 
-      <div className="mt-6 flex flex-wrap items-center justify-between gap-4">
+      <div className="mt-6">
         <button
           type="submit"
           disabled={status === "submitting"}
-          className="action-button"
+          className="action-button w-full sm:w-auto"
         >
           {status === "submitting" ? (
             <LoaderCircle className="h-4 w-4 animate-spin" />
@@ -191,7 +196,7 @@ export function InquiryForm() {
           ) : (
             <CheckCircle2 className="h-4 w-4" />
           )}
-          {status === "submitting" ? "Sending..." : "Send Inquiry"}
+          {status === "submitting" ? "Sending..." : submitLabel}
         </button>
       </div>
 
