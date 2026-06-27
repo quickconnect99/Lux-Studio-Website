@@ -9,8 +9,7 @@ import { getPublishedProjects, getSiteSettings } from "@/lib/supabase";
 
 export const metadata: Metadata = {
   title: "About",
-  description:
-    "A concise founder and studio story for a premium campaign studio."
+  description: "Founder note and studio approach behind Lux Studio."
 };
 
 export default async function AboutPage() {

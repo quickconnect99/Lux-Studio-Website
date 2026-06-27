@@ -36,7 +36,7 @@ export const defaultSiteSettings: SiteSettings = {
     name: BRAND_NAME,
     mark: BRAND_MARK,
     strapline:
-      "Cinematic campaign visuals for automotive and hospitality brands."
+      "Films and stills for automotive launches, places, and crafted brand moments."
   },
   social: [
     { label: "Instagram", href: "https://instagram.com" },
@@ -49,23 +49,23 @@ export const defaultSiteSettings: SiteSettings = {
     city: "Zurich / Milan / Monaco"
   },
   seo: {
-    title: `${BRAND_NAME} | Premium Automotive & Hospitality Campaigns`,
+    title: `${BRAND_NAME} | Automotive Films & Campaign Stills`,
     description:
-      "Premium campaign studio for automotive and hospitality films, stills, launches, and editorial brand storytelling.",
+      "Lux Studio creates films, stills, and campaign assets for automotive launches, hospitality spaces, and brand moments.",
     ogImage: "/images/demo-car-01.jpg"
   },
   hero: {
-    eyebrow: "Editorial motion for brands and places",
+    eyebrow: "Films and stills for brands in motion",
     headlineLead: "Lux",
     headlineTrail: "Studio",
-    copy: "A boutique studio creating cinematic campaign films, launch content, and premium still systems for automotive brands, hotels, and hospitality spaces that want atmosphere to feel designed.",
+    copy: "We create controlled films, launch assets, and still-image systems for cars, spaces, and brand moments that need to feel deliberate from the first frame.",
     videoUrl: "/media/hero-showreel.mp4"
   },
   about: {
     founderNote:
-      "The studio was built around a simple idea: premium products and premium spaces deserve the same visual discipline as fashion, design, and architecture campaigns. The approach favors control, pacing, and atmosphere over noise.",
+      "The studio was built around a simple idea: strong subjects deserve careful pacing, clean framing, and images that hold attention without shouting for it.",
     positioning:
-      "The work sits between production partner and visual editor. That means developing a coherent language across hero film, stills, social fragments, and website surfaces instead of treating each deliverable as a separate style.",
+      "The work sits between production partner and visual editor. Each project is shaped as one visual system across hero film, stills, social fragments, and website surfaces.",
     values: [
       {
         title: "Precision",
@@ -73,11 +73,11 @@ export const defaultSiteSettings: SiteSettings = {
       },
       {
         title: "Atmosphere",
-        copy: "Light, sound, and spacing build premium emotion before copy does."
+        copy: "Light, sound, and spacing set the tone before a headline does."
       },
       {
         title: "Clarity",
-        copy: "The subject stays legible even when the storytelling becomes cinematic."
+        copy: "The subject stays legible even when the story becomes more atmospheric."
       }
     ]
   },
@@ -86,21 +86,21 @@ export const defaultSiteSettings: SiteSettings = {
       number: "01",
       title: "Commercial Shoots",
       description:
-        "Full-scale campaign films and stills built around launch windows, opening moments, media plans, and rollout-ready assets.",
+        "Campaign films and stills planned around launch windows, opening moments, media plans, and rollout-ready assets.",
       deliverables: ["Hero film", "Edit suite", "Stills", "Cutdowns"]
     },
     {
       number: "02",
       title: "Social Media Content",
       description:
-        "Vertical edits, reels, teasers, and editorial fragments designed to stay premium inside fast channels.",
+        "Vertical edits, reels, teasers, and short fragments built to stay composed inside fast channels.",
       deliverables: ["Vertical cuts", "Story edits", "Teasers", "Motion crops"]
     },
     {
       number: "03",
       title: "Motion Direction",
       description:
-        "Controlled camera movement for cars, spaces, arrivals, and atmosphere-led sequences that keep motion elegant and readable.",
+        "Controlled camera movement for cars, spaces, arrivals, and detail-led sequences that keep motion readable.",
       deliverables: [
         "Shot design",
         "Tracking footage",
@@ -112,14 +112,14 @@ export const defaultSiteSettings: SiteSettings = {
       number: "04",
       title: "Event Coverage",
       description:
-        "Launch evenings, openings, tastings, private unveilings, and guest moments captured with editorial pacing instead of recap energy.",
+        "Launch evenings, openings, tastings, private unveilings, and guest moments captured with calm pacing.",
       deliverables: ["Highlights", "Recaps", "Still selects", "Same-day edits"]
     },
     {
       number: "05",
       title: "Brand Campaigns",
       description:
-        "Integrated visual systems spanning key visuals, social rollout, landing page content, and premium motion assets.",
+        "Integrated visual systems spanning key visuals, social rollout, landing page content, and motion assets.",
       deliverables: [
         "Campaign system",
         "Look development",
@@ -152,14 +152,14 @@ export const defaultSiteSettings: SiteSettings = {
       ctaHeadlineLead: "Ready",
       ctaHeadlineTrail: "To Launch",
       ctaCopy:
-        "Cinematic campaign visuals for automotive and hospitality brands.",
+        "Films and stills for launches, spaces, and brand moments.",
       ctaButton: "Browse Work"
     },
     services: {
       eyebrow: "What we create",
       headlineLead: "Visual",
       headlineTrail: "Services",
-      copy: "Cinematic campaign visuals for automotive and hospitality brands."
+      copy: "Films, stills, and rollout assets for campaigns that need a clear visual line."
     },
     about: {
       eyebrow: "Studio profile",
@@ -172,16 +172,16 @@ export const defaultSiteSettings: SiteSettings = {
       eyebrow: "Start a project",
       headlineLead: "Let's",
       headlineTrail: "Talk Motion",
-      copy: "A concise inquiry flow for campaign films, stills, launches, properties, and premium brand content.",
+      copy: "Tell us what you are launching, where it lives, and what the finished assets need to do.",
       directLabel: "Direct contact",
       directCopy:
-        "Typical inquiries: launch films, campaign visuals, property content, social cutdowns, guest-experience edits, and premium event coverage.",
+        "Typical inquiries: launch films, campaign visuals, property content, social cutdowns, guest-experience edits, and event coverage.",
       formLabel: "Project inquiry",
       submitLabel: "Send Inquiry"
     },
     footer: {
       headline:
-        "Built for automotive brands, hospitality spaces, and private clients who want to feel seen before they are explained.",
+        "Built for cars, spaces, and private projects that need a clear visual point of view.",
       navigationLabel: "Navigation",
       connectLabel: "Connect",
       mediaNotice: "Externe Medien laden erst nach Klick"

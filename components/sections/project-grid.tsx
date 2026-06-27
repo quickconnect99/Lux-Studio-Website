@@ -163,16 +163,15 @@ export function ProjectGrid({
       {filteredProjects.length === 0 ? (
         <div className="rounded-[2rem] border border-line bg-panel-secondary p-8 text-center shadow-card">
           <p className="text-xs uppercase tracking-eyebrow text-muted">
-            No projects in this filter
+            No selected work here yet
           </p>
           <h2 className="font-[family:var(--font-display)] mt-4 text-4xl uppercase leading-none text-foreground">
-            Nothing
-            <span className="block pl-8 text-accent sm:pl-12">Matched Yet</span>
+            More
+            <span className="block pl-8 text-accent sm:pl-12">Coming Soon</span>
           </h2>
           <p className="mx-auto mt-4 max-w-xl text-sm leading-7 text-muted sm:text-base">
-            This business and category combination does not have published work
-            yet. Switch filters or clear the business selection to browse the
-            full portfolio.
+            This selection is still being curated. Explore another category or
+            return to the full portfolio.
           </p>
           {(activeBusiness !== ALL || activeCategory !== ALL) && (
             <div className="mt-6 flex justify-center">
@@ -184,7 +183,7 @@ export function ProjectGrid({
                 }}
                 className="min-h-11 rounded-full border border-line bg-panel px-5 py-3 text-xs font-medium uppercase tracking-ui text-foreground transition-colors duration-150 hover:border-accent hover:bg-panel-secondary"
               >
-                Show All Projects
+                View Full Portfolio
               </button>
             </div>
           )}

@@ -6,8 +6,7 @@ import { getPublishedProjects } from "@/lib/supabase";
 
 export const metadata: Metadata = {
   title: "Work",
-  description:
-    "Curated campaign films, stills, and premium motion projects.",
+  description: "Selected films, stills, and campaign work by Lux Studio.",
   alternates: {
     canonical: "/work"
   }
@@ -29,8 +28,8 @@ export default async function WorkPage({ searchParams }: WorkPageProps) {
       ? requestedBusiness
       : null;
   const copy = initialBusiness
-    ? `Showing ${initialBusiness.toLowerCase()} work first, with category filters available inside the grid.`
-    : "A visual-first grid with business and category filters, plus enough white space to keep premium media readable.";
+    ? `Selected ${initialBusiness.toLowerCase()} work, shaped for launch moments, brand films, and still-led stories.`
+    : "A curated view of films, stills, and campaign fragments built around cars, spaces, and launch moments.";
 
   return (
     <>

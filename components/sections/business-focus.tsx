@@ -34,8 +34,8 @@ export function BusinessFocus({ cards }: BusinessFocusProps) {
           </h2>
           <p className="max-w-md text-sm leading-7 text-muted sm:text-base">
             {hasMultipleSectors
-              ? "Move directly into the right portfolio sector with the work overview already filtered."
-              : "Move directly into the automotive portfolio and explore the latest published campaigns."}
+              ? "Two focus areas, one visual language: composed films, stills, and launch assets built around place, pace, and intent."
+              : "Automotive films and stills shaped around launch moments, material detail, and measured motion."}
           </p>
         </Reveal>
 
@@ -84,7 +84,7 @@ export function BusinessFocus({ cards }: BusinessFocusProps) {
                     {card.eyebrow}
                   </p>
                   <span className="inline-flex items-center gap-1.5 text-xs font-medium uppercase tracking-ui text-foreground transition-colors duration-150 group-hover:text-accent">
-                    Open {card.business} Work
+                    View {card.business} Work
                     <ArrowUpRight className="h-3.5 w-3.5 transition-transform duration-300 group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
                   </span>
                 </div>

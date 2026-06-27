@@ -7,8 +7,7 @@ import { getPublishedProjects, getSiteSettings } from "@/lib/supabase";
 
 export const metadata: Metadata = {
   title: "Contact",
-  description:
-    "Minimal contact form and direct inquiry details for premium campaign work."
+  description: "Contact Lux Studio for films, stills, launches, and campaign work."
 };
 
 export default async function ContactPage() {

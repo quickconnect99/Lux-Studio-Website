@@ -43,7 +43,7 @@ export default async function HomePage() {
       eyebrow: carProject?.title ?? "Launch films, stills, and motion systems",
       description:
         carProject?.shortDescription ??
-        "Cinematic launch content, rolling motion, and premium still systems for automotive campaigns.",
+        "Launch films, rolling motion, and still-image sets for automotive work.",
       imageSrc: carProject?.coverImage ?? "/images/demo-car-01.jpg",
       imageAlt: carProject?.title ?? "Car project preview",
       href: `/work?business=${projectBusinessToParam("Car")}`

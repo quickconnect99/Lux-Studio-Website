@@ -21,28 +21,28 @@ export const services: Service[] = [
     number: "02",
     title: "Social Media Content",
     description:
-      "Vertical edits, reels, teasers, and editorial fragments designed to stay premium inside fast channels.",
+      "Vertical edits, reels, teasers, and short fragments built to stay composed inside fast channels.",
     deliverables: ["Vertical cuts", "Story edits", "Teasers", "Motion crops"]
   },
   {
     number: "03",
     title: "Motion Direction",
     description:
-      "Controlled camera movement for cars, spaces, arrivals, and atmosphere-led sequences that keep motion elegant and readable.",
+      "Controlled camera movement for cars, spaces, arrivals, and detail-led sequences that keep motion readable.",
     deliverables: ["Shot design", "Tracking footage", "Sound design", "Grades"]
   },
   {
     number: "04",
     title: "Event Coverage",
     description:
-      "Launch evenings, openings, tastings, private unveilings, and guest moments captured with editorial pacing instead of recap energy.",
+      "Launch evenings, openings, tastings, private unveilings, and guest moments captured with calm pacing.",
     deliverables: ["Highlights", "Recaps", "Still selects", "Same-day edits"]
   },
   {
     number: "05",
     title: "Brand Campaigns",
     description:
-      "Integrated visual systems spanning key visuals, social rollout, landing page content, and premium motion assets.",
+      "Integrated visual systems spanning key visuals, social rollout, landing page content, and motion assets.",
     deliverables: [
       "Campaign system",
       "Look development",
@@ -60,7 +60,7 @@ export const projects: Project[] = [
     shortDescription:
       "A nocturnal city film pairing sharp body lines with quiet, deliberate motion.",
     fullDescription:
-      "Shot between tunnel light, wet asphalt, and reflective storefronts, Midnight Aeroline reframed a grand touring coupe as an editorial object. The cut balances restrained pacing with short pulses of acceleration, designed for launch pages, social cutdowns, and cinema-led paid media.",
+      "Shot between tunnel light, wet asphalt, and reflective storefronts, Midnight Aeroline gives a grand touring coupe a quieter city presence. The cut balances restrained pacing with short pulses of acceleration for launch pages, social cutdowns, and paid media.",
     category: "Brand Film",
     carModel: "Chevrolet Camaro RS",
     location: "Zurich",
@@ -100,7 +100,7 @@ export const projects: Project[] = [
       "/images/car-pictures/alpine-vector-03.avif"
     ],
     galleryCaptions: [
-      "Primary BMW M4 still with enough negative space for launch copy, dealer overlays, and premium press crops.",
+      "Primary BMW M4 still with enough negative space for launch copy, dealer overlays, and press crops.",
       "Performance-led support frame that keeps the M4 language sharper and more aggressive for rollout fragments and social crops.",
       "Third supporting still used to broaden the campaign with another M4 angle while holding the colder launch palette together."
     ],
@@ -116,7 +116,7 @@ export const projects: Project[] = [
     title: "Current Form",
     slug: "current-form",
     shortDescription:
-      "A clean electric campaign language built for silent performance and premium social rollout.",
+      "A clean electric campaign language built for silent performance and social rollout.",
     fullDescription:
       "Current Form explored the visual tension between stillness and torque. The deliverables centered on a modular campaign system: a homepage hero loop, portrait-first social edits, and a bank of stills for CRM, outdoor, and launch deck use.",
     category: "Social Content",
@@ -148,7 +148,7 @@ export const projects: Project[] = [
     shortDescription:
       "Rolling footage and stills captured during a private desert preview route.",
     fullDescription:
-      "Desert Circuit focused on warm reflections, road texture, and motion continuity across a private event route. Deliverables included event coverage, same-day social reels, and premium still selects for guest recap material.",
+      "Desert Circuit focused on warm reflections, road texture, and motion continuity across a private event route. Deliverables included event coverage, same-day social reels, and still selects for guest recap material.",
     category: "Event Coverage",
     carModel: "Ferrari Roma Spider",
     location: "Abu Dhabi",
@@ -156,7 +156,7 @@ export const projects: Project[] = [
     coverImage: "/images/car-pictures/desert-circuit-01.jpg",
     galleryImages: ["/images/car-pictures/desert-circuit-01.jpg"],
     galleryCaptions: [
-      "Ferrari Roma Spider still carrying the warmer route atmosphere and clean event-led bodywork detail in a single frame."
+      "Ferrari Roma Spider still carrying the warmer route mood and clean event-led bodywork detail in a single frame."
     ],
     videoUrl: "/media/project-reel.mp4",
     featured: false,
@@ -170,7 +170,7 @@ export const projects: Project[] = [
     title: "Velocity Notes",
     slug: "velocity-notes",
     shortDescription:
-      "A rolling-shot study designed to make road speed feel measured, clean, and readable.",
+      "A rolling-shot study shaped to make road speed feel measured, clean, and readable.",
     fullDescription:
       "Velocity Notes distilled a road-performance story into a set of flexible assets, using camera height, longer lenses, and restrained cut patterns to keep the car grounded. The final system was used across launch decks, showroom screens, and paid media.",
     category: "Rolling Shots",
@@ -180,23 +180,23 @@ export const projects: Project[] = [
     coverImage: "/images/car-pictures/velocity-notes-01.webp",
     galleryImages: ["/images/car-pictures/velocity-notes-01.webp"],
     galleryCaptions: [
-      "Aston Martin Vantage support still focused on stance, road posture, and a cleaner rolling-shot read for premium placements."
+      "Aston Martin Vantage support still focused on stance, road posture, and a cleaner rolling-shot read for campaign placements."
     ],
     videoUrl: "/media/project-reel.mp4",
     featured: false,
     published: true,
     createdAt: "2026-02-03T07:20:00.000Z",
     behindTheScenes:
-      "Shot planning prioritized corner exit lines and repeatable rhythm, so the sequence could support both premium cutdowns and static site storytelling."
+      "Shot planning prioritized corner exit lines and repeatable rhythm, so the sequence could support both short cutdowns and static site storytelling."
   },
   {
     business: "Hospitality",
     title: "Quiet Arrival",
     slug: "quiet-arrival",
     shortDescription:
-      "A hospitality launch story shaped around arrival, material warmth, and calm cinematic pacing.",
+      "A hospitality launch story shaped around arrival, material warmth, and calm pacing.",
     fullDescription:
-      "Quiet Arrival was developed for a high-alpine property relaunch that needed to feel intimate instead of promotional. The campaign balanced interior stills, guest-facing motion loops, and a hero edit designed for booking pages, social rollout, and press previews.",
+      "Quiet Arrival was developed for a high-alpine property relaunch that needed to feel intimate instead of promotional. The campaign balanced interior stills, guest-facing motion loops, and a hero edit for booking pages, social rollout, and press previews.",
     category: "Brand Film",
     carModel: "7132 Hotel Vals",
     location: "Vals",
@@ -218,7 +218,7 @@ export const projects: Project[] = [
     title: "Lakeside Ritual",
     slug: "lakeside-ritual",
     shortDescription:
-      "Editorial content for a boutique hospitality concept built around dining, texture, and evening atmosphere.",
+      "Launch content for a boutique hospitality concept built around dining, texture, and evening mood.",
     fullDescription:
       "Lakeside Ritual translated a new guest experience into a modular launch system: a short brand film, stills for the booking flow, and social edits that held onto the same warm, architectural language across every touchpoint.",
     category: "Launch Campaign",
@@ -228,7 +228,7 @@ export const projects: Project[] = [
     coverImage: "/images/hospitality/lakeside-ritual-cover.svg",
     galleryImages: ["/images/hospitality/lakeside-ritual-frame.svg"],
     galleryCaptions: [
-      "Support still focused on terrace light, table rhythm, and the kind of premium hospitality framing that survives both web and print crops."
+      "Support still focused on terrace light, table rhythm, and hospitality framing that works across web and print crops."
     ],
     videoUrl: "/media/project-reel.mp4",
     featured: false,

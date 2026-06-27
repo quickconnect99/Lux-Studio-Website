@@ -502,7 +502,7 @@ select:focus-visible {
   color: #17120f;
 }
 
-/* GPT Vintage - editorial green noir with terracotta highlights */
+/* Vintage dark theme - green noir with terracotta highlights */
 [data-theme="gpt-vintage"] {
   --background:      #101917;
   --foreground:      #f2e9db;
