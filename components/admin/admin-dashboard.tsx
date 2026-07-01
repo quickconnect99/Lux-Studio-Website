@@ -2,7 +2,10 @@
 
 import { useState } from "react";
 import {
+  AlertTriangle,
+  CheckCircle2,
   FolderOpen,
+  Info,
   Lock,
   LogIn,
   LogOut,
@@ -13,7 +16,7 @@ import {
   UserRound
 } from "lucide-react";
 import { AdminThemeChip } from "@/components/admin/admin-theme-chip";
-import { isSupabaseConfigured } from "@/lib/supabase";
+import { isSupabaseConfigured, SUPABASE_BUCKET } from "@/lib/supabase";
 import { useAdminData } from "@/hooks/use-admin-data";
 import { AdminConfirmModal } from "@/components/admin/admin-confirm-modal";
 import { ProjectSidebar } from "@/components/admin/project-sidebar";
@@ -46,6 +49,8 @@ export function AdminDashboard() {
     updateAuthFormField,
     handleSignIn,
     handleSignOut,
+    statusMessage,
+    saveReport,
     working,
     uploadProgress,
     coverFile,
@@ -88,6 +93,18 @@ export function AdminDashboard() {
   const liveProjectHref =
     formState.id && formState.published ? `/work/${formState.slug}` : null;
   const canEditCms = !isSupabaseConfigured || Boolean(sessionEmail);
+
+  function renderSaveReportIcon(tone: "success" | "warning" | "info") {
+    if (tone === "success") {
+      return <CheckCircle2 className="h-4 w-4 text-success" />;
+    }
+
+    if (tone === "warning") {
+      return <AlertTriangle className="h-4 w-4 text-warning" />;
+    }
+
+    return <Info className="h-4 w-4 text-accent" />;
+  }
 
   function handlePreviewFieldUpdate(
     field: PreviewEditableField,
@@ -334,6 +351,81 @@ export function AdminDashboard() {
               </div>
             </div>
           </div>
+        </div>
+      ) : null}
+
+      {/* CMS status + Supabase access */}
+      {canEditCms ? (
+        <div
+          className={`grid gap-6 ${
+            sessionEmail ? "sm:grid-cols-[1fr_320px]" : "grid-cols-1"
+          }`}
+        >
+          <div className="panel-2xl admin-theme-surface p-6">
+            <p className="text-xs uppercase tracking-eyebrow text-muted">
+              CMS state
+            </p>
+            <div aria-live="polite" className="mt-3">
+              {uploadProgress ? (
+                <p className="text-sm leading-7 text-muted">
+                  Uploading file {uploadProgress.current} of{" "}
+                  {uploadProgress.total}: {uploadProgress.filename}
+                </p>
+              ) : saveReport ? (
+                <div className="space-y-3">
+                  <p className="text-sm font-medium text-foreground">
+                    {saveReport.title}
+                  </p>
+                  <div className="space-y-2">
+                    {saveReport.items.map((item) => (
+                      <div
+                        key={item.id}
+                        className="flex items-start gap-3 rounded-[1rem] border border-line bg-panel-secondary px-3 py-2.5"
+                      >
+                        <span className="mt-0.5 shrink-0">
+                          {renderSaveReportIcon(item.tone)}
+                        </span>
+                        <div className="min-w-0">
+                          <p className="text-sm leading-6 text-foreground">
+                            {item.label}
+                          </p>
+                          {item.detail ? (
+                            <p className="text-xs uppercase tracking-meta text-muted">
+                              {item.detail}
+                            </p>
+                          ) : null}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ) : (
+                <p className="text-sm leading-7 text-muted">
+                  {statusMessage}
+                </p>
+              )}
+            </div>
+          </div>
+
+          {sessionEmail || !isSupabaseConfigured ? (
+            <div className="panel-2xl admin-theme-surface p-6">
+              <p className="text-xs uppercase tracking-eyebrow text-muted">
+                Supabase access
+              </p>
+              {isSupabaseConfigured && sessionEmail ? (
+                <div className="mt-4 space-y-3 text-sm leading-7 text-muted">
+                  <p>Signed in as {sessionEmail}</p>
+                  <p>Uploads target the `{SUPABASE_BUCKET}` storage bucket.</p>
+                </div>
+              ) : (
+                <p className="mt-4 text-sm leading-7 text-muted">
+                  Add `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`,
+                  and `NEXT_PUBLIC_SUPABASE_STORAGE_BUCKET` to enable live CMS
+                  mode.
+                </p>
+              )}
+            </div>
+          ) : null}
         </div>
       ) : null}
 
