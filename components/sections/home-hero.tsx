@@ -88,29 +88,36 @@ export function HomeHero({
             </LinkButton>
           </div>
 
-          <div className="grid gap-3 border-t border-line pt-5 sm:grid-cols-3 sm:gap-5 sm:pt-7">
-            {[
-              [
-                "Launch-ready films",
-                "Hero edits with paid, web, social, and booking cutdowns."
-              ],
-              [
-                "Visual systems",
-                "Stills, grids, and motion assets that feel aligned."
-              ],
-              [
-                "Atmosphere control",
-                "Motion crafted for products, places, and premium arrivals."
-              ]
-            ].map(([title, copy]) => (
-              <div key={title} className="rounded-2xl border border-line bg-panel-secondary p-4 sm:space-y-2 sm:border-0 sm:bg-transparent sm:p-0">
-                <p className="text-xs font-medium uppercase tracking-[0.16em] text-foreground sm:text-sm">
-                  {title}
-                </p>
-                <p className="mt-2 text-sm leading-6 text-muted sm:mt-0 sm:leading-7">{copy}</p>
+          {(() => {
+            const features: [string, string][] = [
+              ["Launch-ready films", "Hero edits with paid, web, social, and booking cutdowns."],
+              ["Visual systems", "Stills, grids, and motion assets that feel aligned."],
+              ["Atmosphere control", "Motion crafted for products, places, and premium arrivals."]
+            ];
+            return (
+              <div className="border-t border-line pt-5 sm:pt-7">
+                {/* Mobile: horizontal scroll, title only */}
+                <div className="no-scrollbar -mx-4 flex gap-2 overflow-x-auto px-4 sm:hidden">
+                  {features.map(([title]) => (
+                    <div key={title} className="shrink-0 rounded-full border border-line bg-panel-secondary px-4 py-2.5">
+                      <p className="whitespace-nowrap text-xs font-medium uppercase tracking-[0.16em] text-foreground">
+                        {title}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+                {/* Desktop: 3-column grid with title + description */}
+                <div className="hidden sm:grid sm:grid-cols-3 sm:gap-5">
+                  {features.map(([title, copy]) => (
+                    <div key={title} className="space-y-2">
+                      <p className="text-sm font-medium uppercase tracking-[0.16em] text-foreground">{title}</p>
+                      <p className="leading-7 text-muted">{copy}</p>
+                    </div>
+                  ))}
+                </div>
               </div>
-            ))}
-          </div>
+            );
+          })()}
         </motion.div>
 
         <motion.div

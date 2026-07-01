@@ -363,7 +363,7 @@ export function ProjectEditor({
         </div>
 
         {/* Category + meta */}
-        <div className="mt-4 grid items-start gap-4 sm:grid-cols-2 lg:grid-cols-5">
+        <div className="mt-4 grid items-start gap-4 sm:grid-cols-2 lg:grid-cols-3">
           <EditorFieldShell
             fieldKey="business"
             activeField={activeField}

@@ -227,15 +227,15 @@ select:focus-visible {
 }
 
 .section-space {
-  @apply py-10 sm:py-16 lg:py-20;
+  @apply py-14 sm:py-16 lg:py-20;
 }
 
 .section-space-medium {
-  @apply py-7 sm:py-12 lg:py-14;
+  @apply py-10 sm:py-12 lg:py-14;
 }
 
 .section-space-tight {
-  @apply py-5 sm:py-8 lg:py-10;
+  @apply py-8 sm:py-8 lg:py-10;
 }
 
 /* Typography utilities */

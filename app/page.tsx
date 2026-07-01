@@ -111,7 +111,7 @@ export default async function HomePage() {
             <p className="max-w-2xl text-base leading-8 text-muted sm:text-lg">
               {publicSettings.brand.strapline}
             </p>
-            <div className="grid gap-4 sm:grid-cols-2">
+            <div className="hidden gap-4 sm:grid sm:grid-cols-2">
               {publicSettings.services.slice(0, 4).map((service) => (
                 <div
                   key={service.number}
@@ -189,10 +189,7 @@ export default async function HomePage() {
                 {publicSettings.copy.home.ctaCopy}
               </p>
             </div>
-            <div className="flex flex-col justify-between gap-6">
-              <p className="rounded-[1.25rem] border border-white/10 bg-white/5 p-4 text-sm leading-7 text-white/70 sm:rounded-[1.75rem] sm:p-6">
-                {publicSettings.copy.home.ctaCopy}
-              </p>
+            <div className="flex flex-col justify-end gap-6">
               <div className="grid gap-3 sm:flex sm:flex-wrap sm:gap-4">
                 <LinkButton href="/work" className="w-full sm:w-auto">
                   {publicSettings.copy.home.ctaButton}

@@ -58,6 +58,14 @@ const DRAFT_PROJECT_KEY = "draft:new-project";
 const DEFAULT_STATUS_MESSAGE =
   "Two starter templates are always available. Editing one and saving creates a new project.";
 
+function serializeSiteSettingsFormState(formState: SiteSettingsFormState) {
+  return JSON.stringify(
+    toSiteSettingsFormState(
+      normalizeSiteSettingsRecord(buildSiteSettingsDatabasePayload(formState))
+    )
+  );
+}
+
 export function useAdminData() {
   const supabase = createBrowserSupabaseClient();
   const templateProjects = projectTemplates;
@@ -86,7 +94,9 @@ export function useAdminData() {
   );
   const [savedSiteSettingsSnapshot, setSavedSiteSettingsSnapshot] =
     useState<string>(
-      JSON.stringify(toSiteSettingsFormState(defaultSiteSettings))
+      serializeSiteSettingsFormState(
+        toSiteSettingsFormState(defaultSiteSettings)
+      )
     );
   const [saveCount, setSaveCount] = useState(0);
   const [slugValidation, setSlugValidation] = useState<SlugValidationState>({
@@ -98,6 +108,7 @@ export function useAdminData() {
   const [confirmDialog, setConfirmDialog] =
     useState<AdminConfirmDialogState | null>(null);
   const slugValidationRequest = useRef(0);
+  const hasAppliedInitialProject = useRef(false);
 
   const {
     values: formState,
@@ -116,7 +127,8 @@ export function useAdminData() {
   } = authForm;
 
   const isSettingsDirty =
-    JSON.stringify(siteSettingsFormState) !== savedSiteSettingsSnapshot;
+    serializeSiteSettingsFormState(siteSettingsFormState) !==
+    savedSiteSettingsSnapshot;
 
   const galleryImageList = parseMultilineInput(formState.galleryImagesText);
   const captionRawLines = formState.galleryCaptionsText.split("\n");
@@ -513,6 +525,10 @@ export function useAdminData() {
       .order("created_at", { ascending: false });
     if (!data || data.length === 0) {
       setProjects([]);
+      if (!hasAppliedInitialProject.current) {
+        hasAppliedInitialProject.current = true;
+        applyProject(defaultTemplate);
+      }
       return;
     }
 
@@ -520,13 +536,22 @@ export function useAdminData() {
       .map((item) => normalizeProjectRecord(item))
       .map(toAdminProjectListItem);
     setProjects(normalized);
-  }, [supabase]);
+
+    if (!hasAppliedInitialProject.current) {
+      hasAppliedInitialProject.current = true;
+      applyProject(
+        normalized.find((project) => project.published) ??
+          normalized[0] ??
+          defaultTemplate
+      );
+    }
+  }, [applyProject, defaultTemplate, supabase]);
 
   const loadSiteSettings = useCallback(async () => {
     if (!supabase) {
       const state = toSiteSettingsFormState(defaultSiteSettings);
       replaceSiteSettingsForm(state);
-      setSavedSiteSettingsSnapshot(JSON.stringify(state));
+      setSavedSiteSettingsSnapshot(serializeSiteSettingsFormState(state));
       return;
     }
     const { data } = await supabase
@@ -537,12 +562,12 @@ export function useAdminData() {
     if (!data) {
       const state = toSiteSettingsFormState(defaultSiteSettings);
       replaceSiteSettingsForm(state);
-      setSavedSiteSettingsSnapshot(JSON.stringify(state));
+      setSavedSiteSettingsSnapshot(serializeSiteSettingsFormState(state));
       return;
     }
     const state = toSiteSettingsFormState(normalizeSiteSettingsRecord(data));
     replaceSiteSettingsForm(state);
-    setSavedSiteSettingsSnapshot(JSON.stringify(state));
+    setSavedSiteSettingsSnapshot(serializeSiteSettingsFormState(state));
   }, [supabase, replaceSiteSettingsForm]);
 
   const authorizeSession = useCallback(
@@ -550,6 +575,7 @@ export function useAdminData() {
       if (!supabase || !session?.user.email) {
         setSessionEmail(null);
         setProjects([]);
+        hasAppliedInitialProject.current = false;
         return false;
       }
 
@@ -559,6 +585,7 @@ export function useAdminData() {
         await supabase.auth.signOut();
         setSessionEmail(null);
         setProjects([]);
+        hasAppliedInitialProject.current = false;
         applyProject(defaultTemplate);
         showStatus(
           "This Supabase account is not authorized for the admin workspace."
@@ -596,6 +623,7 @@ export function useAdminData() {
         void authorizeSession(session);
       } else {
         setProjects([]);
+        hasAppliedInitialProject.current = false;
         void loadSiteSettings();
         applyProject(defaultTemplate);
       }
@@ -911,7 +939,7 @@ export function useAdminData() {
         normalizeSiteSettingsRecord(data)
       );
       replaceSiteSettingsForm(savedState);
-      setSavedSiteSettingsSnapshot(JSON.stringify(savedState));
+      setSavedSiteSettingsSnapshot(serializeSiteSettingsFormState(savedState));
       setStatusMessage("Global site settings saved to Supabase.");
       setSaveReport({
         title: "Site settings saved",
@@ -963,6 +991,7 @@ export function useAdminData() {
     await supabase.auth.signOut();
     setSessionEmail(null);
     setProjects([]);
+    hasAppliedInitialProject.current = false;
     applyProject(defaultTemplate);
     showStatus(
       "Signed out. Templates remain available for new project drafts."
