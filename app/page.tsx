@@ -10,6 +10,15 @@ import { adaptSiteSettingsToPublishedProjects } from "@/lib/public-portfolio";
 import { isPublicAdminEnabled } from "@/lib/site-config";
 import { getPublishedProjects, getSiteSettings } from "@/lib/supabase";
 
+const homepageFrameFallbacks = [
+  "/images/sourced/porsche-911-turbo-s-01.jpg",
+  "/images/sourced/bmw-m4-competition-01.jpg",
+  "/images/sourced/ferrari-roma-spider-01.jpg",
+  "/images/sourced/aston-martin-vantage-01.jpg",
+  "/images/car-pictures/midnight-aeroline-03.jpg",
+  "/images/car-pictures/alpine-vector-01.avif"
+];
+
 export default async function HomePage() {
   const [projects, settings] = await Promise.all([
     getPublishedProjects(),
@@ -24,9 +33,12 @@ export default async function HomePage() {
     .filter((project) => project.featured)
     .slice(0, 5);
   const galleryImages = dedupeImageUrls(
-    publicSettings.selectedFrames.length > 0
-      ? publicSettings.selectedFrames
-      : projects.flatMap((project) => project.galleryImages)
+    [
+      ...homepageFrameFallbacks,
+      ...(publicSettings.selectedFrames.length > 0
+        ? publicSettings.selectedFrames
+        : projects.flatMap((project) => project.galleryImages))
+    ]
   ).slice(0, 8);
   const businessCards = Array.from(
     new Map(projects.map((project) => [project.business, project])).values()
