@@ -76,8 +76,8 @@ export function buildFrameItems({
 
   const images = dedupeImageUrls(
     selectedImages.length > 0
-      ? [...selectedImages, ...fallbackImages, ...galleryImages]
-      : [...fallbackImages, ...galleryImages]
+      ? [...selectedImages, ...galleryImages, ...fallbackImages]
+      : [...galleryImages, ...fallbackImages]
   );
 
   return images.map((image, index) => ({
