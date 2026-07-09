@@ -4,7 +4,7 @@ import { HomeHero } from "@/components/sections/home-hero";
 import { HorizontalStillStrip } from "@/components/sections/horizontal-still-strip";
 import { SelectedFrames } from "@/components/sections/selected-frames";
 import { LinkButton } from "@/components/ui/link-button";
-import { dedupeImageUrls } from "@/lib/project-images";
+import { buildFrameItems } from "@/lib/project-images";
 import { projectBusinessToParam } from "@/lib/project-business";
 import { adaptSiteSettingsToPublishedProjects } from "@/lib/public-portfolio";
 import { isPublicAdminEnabled } from "@/lib/site-config";
@@ -32,14 +32,11 @@ export default async function HomePage() {
   const featuredProjects = projects
     .filter((project) => project.featured)
     .slice(0, 5);
-  const galleryImages = dedupeImageUrls(
-    [
-      ...homepageFrameFallbacks,
-      ...(publicSettings.selectedFrames.length > 0
-        ? publicSettings.selectedFrames
-        : projects.flatMap((project) => project.galleryImages))
-    ]
-  ).slice(0, 8);
+  const galleryFrames = buildFrameItems({
+    selectedFrames: publicSettings.selectedFrames,
+    fallbackImages: homepageFrameFallbacks,
+    galleryImages: projects.flatMap((project) => project.galleryImages)
+  }).slice(0, 8);
   const businessCards = Array.from(
     new Map(projects.map((project) => [project.business, project])).values()
   )
@@ -62,10 +59,10 @@ export default async function HomePage() {
         posterSrc={publicSettings.seo.ogImage}
       />
 
-      <SelectedFrames images={galleryImages.slice(0, 3)} />
+      <SelectedFrames frames={galleryFrames.slice(0, 3)} />
 
       <HorizontalStillStrip
-        images={galleryImages.slice(0, 6)}
+        frames={galleryFrames.slice(0, 6)}
         direction="right"
         collapsible
         eyebrow="Motion reference"

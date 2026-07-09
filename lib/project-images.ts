@@ -13,6 +13,79 @@ export function dedupeImageUrls(images: string[]) {
     });
 }
 
+export type FrameItem = {
+  image: string;
+  href?: string;
+};
+
+const imageFilePattern = /\.(?:avif|gif|jpe?g|png|svg|webp)(?:[?#].*)?$/i;
+
+function isWebUrl(value: string) {
+  return /^https?:\/\//i.test(value);
+}
+
+export function isLikelyImageUrl(value: string) {
+  const source = value.trim();
+
+  return (
+    source.startsWith("/images/") ||
+    imageFilePattern.test(source) ||
+    /^https?:\/\/[^/]+\/storage\/v1\/object\/public\//i.test(source)
+  );
+}
+
+function splitFrameEntry(entry: string) {
+  const parts = entry
+    .split(/\s*(?:\||->)\s*/)
+    .map((part) => part.trim())
+    .filter(Boolean);
+
+  return parts.length > 1 ? parts : [entry.trim()];
+}
+
+export function buildFrameItems({
+  selectedFrames,
+  fallbackImages,
+  galleryImages
+}: {
+  selectedFrames: string[];
+  fallbackImages: string[];
+  galleryImages: string[];
+}) {
+  const selectedImages: string[] = [];
+  const selectedLinks: string[] = [];
+  const directLinksByImage = new Map<string, string>();
+
+  selectedFrames.forEach((entry) => {
+    const parts = splitFrameEntry(entry);
+    const image = parts.find(isLikelyImageUrl);
+    const href = parts.find((part) => isWebUrl(part) && !isLikelyImageUrl(part));
+
+    if (image) {
+      selectedImages.push(image);
+    }
+
+    if (href) {
+      selectedLinks.push(href);
+    }
+
+    if (image && href) {
+      directLinksByImage.set(image, href);
+    }
+  });
+
+  const images = dedupeImageUrls(
+    selectedImages.length > 0
+      ? [...selectedImages, ...fallbackImages, ...galleryImages]
+      : [...fallbackImages, ...galleryImages]
+  );
+
+  return images.map((image, index) => ({
+    image,
+    href: directLinksByImage.get(image) ?? selectedLinks[index]
+  }));
+}
+
 export function normalizeProjectGallery({
   coverImage,
   galleryImages,

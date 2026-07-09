@@ -5,10 +5,11 @@ import { Expand } from "lucide-react";
 import { Lightbox } from "@/components/ui/lightbox";
 import { FallbackImage } from "@/components/ui/fallback-image";
 import { Reveal } from "@/components/ui/reveal";
+import type { FrameItem } from "@/lib/project-images";
 import { cn } from "@/lib/utils";
 
 type SelectedFramesProps = {
-  images: string[];
+  frames: FrameItem[];
 };
 
 const fallbackFrameImages = [
@@ -17,13 +18,21 @@ const fallbackFrameImages = [
   "/images/demo-car-04.jpg"
 ];
 
-export function SelectedFrames({ images }: SelectedFramesProps) {
-  const frameImages = images.slice(0, 3);
+export function SelectedFrames({ frames }: SelectedFramesProps) {
+  const frameItems = frames.slice(0, 3);
+  const frameImages = frameItems.map((frame) => frame.image);
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
 
-  if (frameImages.length === 0) return null;
+  if (frameItems.length === 0) return null;
 
-  function openLightbox(index: number) {
+  function openFrame(index: number) {
+    const href = frameItems[index]?.href;
+
+    if (href) {
+      window.open(href, "_blank", "noopener,noreferrer");
+      return;
+    }
+
     setActiveIndex(index);
   }
 
@@ -61,8 +70,8 @@ export function SelectedFrames({ images }: SelectedFramesProps) {
           <Reveal variant="default" className="order-1">
             <button
               type="button"
-              aria-label="Expand still 1"
-              onClick={() => openLightbox(0)}
+              aria-label={frameItems[0].href ? "Open still link 1" : "Expand still 1"}
+              onClick={() => openFrame(0)}
               className="group relative w-full focus-visible:outline-none"
             >
               <div className="film-frame relative overflow-hidden rounded-[2rem]">
@@ -97,23 +106,27 @@ export function SelectedFrames({ images }: SelectedFramesProps) {
           </Reveal>
 
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-1">
-            {frameImages.slice(1).map((image, index) => (
+            {frameItems.slice(1).map((frame, index) => (
               <Reveal
-                key={image}
+                key={frame.image}
                 variant="subtle"
                 delay={(index + 1) * 0.05}
                 direction="right"
               >
                 <button
                   type="button"
-                  aria-label={`Expand still ${index + 2}`}
-                  onClick={() => openLightbox(index + 1)}
+                  aria-label={
+                    frame.href
+                      ? `Open still link ${index + 2}`
+                      : `Expand still ${index + 2}`
+                  }
+                  onClick={() => openFrame(index + 1)}
                   className="group relative w-full focus-visible:outline-none"
                 >
                   <div className="film-frame relative overflow-hidden rounded-[2rem]">
                     <div className="aspect-[4/3]" />
                     <FallbackImage
-                      src={image}
+                      src={frame.image}
                       fallbackSrc={fallbackFrameImages[index + 1]}
                       alt={`Automotive still ${index + 2}`}
                       fill

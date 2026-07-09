@@ -8,10 +8,12 @@ import {
 } from "react";
 import { Eye, EyeOff } from "lucide-react";
 import { FallbackImage } from "@/components/ui/fallback-image";
+import type { FrameItem } from "@/lib/project-images";
 import { cn } from "@/lib/utils";
 
 type HorizontalStillStripProps = {
-  images: string[];
+  frames?: FrameItem[];
+  images?: string[];
   direction?: "left" | "right";
   collapsible?: boolean;
   eyebrow?: string;
@@ -30,7 +32,8 @@ const fallbackStripImages = [
 ];
 
 export function HorizontalStillStrip({
-  images,
+  frames,
+  images = [],
   direction = "left",
   collapsible = false,
   eyebrow,
@@ -44,6 +47,7 @@ export function HorizontalStillStrip({
   const trackRef = useRef<HTMLDivElement>(null);
   const dragOrigin = useRef<number | null>(null);
   const scrollOrigin = useRef<number>(0);
+  const frameItems: FrameItem[] = frames ?? images.map((image) => ({ image }));
 
   useEffect(() => {
     const el = sectionRef.current;
@@ -56,10 +60,10 @@ export function HorizontalStillStrip({
     return () => observer.disconnect();
   }, []);
 
-  if (images.length === 0) return null;
+  if (frameItems.length === 0) return null;
 
   /* ── Drag-to-scroll state ─────────────────────────────────────────── */
-  const loop = [...images, ...images];
+  const loop = [...frameItems, ...frameItems];
 
   function startDrag(clientX: number) {
     dragOrigin.current   = clientX;
@@ -177,28 +181,39 @@ export function HorizontalStillStrip({
               cursor: paused ? "grabbing" : "grab"
             }}
           >
-            {loop.map((image, index) => (
-              <div
-                key={`${image}-${index}`}
-                aria-hidden={index >= images.length}
+            {loop.map((frame, index) => (
+              <a
+                key={`${frame.image}-${index}`}
+                href={frame.href}
+                target={frame.href ? "_blank" : undefined}
+                rel={frame.href ? "noreferrer" : undefined}
+                aria-hidden={index >= frameItems.length}
+                aria-label={
+                  index >= frameItems.length
+                    ? undefined
+                    : frame.href
+                      ? `Open selected still ${(index % frameItems.length) + 1}`
+                      : `Selected still ${(index % frameItems.length) + 1}`
+                }
+                tabIndex={frame.href && index < frameItems.length ? 0 : -1}
                 className="film-frame relative h-[220px] w-[320px] shrink-0 overflow-hidden rounded-[1.75rem] sm:h-[260px] sm:w-[440px]"
               >
                 <FallbackImage
-                  src={image}
+                  src={frame.image}
                   fallbackSrc={
                     fallbackStripImages[index % fallbackStripImages.length]
                   }
                   alt={
-                    index >= images.length
+                    index >= frameItems.length
                       ? ""
-                      : `Selected still ${(index % images.length) + 1}`
+                      : `Selected still ${(index % frameItems.length) + 1}`
                   }
                   fill
                   sizes="(min-width: 640px) 440px, 320px"
                   unoptimized
                   className="object-cover"
                 />
-              </div>
+              </a>
             ))}
           </div>
         </div>
