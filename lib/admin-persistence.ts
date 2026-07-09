@@ -33,7 +33,7 @@ export function restoreProjectDraft(value: unknown): ProjectFormState | null {
   return {
     ...createEmptyProject(),
     ...draft,
-    business: draft.business === "Hospitality" ? "Hospitality" : "Car"
+    business: draft.business?.trim() || createEmptyProject().business
   };
 }
 
@@ -87,7 +87,7 @@ export function buildProjectDatabasePayload({
     short_description: formState.shortDescription,
     full_description: formState.fullDescription,
     category: formState.category,
-    car_model: formState.carModel,
+    car_model: formState.carModel || formState.category,
     location: formState.location,
     year: Number(formState.year),
     cover_image: media.coverImage,
@@ -123,7 +123,7 @@ export function buildLocalProject({
     shortDescription: formState.shortDescription,
     fullDescription: formState.fullDescription,
     category: formState.category,
-    carModel: formState.carModel,
+    carModel: formState.carModel || formState.category,
     location: formState.location,
     year: Number(formState.year),
     coverImage: media.coverImage,
@@ -162,6 +162,7 @@ export function buildSiteSettingsDatabasePayload(
     about_positioning: formState.aboutPositioning,
     about_values: parseValuesText(formState.aboutValuesText),
     services: parseServicesText(formState.servicesText),
+    selected_frames: parseMultilineInput(formState.selectedFramesText),
     navigation_visibility: {
       home: formState.navigationHome,
       work: formState.navigationWork,

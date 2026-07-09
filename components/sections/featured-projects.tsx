@@ -3,9 +3,7 @@
 import Image from "next/image";
 import { motion } from "framer-motion";
 import { LinkButton } from "@/components/ui/link-button";
-import { MetadataGrid } from "@/components/ui/metadata-grid";
 import { Reveal } from "@/components/ui/reveal";
-import { getProjectPrimaryMetaLabel } from "@/lib/project-business";
 import { cn } from "@/lib/utils";
 import type { Project } from "@/lib/types";
 
@@ -65,22 +63,7 @@ export function FeaturedProjects({ projects }: FeaturedProjectsProps) {
                           {project.title.split(" ").slice(1).join(" ")}
                         </span>
                       </h2>
-                      <p className="max-w-xl text-base leading-8 text-muted sm:text-lg">
-                        {project.fullDescription}
-                      </p>
                     </div>
-
-                    <MetadataGrid
-                      items={[
-                        {
-                          label: getProjectPrimaryMetaLabel(project.business),
-                          value: project.carModel
-                        },
-                        { label: "Location", value: project.location },
-                        { label: "Year", value: String(project.year) }
-                      ]}
-                      className="max-w-xl"
-                    />
 
                     <div className="grid gap-3 sm:flex sm:flex-wrap sm:items-center sm:gap-4">
                       <LinkButton href={`/work/${project.slug}`} className="w-full sm:w-auto">
@@ -114,9 +97,6 @@ export function FeaturedProjects({ projects }: FeaturedProjectsProps) {
                         <span>Selected campaign</span>
                         <span>{project.location}</span>
                       </div>
-                      <p className="mt-4 max-w-md text-sm leading-7 text-white/80">
-                        {project.shortDescription}
-                      </p>
                     </div>
                   </div>
                 </Reveal>

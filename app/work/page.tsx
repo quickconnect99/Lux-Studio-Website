@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { PageHeader } from "@/components/sections/page-header";
 import { ProjectGrid } from "@/components/sections/project-grid";
 import { parseProjectBusinessParam } from "@/lib/project-business";
-import { getPublishedProjects } from "@/lib/supabase";
+import { getPublishedProjects, getSiteSettings } from "@/lib/supabase";
 
 export const metadata: Metadata = {
   title: "Work",
@@ -17,26 +17,34 @@ type WorkPageProps = {
 };
 
 export default async function WorkPage({ searchParams }: WorkPageProps) {
-  const projects = await getPublishedProjects();
+  const [projects, settings] = await Promise.all([
+    getPublishedProjects(),
+    getSiteSettings()
+  ]);
   const resolvedSearchParams = searchParams ? await searchParams : {};
   const requestedBusiness = parseProjectBusinessParam(
     resolvedSearchParams.business
   );
+  const matchingBusiness = requestedBusiness
+    ? projects.find(
+        (project) =>
+          project.business.toLowerCase() === requestedBusiness.toLowerCase()
+      )?.business
+    : null;
   const initialBusiness =
-    requestedBusiness &&
-    projects.some((project) => project.business === requestedBusiness)
-      ? requestedBusiness
+    requestedBusiness && matchingBusiness
+      ? matchingBusiness
       : null;
   const copy = initialBusiness
-    ? `Selected ${initialBusiness.toLowerCase()} work, shaped for launch moments, brand films, and still-led stories.`
-    : "A curated view of films, stills, and campaign fragments built around cars, spaces, and launch moments.";
+    ? `Selected ${initialBusiness.toLowerCase()} work.`
+    : settings.copy.work.copy;
 
   return (
     <>
       <PageHeader
-        eyebrow="Curated portfolio"
-        lead={initialBusiness ?? "Selected"}
-        trail="Projects"
+        eyebrow={settings.copy.work.eyebrow}
+        lead={initialBusiness ?? settings.copy.work.headlineLead}
+        trail={initialBusiness ? "Projects" : settings.copy.work.headlineTrail}
         copy={copy}
       />
       <ProjectGrid

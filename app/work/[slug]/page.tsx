@@ -10,11 +10,7 @@ import { LinkButton } from "@/components/ui/link-button";
 import { Reveal } from "@/components/ui/reveal";
 import { RevealList } from "@/components/ui/reveal-list";
 import { normalizeProjectGallery } from "@/lib/project-images";
-import {
-  getProjectPrimaryMetaLabel,
-  parseProjectBusinessParam,
-  projectBusinessToParam
-} from "@/lib/project-business";
+import { parseProjectBusinessParam, projectBusinessToParam } from "@/lib/project-business";
 import {
   getProjectBySlug,
   getPublishedProjects,
@@ -92,7 +88,9 @@ export default async function ProjectPage({
 
   const publishedProjects = await getPublishedProjects();
   const businessScopedProjects = activeBusiness
-    ? publishedProjects.filter((entry) => entry.business === activeBusiness)
+    ? publishedProjects.filter(
+        (entry) => entry.business.toLowerCase() === activeBusiness.toLowerCase()
+      )
     : publishedProjects;
   const navigableProjects =
     businessScopedProjects.length > 0
@@ -183,14 +181,11 @@ export default async function ProjectPage({
                 {project.title.split(" ").slice(1).join(" ")}
               </span>
             </h1>
-            <p className="max-w-xl text-base leading-8 text-muted sm:text-lg">
-              {project.shortDescription}
-            </p>
             <MetadataGrid
               items={[
                 {
-                  label: getProjectPrimaryMetaLabel(project.business),
-                  value: project.carModel
+                  label: "Category",
+                  value: project.category
                 },
                 { label: "Location", value: project.location },
                 { label: "Year", value: String(project.year) }
@@ -206,23 +201,11 @@ export default async function ProjectPage({
       </section>
 
       <section className="section-shell section-space-tight pt-0">
-        <div className="grid gap-8 lg:grid-cols-[1.05fr_0.95fr]">
-          <div className="space-y-5">
-            <p className="eyebrow">Narrative</p>
-            <p className="max-w-3xl text-base leading-8 text-muted sm:text-lg">
-              {project.fullDescription}
-            </p>
-          </div>
-          <div className="glass-panel rounded-[1.35rem] p-5 sm:rounded-[1.75rem] sm:p-6">
-            <p className="text-xs uppercase tracking-eyebrow text-muted">
-              Behind the scenes
-            </p>
-            {project.behindTheScenes && (
-              <p className="mt-4 text-sm leading-7 text-muted">
-                {project.behindTheScenes}
-              </p>
-            )}
-          </div>
+        <div className="max-w-3xl space-y-5">
+          <p className="eyebrow">Project Description</p>
+          <p className="text-base leading-8 text-muted sm:text-lg">
+            {project.fullDescription}
+          </p>
         </div>
       </section>
 

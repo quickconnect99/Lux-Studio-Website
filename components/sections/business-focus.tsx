@@ -19,6 +19,8 @@ type BusinessFocusProps = {
 };
 
 export function BusinessFocus({ cards }: BusinessFocusProps) {
+  if (cards.length === 0) return null;
+
   const hasMultipleSectors = cards.length > 1;
 
   return (
@@ -27,9 +29,9 @@ export function BusinessFocus({ cards }: BusinessFocusProps) {
         <Reveal className="space-y-5">
           <p className="eyebrow">Business focus</p>
           <h2 className="font-[family:var(--font-display)] text-[2.5rem] uppercase leading-[0.92] sm:text-5xl">
-            {hasMultipleSectors ? "Choose" : "Explore"}
+            Explore
             <span className="block pl-5 text-accent sm:pl-12">
-              {hasMultipleSectors ? "Your Sector" : "Our Work"}
+              {hasMultipleSectors ? "More Of Our Work" : "Our Work"}
             </span>
           </h2>
           <p className="max-w-md text-sm leading-7 text-muted sm:text-base">
@@ -73,9 +75,6 @@ export function BusinessFocus({ cards }: BusinessFocusProps) {
                     <h3 className="font-[family:var(--font-display)] mt-4 text-3xl uppercase leading-none sm:text-4xl">
                       {card.title}
                     </h3>
-                    <p className="mt-2 line-clamp-2 max-w-sm text-sm leading-6 text-white/80 sm:mt-3 sm:line-clamp-none sm:leading-7">
-                      {card.description}
-                    </p>
                   </div>
                 </div>
 

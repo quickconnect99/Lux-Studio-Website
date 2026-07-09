@@ -1,11 +1,6 @@
-export type ProjectBusiness = "Car" | "Hospitality";
+export type ProjectBusiness = string;
 
-export type ProjectCategory =
-  | "Brand Film"
-  | "Launch Campaign"
-  | "Social Content"
-  | "Rolling Shots"
-  | "Event Coverage";
+export type ProjectCategory = string;
 
 export type Project = {
   id?: string;
@@ -68,6 +63,12 @@ export type SiteCopy = {
     ctaCopy: string;
     ctaButton: string;
   };
+  work: {
+    eyebrow: string;
+    headlineLead: string;
+    headlineTrail: string;
+    copy: string;
+  };
   services: {
     eyebrow: string;
     headlineLead: string;
@@ -129,6 +130,7 @@ export type SiteSettings = {
     values: Array<{ title: string; copy: string }>;
   };
   services: Service[];
+  selectedFrames: string[];
   navigation: NavigationVisibility;
   copy: SiteCopy;
 };
@@ -136,7 +138,6 @@ export type SiteSettings = {
 export type InquiryServiceType =
   | "Commercial Shoot"
   | "Social Content"
-  | "Motion Direction"
   | "Event Coverage"
   | "Brand Campaign"
   | "Other";

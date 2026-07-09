@@ -16,5 +16,5 @@ export type SiteSettingsFieldsProps = Pick<
   "formState" | "updateField"
 >;
 
-export type PreviewPage = "home" | "services" | "about" | "contact";
+export type PreviewPage = "home" | "work" | "services" | "about" | "contact";
 export type PreviewWidth = "desktop" | "mobile";

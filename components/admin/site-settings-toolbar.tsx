@@ -57,7 +57,9 @@ export function SiteSettingsToolbar({
       </div>
       <div className="flex flex-wrap items-center gap-2">
         <div className="flex flex-wrap rounded-full border border-line bg-panel-secondary p-1">
-          {(["home", "services", "about", "contact"] as PreviewPage[]).map(
+          {(
+            ["home", "work", "services", "about", "contact"] as PreviewPage[]
+          ).map(
             (previewPage) => (
               <button
                 key={previewPage}

@@ -1,11 +1,13 @@
 "use client";
 
+import Image from "next/image";
 import { Pause, Play } from "lucide-react";
 import { motion, useReducedMotion } from "framer-motion";
 import { useEffect, useRef, useState } from "react";
 import { LinkButton } from "@/components/ui/link-button";
 import { SplitHeadline } from "@/components/ui/split-headline";
 import type { SiteSettings } from "@/lib/types";
+import { resolveVideoSource } from "@/lib/video";
 
 type HomeHeroProps = {
   hero: SiteSettings["hero"];
@@ -23,11 +25,13 @@ export function HomeHero({
   const videoRef = useRef<HTMLVideoElement>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [heroRevealed, setHeroRevealed] = useState(false);
+  const videoSource = resolveVideoSource(hero.videoUrl);
+  const fileVideoSrc = videoSource?.kind === "file" ? videoSource.src : null;
 
   useEffect(() => {
     const video = videoRef.current;
 
-    if (!video || shouldReduceMotion) {
+    if (!video || !fileVideoSrc || shouldReduceMotion) {
       video?.pause();
       return;
     }
@@ -40,7 +44,7 @@ export function HomeHero({
       .catch(() => {
         setIsPlaying(false);
       });
-  }, [shouldReduceMotion]);
+  }, [fileVideoSrc, shouldReduceMotion]);
 
   async function togglePlayback() {
     const video = videoRef.current;
@@ -87,37 +91,6 @@ export function HomeHero({
               {copy.heroSecondaryCta}
             </LinkButton>
           </div>
-
-          {(() => {
-            const features: [string, string][] = [
-              ["Launch-ready films", "Hero edits with paid, web, social, and booking cutdowns."],
-              ["Visual systems", "Stills, grids, and motion assets that feel aligned."],
-              ["Atmosphere control", "Motion crafted for products, places, and premium arrivals."]
-            ];
-            return (
-              <div className="border-t border-line pt-5 sm:pt-7">
-                {/* Mobile: horizontal scroll, title only */}
-                <div className="no-scrollbar -mx-4 flex gap-2 overflow-x-auto px-4 sm:hidden">
-                  {features.map(([title]) => (
-                    <div key={title} className="shrink-0 rounded-full border border-line bg-panel-secondary px-4 py-2.5">
-                      <p className="whitespace-nowrap text-xs font-medium uppercase tracking-[0.16em] text-foreground">
-                        {title}
-                      </p>
-                    </div>
-                  ))}
-                </div>
-                {/* Desktop: 3-column grid with title + description */}
-                <div className="hidden sm:grid sm:grid-cols-3 sm:gap-5">
-                  {features.map(([title, copy]) => (
-                    <div key={title} className="space-y-2">
-                      <p className="text-sm font-medium uppercase tracking-[0.16em] text-foreground">{title}</p>
-                      <p className="leading-7 text-muted">{copy}</p>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            );
-          })()}
         </motion.div>
 
         <motion.div
@@ -133,34 +106,45 @@ export function HomeHero({
                 "radial-gradient(circle at 20% 20%, color-mix(in srgb, var(--accent) 18%, transparent), transparent 25%), radial-gradient(circle at 80% 0%, color-mix(in srgb, var(--accent-blue) 24%, transparent), transparent 30%), linear-gradient(180deg, rgba(15, 20, 25, 0.2), rgba(15, 20, 25, 0.88))"
             }}
           />
-          <video
-            ref={videoRef}
-            autoPlay={!shouldReduceMotion}
-            muted
-            loop
-            playsInline
-            preload="none"
-            poster={posterSrc}
-            onError={() => {
-              setIsPlaying(false);
-            }}
-            onPlay={() => setIsPlaying(true)}
-            onPause={() => setIsPlaying(false)}
-            className="absolute inset-0 h-full w-full object-cover opacity-60"
-          >
-            <source src={hero.videoUrl} type="video/mp4" />
-          </video>
+          <Image
+            src={posterSrc}
+            alt=""
+            fill
+            priority
+            sizes="(min-width: 1280px) 52vw, 100vw"
+            className="object-cover opacity-45"
+          />
+          {fileVideoSrc ? (
+            <video
+              ref={videoRef}
+              autoPlay={!shouldReduceMotion}
+              muted
+              loop
+              playsInline
+              preload="metadata"
+              poster={posterSrc}
+              onError={() => {
+                setIsPlaying(false);
+              }}
+              onPlay={() => setIsPlaying(true)}
+              onPause={() => setIsPlaying(false)}
+              className="absolute inset-0 h-full w-full object-cover opacity-60"
+            >
+              <source src={fileVideoSrc} />
+            </video>
+          ) : null}
 
           <div className="relative z-10 flex h-full flex-col justify-between p-5 sm:p-8">
             <div className="flex justify-end">
               <button
                 type="button"
                 onClick={togglePlayback}
+                disabled={!fileVideoSrc}
                 aria-pressed={isPlaying}
                 aria-label={
                   isPlaying ? "Pause showreel video" : "Play showreel video"
                 }
-                className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3 py-2 text-[0.62rem] tracking-[0.18em] text-white/85 backdrop-blur"
+                className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3 py-2 text-[0.62rem] tracking-[0.18em] text-white/85 backdrop-blur disabled:opacity-50"
               >
                 {isPlaying ? (
                   <Pause className="h-3.5 w-3.5" />

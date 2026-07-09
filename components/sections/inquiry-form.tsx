@@ -133,7 +133,6 @@ export function InquiryForm({
           </option>
           <option value="Commercial Shoot">Commercial Shoot</option>
           <option value="Social Content">Social Content</option>
-          <option value="Motion Direction">Motion Direction</option>
           <option value="Event Coverage">Event Coverage</option>
           <option value="Brand Campaign">Brand Campaign</option>
           <option value="Other">Other</option>

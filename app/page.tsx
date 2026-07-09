@@ -1,4 +1,3 @@
-import React from "react";
 import { BusinessFocus } from "@/components/sections/business-focus";
 import { FeaturedProjects } from "@/components/sections/featured-projects";
 import { HomeHero } from "@/components/sections/home-hero";
@@ -8,10 +7,7 @@ import { Reveal } from "@/components/ui/reveal";
 import { RevealList } from "@/components/ui/reveal-list";
 import { dedupeImageUrls } from "@/lib/project-images";
 import { projectBusinessToParam } from "@/lib/project-business";
-import {
-  adaptSiteSettingsToPublishedProjects,
-  hasPublishedHospitalityProject
-} from "@/lib/public-portfolio";
+import { adaptSiteSettingsToPublishedProjects } from "@/lib/public-portfolio";
 import { isPublicAdminEnabled } from "@/lib/site-config";
 import { getPublishedProjects, getSiteSettings } from "@/lib/supabase";
 
@@ -25,75 +21,37 @@ export default async function HomePage() {
     settings,
     projects
   );
-  const hasHospitality = hasPublishedHospitalityProject(projects);
   const featuredProjects = projects
     .filter((project) => project.featured)
     .slice(0, 3);
   const galleryImages = dedupeImageUrls(
-    projects.flatMap((project) => project.galleryImages)
+    publicSettings.selectedFrames.length > 0
+      ? publicSettings.selectedFrames
+      : projects.flatMap((project) => project.galleryImages)
   ).slice(0, 8);
-  const carProject = projects.find((project) => project.business === "Car");
-  const hospitalityProject = projects.find(
-    (project) => project.business === "Hospitality"
-  );
-  const businessCards = [
-    {
-      business: "Car" as const,
-      title: "Car Projects",
-      eyebrow: carProject?.title ?? "Launch films, stills, and motion systems",
-      description:
-        carProject?.shortDescription ??
-        "Launch films, rolling motion, and still-image sets for automotive work.",
-      imageSrc: carProject?.coverImage ?? "/images/demo-car-01.jpg",
-      imageAlt: carProject?.title ?? "Car project preview",
-      href: `/work?business=${projectBusinessToParam("Car")}`
-    },
-    ...(hasHospitality && hospitalityProject
-      ? [
-          {
-            business: "Hospitality" as const,
-            title: "Hospitality Projects",
-            eyebrow: hospitalityProject.title,
-            description: hospitalityProject.shortDescription,
-            imageSrc: hospitalityProject.coverImage,
-            imageAlt: hospitalityProject.title,
-            href: `/work?business=${projectBusinessToParam("Hospitality")}`
-          }
-        ]
-      : [])
-  ];
+  const businessCards = Array.from(
+    new Map(projects.map((project) => [project.business, project])).values()
+  )
+    .slice(0, 4)
+    .map((project) => ({
+      business: project.business,
+      title: `${project.business} Projects`,
+      eyebrow: project.title,
+      description: project.shortDescription,
+      imageSrc: project.coverImage,
+      imageAlt: project.title,
+      href: `/work?business=${projectBusinessToParam(project.business)}`
+    }));
 
   return (
     <>
+      <HorizontalStillStrip images={galleryImages.slice(0, 6)} />
+
       <HomeHero
         hero={publicSettings.hero}
         copy={publicSettings.copy.home}
         posterSrc={publicSettings.seo.ogImage}
       />
-
-      <section className="section-shell">
-        <div className="no-scrollbar -mx-4 flex items-center gap-5 overflow-x-auto border-y border-line px-4 py-4 sm:mx-0 sm:flex-wrap sm:gap-x-8 sm:gap-y-3 sm:px-0 sm:py-5">
-          <p className="shrink-0 whitespace-nowrap text-xs uppercase tracking-eyebrow text-muted">
-            {publicSettings.copy.home.selectedWorkLabel}
-          </p>
-          {[
-            ...new Set(
-              projects.map((project) => project.carModel.split(" ")[0])
-            )
-          ].map((brand, index) => (
-            <React.Fragment key={brand}>
-              {index > 0 && (
-                <span className="text-line" aria-hidden>
-                  /
-                </span>
-              )}
-              <span className="text-foreground/60 shrink-0 whitespace-nowrap text-sm font-medium uppercase tracking-[0.14em]">
-                {brand}
-              </span>
-            </React.Fragment>
-          ))}
-        </div>
-      </section>
 
       <section className="section-shell section-space-tight">
         <div className="grid gap-7 border-y border-line py-7 sm:gap-10 sm:py-8 lg:grid-cols-[0.85fr_1.15fr]">
@@ -169,8 +127,6 @@ export default async function HomePage() {
           </div>
         </div>
       </section>
-
-      <HorizontalStillStrip images={galleryImages.slice(0, 6)} />
 
       <section className="section-shell section-space-tight pt-0">
         <div className="dark-panel rounded-[1.5rem] p-5 text-white sm:rounded-[2.5rem] sm:p-12">

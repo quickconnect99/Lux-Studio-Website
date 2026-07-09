@@ -14,7 +14,7 @@ export function ThemeSwitcher() {
   }
 
   return (
-    <div className="fixed bottom-4 right-4 z-[90] sm:bottom-6 sm:right-6 sm:z-[200]">
+    <div className="shrink-0">
       <button
         type="button"
         onClick={() =>

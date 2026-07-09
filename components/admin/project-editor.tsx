@@ -21,11 +21,6 @@ import type {
   SlugValidationState
 } from "@/lib/admin-types";
 import { businesses, categories, slugify } from "@/lib/admin-utils";
-import {
-  getProjectPrimaryMetaLabel,
-  getProjectPrimaryMetaPlaceholder
-} from "@/lib/project-business";
-import type { ProjectCategory } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
 type UploadProgress = { current: number; total: number; filename: string };
@@ -177,11 +172,6 @@ export function ProjectEditor({
   activeField,
   onActiveFieldChange
 }: Props) {
-  const primaryMetaLabel = getProjectPrimaryMetaLabel(formState.business);
-  const primaryMetaPlaceholder = getProjectPrimaryMetaPlaceholder(
-    formState.business
-  );
-
   const dateValue = formState.createdAt ? formState.createdAt.split("T")[0] : "";
 
   function handleDateChange(dateStr: string) {
@@ -371,7 +361,8 @@ export function ProjectEditor({
           >
             <label className="space-y-2 text-sm text-muted">
               <FieldLabel fieldKey="business" />
-              <select
+              <input
+                list="project-business-options"
                 value={formState.business}
                 onChange={(e) =>
                   updateField(
@@ -380,13 +371,15 @@ export function ProjectEditor({
                   )
                 }
                 className="input-field"
-              >
+                placeholder="Automotive, Hospitality, Event..."
+              />
+              <datalist id="project-business-options">
                 {businesses.map((business) => (
                   <option key={business} value={business}>
                     {business}
                   </option>
                 ))}
-              </select>
+              </datalist>
             </label>
           </EditorFieldShell>
           <EditorFieldShell
@@ -396,36 +389,23 @@ export function ProjectEditor({
           >
             <label className="space-y-2 text-sm text-muted">
               <FieldLabel fieldKey="category" />
-              <select
+              <input
+                list="project-category-options"
                 value={formState.category}
-                onChange={(e) =>
-                  updateField("category", e.target.value as ProjectCategory)
-                }
+                onChange={(e) => {
+                  updateField("category", e.target.value);
+                  updateField("carModel", e.target.value);
+                }}
                 className="input-field"
-              >
+                placeholder="Campaign type, format, product, or occasion"
+              />
+              <datalist id="project-category-options">
                 {categories.map((cat) => (
                   <option key={cat} value={cat}>
                     {cat}
                   </option>
                 ))}
-              </select>
-            </label>
-          </EditorFieldShell>
-          <EditorFieldShell
-            fieldKey="carModel"
-            activeField={activeField}
-            onActiveFieldChange={onActiveFieldChange}
-          >
-            <label className="space-y-2 text-sm text-muted">
-              <FieldLabel fieldKey="carModel" required>
-                {primaryMetaLabel}
-              </FieldLabel>
-              <input
-                value={formState.carModel}
-                onChange={(e) => updateField("carModel", e.target.value)}
-                className="input-field"
-                placeholder={primaryMetaPlaceholder}
-              />
+              </datalist>
             </label>
           </EditorFieldShell>
           <EditorFieldShell

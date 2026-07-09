@@ -98,6 +98,26 @@ export function SiteSettingsInspector({
               }
               className="input-field text-sm normal-case tracking-normal"
             />
+            <span className="block text-[0.62rem] normal-case leading-5 tracking-normal text-muted">
+              Use a direct public video file URL, for example a Supabase Storage
+              `.mp4` or `.webm`. YouTube/Vimeo links are not used as the
+              autoplay hero background.
+            </span>
+          </label>
+          <label className="block space-y-2 text-xs uppercase tracking-meta text-muted">
+            Selected frames
+            <textarea
+              value={formState.selectedFramesText}
+              onChange={(event) =>
+                updateField("selectedFramesText", event.target.value)
+              }
+              className="textarea-field min-h-32 text-sm normal-case leading-6 tracking-normal"
+              placeholder="/images/frame-01.jpg"
+            />
+            <span className="block text-[0.62rem] normal-case leading-5 tracking-normal text-muted">
+              One image URL per line. These drive the first gallery impression
+              on the homepage.
+            </span>
           </label>
         </div>
       </div>
@@ -134,6 +154,10 @@ export function SiteSettingsInspector({
               }
               className="input-field text-sm normal-case tracking-normal"
             />
+            <span className="block text-[0.62rem] normal-case leading-5 tracking-normal text-muted">
+              Use a public image URL or a site path like
+              `/images/demo-car-01.jpg`.
+            </span>
           </label>
         </div>
       </div>

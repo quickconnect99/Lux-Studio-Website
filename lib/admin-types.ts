@@ -75,6 +75,8 @@ export type SiteSettingsFormState = {
   aboutValuesText: string; // one per line: "Title | Copy"
   // Services
   servicesText: string; // one per line: "01 | Title | Description | deliverable1, deliverable2"
+  // Selected frames
+  selectedFramesText: string;
   // Navigation visibility
   navigationHome: boolean;
   navigationWork: boolean;

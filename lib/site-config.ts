@@ -98,25 +98,13 @@ export const defaultSiteSettings: SiteSettings = {
     },
     {
       number: "03",
-      title: "Motion Direction",
-      description:
-        "Controlled camera movement for cars, spaces, arrivals, and detail-led sequences that keep motion readable.",
-      deliverables: [
-        "Shot design",
-        "Tracking footage",
-        "Sound design",
-        "Grades"
-      ]
-    },
-    {
-      number: "04",
       title: "Event Coverage",
       description:
         "Launch evenings, openings, tastings, private unveilings, and guest moments captured with calm pacing.",
       deliverables: ["Highlights", "Recaps", "Still selects", "Same-day edits"]
     },
     {
-      number: "05",
+      number: "04",
       title: "Brand Campaigns",
       description:
         "Integrated visual systems spanning key visuals, social rollout, landing page content, and motion assets.",
@@ -127,6 +115,12 @@ export const defaultSiteSettings: SiteSettings = {
         "Localization"
       ]
     }
+  ],
+  selectedFrames: [
+    "/images/demo-car-02.jpg",
+    "/images/demo-car-03.jpg",
+    "/images/demo-car-04.jpg",
+    "/images/demo-car-05.jpg"
   ],
   navigation: {
     home: true,
@@ -154,6 +148,12 @@ export const defaultSiteSettings: SiteSettings = {
       ctaCopy:
         "Films and stills for launches, spaces, and brand moments.",
       ctaButton: "Browse Work"
+    },
+    work: {
+      eyebrow: "Curated portfolio",
+      headlineLead: "Selected",
+      headlineTrail: "Projects",
+      copy: "A curated view of films, stills, and campaign fragments built around cars, spaces, and launch moments."
     },
     services: {
       eyebrow: "What we create",

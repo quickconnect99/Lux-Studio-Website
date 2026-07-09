@@ -119,7 +119,8 @@ export function AdminDashboard() {
         updateField("slug", slugify(value));
         break;
       case "category":
-        updateField("category", value as typeof formState.category);
+        updateField("category", value);
+        updateField("carModel", value);
         break;
       case "slug":
         updateField("slug", slugify(value));

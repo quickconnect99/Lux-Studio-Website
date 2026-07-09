@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { InquiryForm } from "@/components/sections/inquiry-form";
 import { PageHeader } from "@/components/sections/page-header";
 import { ContactInfo } from "@/components/ui/contact-info";
+import { SocialLinks } from "@/components/ui/social-links";
 import { adaptSiteSettingsToPublishedProjects } from "@/lib/public-portfolio";
 import { getPublishedProjects, getSiteSettings } from "@/lib/supabase";
 
@@ -41,18 +42,8 @@ export default async function ContactPage() {
               {settings.copy.contact.directCopy}
             </p>
 
-            <div className="mt-8 flex flex-wrap gap-3">
-              {settings.social.map((item) => (
-                <a
-                  key={item.label}
-                  href={item.href}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="muted-pill hover:border-accent hover:text-accent"
-                >
-                  {item.label}
-                </a>
-              ))}
+            <div className="mt-8">
+              <SocialLinks links={settings.social} />
             </div>
           </div>
 

@@ -22,7 +22,7 @@ export function SiteSettingsPreviewHeader({
     visible: boolean;
   }> = [
     { label: "Home", page: "home", visible: formState.navigationHome },
-    { label: "Work", page: null, visible: formState.navigationWork },
+    { label: "Work", page: "work", visible: formState.navigationWork },
     {
       label: "Services",
       page: "services",

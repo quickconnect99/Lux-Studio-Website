@@ -9,6 +9,7 @@ import { useEffect, useRef, useState } from "react";
 import type { SiteSettings } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { getVisibleNavigation } from "@/lib/site-config";
+import { ThemeSwitcher } from "@/components/ui/theme-switcher";
 
 type SiteHeaderProps = {
   settings: SiteSettings;
@@ -135,44 +136,47 @@ export function SiteHeader({ settings }: SiteHeaderProps) {
             })}
           </nav>
 
-          {/* Mobile menu toggle */}
-          <button
-            ref={triggerRef}
-            type="button"
-            aria-expanded={open}
-            aria-controls="mobile-navigation"
-            aria-label={open ? "Close navigation" : "Open navigation"}
-            onClick={() => setOpen((value) => !value)}
-            className={cn(
-              "inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full",
-              "border border-line bg-panel text-foreground lg:hidden",
-              "transition-all duration-200 hover:border-accent hover:bg-panel-secondary"
-            )}
-          >
-            <AnimatePresence mode="wait" initial={false}>
-              {open ? (
-                <motion.span
-                  key="close"
-                  initial={{ rotate: -90, opacity: 0 }}
-                  animate={{ rotate: 0, opacity: 1 }}
-                  exit={{ rotate: 90, opacity: 0 }}
-                  transition={{ duration: 0.18 }}
-                >
-                  <X className="h-4 w-4" />
-                </motion.span>
-              ) : (
-                <motion.span
-                  key="open"
-                  initial={{ rotate: 90, opacity: 0 }}
-                  animate={{ rotate: 0, opacity: 1 }}
-                  exit={{ rotate: -90, opacity: 0 }}
-                  transition={{ duration: 0.18 }}
-                >
-                  <Menu className="h-4 w-4" />
-                </motion.span>
+          <div className="flex items-center gap-2">
+            <ThemeSwitcher />
+            {/* Mobile menu toggle */}
+            <button
+              ref={triggerRef}
+              type="button"
+              aria-expanded={open}
+              aria-controls="mobile-navigation"
+              aria-label={open ? "Close navigation" : "Open navigation"}
+              onClick={() => setOpen((value) => !value)}
+              className={cn(
+                "inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full",
+                "border border-line bg-panel text-foreground lg:hidden",
+                "transition-all duration-200 hover:border-accent hover:bg-panel-secondary"
               )}
-            </AnimatePresence>
-          </button>
+            >
+              <AnimatePresence mode="wait" initial={false}>
+                {open ? (
+                  <motion.span
+                    key="close"
+                    initial={{ rotate: -90, opacity: 0 }}
+                    animate={{ rotate: 0, opacity: 1 }}
+                    exit={{ rotate: 90, opacity: 0 }}
+                    transition={{ duration: 0.18 }}
+                  >
+                    <X className="h-4 w-4" />
+                  </motion.span>
+                ) : (
+                  <motion.span
+                    key="open"
+                    initial={{ rotate: 90, opacity: 0 }}
+                    animate={{ rotate: 0, opacity: 1 }}
+                    exit={{ rotate: -90, opacity: 0 }}
+                    transition={{ duration: 0.18 }}
+                  >
+                    <Menu className="h-4 w-4" />
+                  </motion.span>
+                )}
+              </AnimatePresence>
+            </button>
+          </div>
         </div>
       </div>
 

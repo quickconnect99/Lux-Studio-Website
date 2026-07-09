@@ -9,7 +9,7 @@ import { getPublishedProjects, getSiteSettings } from "@/lib/supabase";
 export const metadata: Metadata = {
   title: "Services",
   description:
-    "Commercial shoots, social content, motion direction, event coverage, and brand campaigns."
+    "Commercial shoots, social content, event coverage, and brand campaigns."
 };
 
 export default async function ServicesPage() {

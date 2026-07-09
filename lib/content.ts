@@ -3,8 +3,7 @@ import {
   Clapperboard,
   Film,
   MapPin,
-  Smartphone,
-  Video
+  Smartphone
 } from "lucide-react";
 import type { ComponentType } from "react";
 import type { Project, Service } from "@/lib/types";
@@ -26,20 +25,13 @@ export const services: Service[] = [
   },
   {
     number: "03",
-    title: "Motion Direction",
-    description:
-      "Controlled camera movement for cars, spaces, arrivals, and detail-led sequences that keep motion readable.",
-    deliverables: ["Shot design", "Tracking footage", "Sound design", "Grades"]
-  },
-  {
-    number: "04",
     title: "Event Coverage",
     description:
       "Launch evenings, openings, tastings, private unveilings, and guest moments captured with calm pacing.",
     deliverables: ["Highlights", "Recaps", "Still selects", "Same-day edits"]
   },
   {
-    number: "05",
+    number: "04",
     title: "Brand Campaigns",
     description:
       "Integrated visual systems spanning key visuals, social rollout, landing page content, and motion assets.",
@@ -250,8 +242,7 @@ export const serviceIcons: Record<
 > = {
   "01": Film,
   "02": Smartphone,
-  "03": Video,
-  "04": Camera,
-  "05": Clapperboard,
+  "03": Camera,
+  "04": Clapperboard,
   "06": MapPin
 };

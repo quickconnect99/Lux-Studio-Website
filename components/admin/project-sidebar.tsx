@@ -41,7 +41,7 @@ export function ProjectSidebar({
         !q ||
         p.title.toLowerCase().includes(q) ||
         p.slug.toLowerCase().includes(q) ||
-        p.carModel.toLowerCase().includes(q);
+        p.category.toLowerCase().includes(q);
       const matchesFilter =
         filter === "all" ||
         (filter === "published" && p.published) ||
@@ -104,7 +104,7 @@ export function ProjectSidebar({
           {project.title}
         </p>
         <p className="mt-1.5 text-xs uppercase tracking-meta opacity-60">
-          {project.carModel} · {project.location}
+          {project.category} · {project.location}
         </p>
         {project.isTemplate ? (
           <p className="mt-2 text-[0.62rem] leading-5 opacity-65">

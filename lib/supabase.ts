@@ -117,6 +117,7 @@ type SupabaseSiteSettingsRow = {
   about_positioning: string | null;
   about_values: Array<{ title: string; copy: string }> | null;
   services: Service[] | null;
+  selected_frames: string[] | null;
   navigation_visibility: Partial<NavigationVisibility> | null;
   site_copy: Partial<SiteCopy> | null;
 };
@@ -155,11 +156,34 @@ function normalizeSiteCopy(
 
   return {
     home: { ...fallback.home, ...copy?.home },
+    work: { ...fallback.work, ...copy?.work },
     services: { ...fallback.services, ...copy?.services },
     about: { ...fallback.about, ...copy?.about },
     contact: { ...fallback.contact, ...copy?.contact },
     footer: { ...fallback.footer, ...copy?.footer }
   };
+}
+
+function normalizeServices(services: Service[] | null | undefined) {
+  const source =
+    Array.isArray(services) && services.length > 0
+      ? services
+      : defaultSiteSettings.services;
+
+  return source
+    .filter((service) => service.title.trim().toLowerCase() !== "motion direction")
+    .map((service, index) => ({
+      ...service,
+      number: String(index + 1).padStart(2, "0")
+    }));
+}
+
+function normalizeSelectedFrames(frames: string[] | null | undefined) {
+  if (!Array.isArray(frames)) {
+    return defaultSiteSettings.selectedFrames;
+  }
+
+  return frames.map((frame) => frame.trim()).filter(Boolean);
 }
 
 export function normalizeProjectRecord(record: SupabaseProjectRow): Project {
@@ -232,10 +256,8 @@ export function normalizeSiteSettingsRecord(
           ? record.about_values
           : defaultSiteSettings.about.values
     },
-    services:
-      Array.isArray(record.services) && record.services.length > 0
-        ? record.services
-        : defaultSiteSettings.services,
+    services: normalizeServices(record.services),
+    selectedFrames: normalizeSelectedFrames(record.selected_frames),
     navigation: normalizeNavigationVisibility(record.navigation_visibility),
     copy: normalizeSiteCopy(record.site_copy)
   };

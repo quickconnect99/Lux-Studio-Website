@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import { HorizontalStillStrip } from "@/components/sections/horizontal-still-strip";
 import { PageHeader } from "@/components/sections/page-header";
 import { Reveal } from "@/components/ui/reveal";
-import { RevealList } from "@/components/ui/reveal-list";
 import { dedupeImageUrls } from "@/lib/project-images";
 import { adaptSiteSettingsToPublishedProjects } from "@/lib/public-portfolio";
 import { getPublishedProjects, getSiteSettings } from "@/lib/supabase";
@@ -25,6 +25,10 @@ export default async function AboutPage() {
   const stills = dedupeImageUrls(
     projects.flatMap((project) => project.galleryImages)
   ).slice(0, 6);
+  const founderImages = [
+    stills[0] ?? "/images/demo-car-02.jpg",
+    stills[1] ?? "/images/demo-car-03.jpg"
+  ];
 
   const { about } = publicSettings;
 
@@ -38,39 +42,31 @@ export default async function AboutPage() {
       />
 
       <section className="section-shell pb-12">
-        <div className="grid gap-6 lg:grid-cols-[0.9fr_1.1fr]">
-          <Reveal className="panel-2xl p-8">
-            <p className="text-xs uppercase tracking-eyebrow text-muted">
-              {publicSettings.copy.about.founderLabel}
-            </p>
-            <p className="mt-5 text-base leading-8 text-muted">
-              {about.founderNote}
-            </p>
-          </Reveal>
-          <Reveal delay={0.08} direction="right" className="panel-2xl p-8">
-            <p className="text-xs uppercase tracking-eyebrow text-muted">
-              {publicSettings.copy.about.positioningLabel}
-            </p>
-            <p className="mt-5 text-base leading-8 text-muted">
-              {about.positioning}
-            </p>
-          </Reveal>
+        <div className="grid gap-6 lg:grid-cols-2">
+          {founderImages.map((image, index) => (
+            <Reveal
+              key={image}
+              delay={index * 0.08}
+              direction={index === 0 ? "left" : "right"}
+              className="overflow-hidden rounded-[1.5rem] border border-line bg-panel-secondary sm:rounded-[2rem]"
+            >
+              <div className="relative aspect-[4/5]">
+                <Image
+                  src={image}
+                  alt={`Lux Studio founder visual ${index + 1}`}
+                  fill
+                  sizes="(min-width: 1024px) 50vw, 100vw"
+                  className="object-cover"
+                />
+              </div>
+            </Reveal>
+          ))}
         </div>
 
-        <div className="mt-6 grid gap-6 sm:grid-cols-3">
-          <RevealList
-            items={about.values}
-            getKey={(v) => v.title}
-            itemClassName="rounded-[1.75rem] border border-line bg-panel-secondary p-6"
-            render={(v) => (
-              <>
-                <p className="text-xs uppercase tracking-eyebrow text-accent">
-                  {v.title}
-                </p>
-                <p className="mt-4 text-sm leading-7 text-muted">{v.copy}</p>
-              </>
-            )}
-          />
+        <div className="mt-6 max-w-3xl">
+          <p className="text-base leading-8 text-muted sm:text-lg">
+            {about.founderNote}
+          </p>
         </div>
       </section>
 

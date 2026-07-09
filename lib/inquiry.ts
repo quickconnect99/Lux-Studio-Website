@@ -7,7 +7,6 @@ export const INQUIRY_RATE_LIMIT_MAX_REQUESTS = 5;
 export const inquiryServiceTypes: InquiryServiceType[] = [
   "Commercial Shoot",
   "Social Content",
-  "Motion Direction",
   "Event Coverage",
   "Brand Campaign",
   "Other"

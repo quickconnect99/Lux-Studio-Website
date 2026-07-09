@@ -20,8 +20,9 @@ export const categories: ProjectCategory[] = [
   "Brand Film",
   "Launch Campaign",
   "Social Content",
-  "Rolling Shots",
-  "Event Coverage"
+  "Event Coverage",
+  "Editorial",
+  "Opening Campaign"
 ];
 
 export const businesses: ProjectBusiness[] = projectBusinesses;
@@ -106,7 +107,7 @@ export function getProjectCompletionIssues(
   if (!state.slug.trim()) issues.push("slug");
   if (!state.shortDescription.trim()) issues.push("short description");
   if (!state.fullDescription.trim()) issues.push("full description");
-  if (!state.carModel.trim()) issues.push("primary subject");
+  if (!state.category.trim()) issues.push("category");
   if (!state.location.trim()) issues.push("location");
   if (!Number.isInteger(year) || year < 1900 || year > 2100) {
     issues.push("valid year");
@@ -162,7 +163,7 @@ export function createProjectTemplate(
   business: ProjectBusiness
 ): AdminProjectListItem {
   const base =
-    business === "Car"
+    business.toLowerCase().includes("auto") || business === "Car"
       ? {
           title: "Car Project Template",
           shortDescription:
@@ -170,7 +171,7 @@ export function createProjectTemplate(
           fullDescription:
             "Use this template to outline the shoot, campaign angle, deliverables, and how the visual system should feel across stills, motion, and rollout placements.",
           category: "Brand Film" as const,
-          carModel: "Brand / Model",
+          carModel: "Brand Film",
           location: "City",
           year: currentYear,
           coverImage: "/images/demo-car-01.jpg",
@@ -186,7 +187,7 @@ export function createProjectTemplate(
           fullDescription:
             "Use this template to define the property story, atmosphere, guest journey, deliverables, and the role of stills, motion, and rollout assets.",
           category: "Launch Campaign" as const,
-          carModel: "Property / Venue",
+          carModel: "Launch Campaign",
           location: "City",
           year: currentYear,
           coverImage: "/images/hospitality/quiet-arrival-cover.svg",
@@ -217,7 +218,7 @@ export function createProjectTemplate(
 }
 
 export const projectTemplates: AdminProjectListItem[] = [
-  createProjectTemplate("Car"),
+  createProjectTemplate("Automotive"),
   createProjectTemplate("Hospitality")
 ];
 
@@ -316,6 +317,7 @@ export function toSiteSettingsFormState(
     aboutPositioning: settings.about.positioning,
     aboutValuesText: formatValuesText(settings.about.values),
     servicesText: formatServicesText(settings.services),
+    selectedFramesText: settings.selectedFrames.join("\n"),
     navigationHome: settings.navigation.home,
     navigationWork: settings.navigation.work,
     navigationServices: settings.navigation.services,
@@ -328,13 +330,13 @@ export function toSiteSettingsFormState(
 export function createEmptyProject(): ProjectFormState {
   return {
     templateBusiness: undefined,
-    business: "Car",
+    business: "Automotive",
     title: "New Project",
     slug: "new-project",
     shortDescription: "",
     fullDescription: "",
     category: "Brand Film",
-    carModel: "",
+    carModel: "Brand Film",
     location: "",
     year: String(new Date().getFullYear()),
     coverImage: "/images/project-01.svg",

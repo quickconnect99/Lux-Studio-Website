@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { SiteSettings } from "@/lib/types";
 import { ContactInfo } from "@/components/ui/contact-info";
+import { SocialLinks } from "@/components/ui/social-links";
 import { getVisibleNavigation } from "@/lib/site-config";
 
 type SiteFooterProps = {
@@ -54,19 +55,7 @@ export function SiteFooter({ settings }: SiteFooterProps) {
             {settings.copy.footer.connectLabel}
           </p>
           <ContactInfo contact={settings.contact} />
-          <div className="flex flex-wrap gap-4 pt-2 text-xs uppercase tracking-ui text-muted">
-            {settings.social.map((item) => (
-              <a
-                key={item.label}
-                href={item.href}
-                target="_blank"
-                rel="noreferrer"
-                className="transition-colors duration-150 hover:text-accent"
-              >
-                {item.label}
-              </a>
-            ))}
-          </div>
+          <SocialLinks links={settings.social} />
         </div>
       </div>
 

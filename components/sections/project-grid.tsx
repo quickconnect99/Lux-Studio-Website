@@ -6,16 +6,16 @@ import { startTransition, useMemo, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
 import { ArrowUpRight } from "lucide-react";
-import {
-  getProjectPrimaryMetaLabel,
-  projectBusinessToParam,
-  projectBusinesses
-} from "@/lib/project-business";
+import { projectBusinessToParam } from "@/lib/project-business";
 import type { Project, ProjectBusiness } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
 const PAGE_SIZE = 6;
 const ALL = "All";
+
+function normalizeFilterValue(value: string) {
+  return value.trim().toLowerCase();
+}
 
 type ProjectGridProps = {
   projects: Project[];
@@ -31,14 +31,26 @@ export function ProjectGrid({
   const searchParams = useSearchParams();
   const availableBusinesses = useMemo(
     () =>
-      projectBusinesses.filter((business) =>
-        projects.some((project) => project.business === business)
+      Array.from(new Set(projects.map((project) => project.business))).filter(
+        Boolean
       ),
     [projects]
   );
+  const resolvedInitialBusiness = useMemo(() => {
+    if (!initialBusiness) {
+      return null;
+    }
+
+    return (
+      availableBusinesses.find(
+        (business) =>
+          normalizeFilterValue(business) === normalizeFilterValue(initialBusiness)
+      ) ?? null
+    );
+  }, [availableBusinesses, initialBusiness]);
   const [activeBusiness, setActiveBusiness] = useState<
     ProjectBusiness | typeof ALL
-  >(initialBusiness ?? ALL);
+  >(resolvedInitialBusiness ?? ALL);
   const [activeCategory, setActiveCategory] = useState(ALL);
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
 
@@ -236,10 +248,10 @@ export function ProjectGrid({
                   <div className="grid grid-cols-2 gap-4 border-t border-line p-4 sm:grid-cols-[1.1fr_1fr_auto] sm:p-5">
                     <div>
                       <p className="text-[0.58rem] uppercase tracking-[0.22em] text-muted">
-                        {getProjectPrimaryMetaLabel(project.business)}
+                        Category
                       </p>
                       <p className="mt-2 text-[0.72rem] font-medium uppercase tracking-[0.12em] text-foreground">
-                        {project.carModel}
+                        {project.category}
                       </p>
                     </div>
                     <div>

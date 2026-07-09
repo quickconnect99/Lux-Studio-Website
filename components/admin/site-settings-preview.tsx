@@ -37,6 +37,14 @@ const SiteSettingsHomePreview = dynamic(
   { loading: PreviewLoading, ssr: false }
 );
 
+const SiteSettingsWorkPreview = dynamic(
+  () =>
+    import("@/components/admin/site-settings-work-preview").then(
+      (module) => module.SiteSettingsWorkPreview
+    ),
+  { loading: PreviewLoading, ssr: false }
+);
+
 const SiteSettingsServicesPreview = dynamic(
   () =>
     import("@/components/admin/site-settings-services-preview").then(
@@ -107,6 +115,12 @@ export function SiteSettingsPreview({
             <main>
               {page === "home" ? (
                 <SiteSettingsHomePreview
+                  formState={formState}
+                  updateField={updateField}
+                />
+              ) : null}
+              {page === "work" ? (
+                <SiteSettingsWorkPreview
                   formState={formState}
                   updateField={updateField}
                 />

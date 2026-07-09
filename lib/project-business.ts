@@ -1,11 +1,18 @@
 import type { ProjectBusiness } from "@/lib/types";
 
-export const projectBusinesses: ProjectBusiness[] = ["Car", "Hospitality"];
+export const projectBusinesses: ProjectBusiness[] = [
+  "Automotive",
+  "Hospitality",
+  "Architecture",
+  "Lifestyle",
+  "Event",
+  "Brand"
+];
 
 export function normalizeProjectBusiness(
   value?: string | null
 ): ProjectBusiness {
-  return value?.trim().toLowerCase() === "hospitality" ? "Hospitality" : "Car";
+  return value?.trim() || "Automotive";
 }
 
 export function parseProjectBusinessParam(
@@ -17,29 +24,19 @@ export function parseProjectBusinessParam(
     return null;
   }
 
-  const normalized = candidate.trim().toLowerCase();
-
-  if (normalized === "car") {
-    return "Car";
-  }
-
-  if (normalized === "hospitality") {
-    return "Hospitality";
-  }
-
-  return null;
+  return decodeURIComponent(candidate).trim() || null;
 }
 
 export function projectBusinessToParam(business: ProjectBusiness): string {
-  return business.toLowerCase();
+  return encodeURIComponent(business.trim().toLowerCase());
 }
 
-export function getProjectPrimaryMetaLabel(business: ProjectBusiness): string {
-  return business === "Hospitality" ? "Property" : "Model";
+export function getProjectPrimaryMetaLabel(_business: ProjectBusiness): string {
+  return "Category";
 }
 
 export function getProjectPrimaryMetaPlaceholder(
-  business: ProjectBusiness
+  _business: ProjectBusiness
 ): string {
-  return business === "Hospitality" ? "7132 Hotel" : "BMW M4 Competition";
+  return "Launch film, brand campaign, opening night...";
 }

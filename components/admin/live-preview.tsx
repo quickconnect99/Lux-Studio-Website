@@ -12,7 +12,6 @@ import Image from "next/image";
 import { ExternalLink, PenSquare } from "lucide-react";
 import { getGalleryFrameRole } from "@/lib/admin-project-fields";
 import type { AdminProjectFieldKey, ProjectFormState } from "@/lib/admin-types";
-import { businesses, categories } from "@/lib/admin-utils";
 import { getProjectPrimaryMetaLabel } from "@/lib/project-business";
 import { cn } from "@/lib/utils";
 
@@ -425,8 +424,6 @@ export function LivePreview({
               fieldKey="business"
               value={formState.business}
               placeholder="Project business"
-              kind="select"
-              options={businesses}
               onCommit={onUpdateField}
               wrapperClassName="-mx-2 -my-1 px-2 py-1"
               displayClassName="text-[0.62rem] uppercase tracking-[0.28em] text-accent"
@@ -442,8 +439,6 @@ export function LivePreview({
               fieldKey="category"
               value={formState.category}
               placeholder="Project category"
-              kind="select"
-              options={categories}
               onCommit={onUpdateField}
               wrapperClassName="-mx-2 -my-1 px-2 py-1"
               displayClassName="text-[0.62rem] uppercase tracking-[0.28em] text-muted"
@@ -506,15 +501,15 @@ export function LivePreview({
 
           <div className="grid gap-3 sm:grid-cols-3">
             <PreviewFieldShell
-              fieldKey="carModel"
+              fieldKey="category"
               activeField={activeField}
               onActiveFieldChange={onActiveFieldChange}
               className="metadata-card"
             >
               <p className="metadata-label">{primaryMetaLabel}</p>
               <EditablePreviewField
-                fieldKey="carModel"
-                value={formState.carModel}
+                fieldKey="category"
+                value={formState.category}
                 placeholder="TBD"
                 onCommit={onUpdateField}
                 wrapperClassName="-mx-2 mt-1 px-2 py-1"
