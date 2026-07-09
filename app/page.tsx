@@ -45,13 +45,13 @@ export default async function HomePage() {
 
   return (
     <>
-      <HorizontalStillStrip images={galleryImages.slice(0, 6)} />
-
       <HomeHero
         hero={publicSettings.hero}
         copy={publicSettings.copy.home}
         posterSrc={publicSettings.seo.ogImage}
       />
+
+      <HorizontalStillStrip images={galleryImages.slice(0, 6)} />
 
       <section className="section-shell section-space-tight">
         <div className="grid gap-7 border-y border-line py-7 sm:gap-10 sm:py-8 lg:grid-cols-[0.85fr_1.15fr]">
