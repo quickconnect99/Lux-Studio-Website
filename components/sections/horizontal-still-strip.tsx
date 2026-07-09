@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import {
   type KeyboardEvent as ReactKeyboardEvent,
   useEffect,
@@ -8,6 +7,7 @@ import {
   useState
 } from "react";
 import { Eye, EyeOff } from "lucide-react";
+import { FallbackImage } from "@/components/ui/fallback-image";
 import { cn } from "@/lib/utils";
 
 type HorizontalStillStripProps = {
@@ -20,6 +20,14 @@ type HorizontalStillStripProps = {
 };
 
 const KEYBOARD_SCROLL_DISTANCE = 240;
+const fallbackStripImages = [
+  "/images/demo-car-02.jpg",
+  "/images/demo-car-03.jpg",
+  "/images/demo-car-04.jpg",
+  "/images/demo-car-05.jpg",
+  "/images/car-pictures/midnight-aeroline-03.jpg",
+  "/images/car-pictures/alpine-vector-01.avif"
+];
 
 export function HorizontalStillStrip({
   images,
@@ -175,8 +183,11 @@ export function HorizontalStillStrip({
                 aria-hidden={index >= images.length}
                 className="film-frame relative h-[220px] w-[320px] shrink-0 overflow-hidden rounded-[1.75rem] sm:h-[260px] sm:w-[440px]"
               >
-                <Image
+                <FallbackImage
                   src={image}
+                  fallbackSrc={
+                    fallbackStripImages[index % fallbackStripImages.length]
+                  }
                   alt={
                     index >= images.length
                       ? ""
@@ -184,6 +195,7 @@ export function HorizontalStillStrip({
                   }
                   fill
                   sizes="(min-width: 640px) 440px, 320px"
+                  unoptimized
                   className="object-cover"
                 />
               </div>

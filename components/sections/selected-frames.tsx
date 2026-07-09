@@ -1,15 +1,21 @@
 "use client";
 
-import Image from "next/image";
 import { useState } from "react";
 import { Expand } from "lucide-react";
 import { Lightbox } from "@/components/ui/lightbox";
+import { FallbackImage } from "@/components/ui/fallback-image";
 import { Reveal } from "@/components/ui/reveal";
 import { cn } from "@/lib/utils";
 
 type SelectedFramesProps = {
   images: string[];
 };
+
+const fallbackFrameImages = [
+  "/images/demo-car-02.jpg",
+  "/images/demo-car-03.jpg",
+  "/images/demo-car-04.jpg"
+];
 
 export function SelectedFrames({ images }: SelectedFramesProps) {
   const frameImages = images.slice(0, 3);
@@ -61,11 +67,13 @@ export function SelectedFrames({ images }: SelectedFramesProps) {
             >
               <div className="film-frame relative overflow-hidden rounded-[2rem]">
                 <div className="aspect-[16/10]" />
-                <Image
+                <FallbackImage
                   src={frameImages[0]}
+                  fallbackSrc={fallbackFrameImages[0]}
                   alt="Automotive still 1"
                   fill
                   sizes="(min-width: 1024px) 62vw, 100vw"
+                  unoptimized
                   className="object-cover transition-transform duration-700 group-hover:scale-[1.03]"
                 />
                 <div
@@ -104,11 +112,13 @@ export function SelectedFrames({ images }: SelectedFramesProps) {
                 >
                   <div className="film-frame relative overflow-hidden rounded-[2rem]">
                     <div className="aspect-[4/3]" />
-                    <Image
+                    <FallbackImage
                       src={image}
+                      fallbackSrc={fallbackFrameImages[index + 1]}
                       alt={`Automotive still ${index + 2}`}
                       fill
                       sizes="(min-width: 1024px) 32vw, (min-width: 640px) 50vw, 100vw"
+                      unoptimized
                       className="object-cover transition-transform duration-700 group-hover:scale-[1.03]"
                     />
                     <div
@@ -137,6 +147,7 @@ export function SelectedFrames({ images }: SelectedFramesProps) {
 
       <Lightbox
         images={frameImages}
+        fallbackImages={fallbackFrameImages}
         activeIndex={activeIndex}
         onClose={closeLightbox}
         onPrev={prev}

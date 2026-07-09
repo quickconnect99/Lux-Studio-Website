@@ -1,14 +1,15 @@
 "use client";
 
-import Image from "next/image";
 import { useEffect } from "react";
 import { X, ChevronLeft, ChevronRight } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
+import { FallbackImage } from "@/components/ui/fallback-image";
 import { cn } from "@/lib/utils";
 
 type LightboxProps = {
   images: string[];
   activeIndex: number | null;
+  fallbackImages?: string[];
   onClose: () => void;
   onPrev: () => void;
   onNext: () => void;
@@ -17,6 +18,7 @@ type LightboxProps = {
 export function Lightbox({
   images,
   activeIndex,
+  fallbackImages = [],
   onClose,
   onPrev,
   onNext
@@ -67,13 +69,18 @@ export function Lightbox({
             onClick={(e) => e.stopPropagation()}
           >
             <div className="film-frame relative aspect-[4/3] overflow-hidden sm:aspect-[16/9]">
-              <Image
+              <FallbackImage
                 src={images[activeIndex]}
+                fallbackSrc={
+                  fallbackImages[activeIndex % fallbackImages.length] ??
+                  images[activeIndex]
+                }
                 alt={`Enlarged still ${activeIndex + 1}`}
                 fill
                 sizes="(min-width: 1280px) 80vw, 100vw"
                 className="object-cover"
                 quality={95}
+                unoptimized
                 priority
               />
             </div>
