@@ -1,5 +1,9 @@
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { projects as fallbackProjects } from "@/lib/content";
+import {
+  filterPublicMediaUrls,
+  normalizePublicMediaUrl
+} from "@/lib/media-url";
 import { normalizeProjectBusiness } from "@/lib/project-business";
 import { defaultSiteSettings } from "@/lib/site-config";
 import type {
@@ -198,11 +202,14 @@ export function normalizeProjectRecord(record: SupabaseProjectRow): Project {
     carModel: record.car_model,
     location: record.location,
     year: record.year,
-    coverImage: record.cover_image,
-    galleryImages: record.gallery_images ?? [],
+    coverImage: normalizePublicMediaUrl(
+      record.cover_image,
+      defaultSiteSettings.seo.ogImage
+    ),
+    galleryImages: filterPublicMediaUrls(record.gallery_images),
     galleryCaptions: record.gallery_captions ?? [],
-    videoUrl: record.video_url ?? undefined,
-    uploadedVideo: record.uploaded_video ?? undefined,
+    videoUrl: normalizePublicMediaUrl(record.video_url) || undefined,
+    uploadedVideo: normalizePublicMediaUrl(record.uploaded_video) || undefined,
     featured: record.featured,
     published: record.published,
     createdAt: record.created_at,
@@ -230,7 +237,10 @@ export function normalizeSiteSettingsRecord(
       title: record.seo_title?.trim() || defaultSiteSettings.seo.title,
       description:
         record.seo_description?.trim() || defaultSiteSettings.seo.description,
-      ogImage: record.seo_og_image?.trim() || defaultSiteSettings.seo.ogImage
+      ogImage: normalizePublicMediaUrl(
+        record.seo_og_image,
+        defaultSiteSettings.seo.ogImage
+      )
     },
     hero: {
       eyebrow: record.hero_eyebrow?.trim() || defaultSiteSettings.hero.eyebrow,
@@ -241,8 +251,10 @@ export function normalizeSiteSettingsRecord(
         record.hero_headline_trail?.trim() ||
         defaultSiteSettings.hero.headlineTrail,
       copy: record.hero_copy?.trim() || defaultSiteSettings.hero.copy,
-      videoUrl:
-        record.hero_video_url?.trim() || defaultSiteSettings.hero.videoUrl
+      videoUrl: normalizePublicMediaUrl(
+        record.hero_video_url,
+        defaultSiteSettings.hero.videoUrl
+      )
     },
     about: {
       founderNote:

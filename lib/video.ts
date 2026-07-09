@@ -1,4 +1,5 @@
 import type { Project } from "@/lib/types";
+import { isLocalFileReference } from "@/lib/media-url";
 
 export type VideoSource = {
   kind: "youtube" | "vimeo" | "file";
@@ -57,7 +58,7 @@ function getVimeoId(value: string) {
 export function resolveVideoSource(value: string | undefined) {
   const source = value?.trim();
 
-  if (!source) {
+  if (!source || isLocalFileReference(source)) {
     return null;
   }
 
