@@ -1,3 +1,4 @@
+import type { ChangeEvent } from "react";
 import type { SiteSettingsFormState } from "@/lib/admin-types";
 
 export type SiteSettingsEditorProps = {
@@ -9,11 +10,27 @@ export type SiteSettingsEditorProps = {
   ) => void;
   onSubmit: (event: { preventDefault(): void }) => void;
   working: boolean;
+  siteHeroVideoFile?: File | null;
+  selectedFrameFiles?: File[];
+  setSiteHeroVideoFile?: (file: File | null) => void;
+  addSelectedFrameFiles?: (files: File[]) => void;
+  removeSelectedFrameFile?: (index: number) => void;
+  handleFileSelection?: (
+    event: ChangeEvent<HTMLInputElement>,
+    type: "cover" | "video" | "siteHeroVideo"
+  ) => void;
 };
 
 export type SiteSettingsFieldsProps = Pick<
   SiteSettingsEditorProps,
-  "formState" | "updateField"
+  | "formState"
+  | "updateField"
+  | "siteHeroVideoFile"
+  | "selectedFrameFiles"
+  | "setSiteHeroVideoFile"
+  | "addSelectedFrameFiles"
+  | "removeSelectedFrameFile"
+  | "handleFileSelection"
 >;
 
 export type PreviewPage = "home" | "work" | "services" | "about" | "contact";

@@ -23,8 +23,6 @@ export function HomePreview({
   formState,
   updateField
 }: Pick<Props, "formState" | "updateField">) {
-  const services = parseServicesText(formState.servicesText).slice(0, 4);
-
   return (
     <>
       <section className="relative overflow-hidden px-6 py-12 sm:px-10 sm:py-16">
@@ -148,113 +146,7 @@ export function HomePreview({
         />
       </section>
 
-      <section className="border-y border-line px-6 py-10 sm:px-10">
-        <div className="grid gap-8 lg:grid-cols-[0.75fr_1.25fr]">
-          <div>
-            <InlineText
-              value={formState.copy.home.brandEyebrow}
-              placeholder="Section label"
-              ariaLabel="Brand section label"
-              onChange={(value) =>
-                updateCopySection(formState, updateField, "home", {
-                  brandEyebrow: value
-                })
-              }
-              className="w-fit px-2 py-1 text-[0.7rem] uppercase tracking-eyebrow text-muted"
-            />
-            <div className="font-[family:var(--font-display)] mt-5 text-4xl uppercase leading-none">
-              <InlineText
-                value={formState.copy.home.brandHeadlineLead}
-                placeholder="Brand headline"
-                ariaLabel="Brand headline lead"
-                onChange={(value) =>
-                  updateCopySection(formState, updateField, "home", {
-                    brandHeadlineLead: value
-                  })
-                }
-                className="px-2"
-              />
-              <InlineText
-                value={formState.copy.home.brandHeadlineTrail}
-                placeholder="Brand headline accent"
-                ariaLabel="Brand headline trail"
-                onChange={(value) =>
-                  updateCopySection(formState, updateField, "home", {
-                    brandHeadlineTrail: value
-                  })
-                }
-                className="ml-8 mt-1 px-2 text-accent"
-              />
-            </div>
-          </div>
-          <div>
-            <InlineText
-              value={formState.brandStrapline}
-              placeholder="Brand strapline"
-              ariaLabel="Brand strapline"
-              multiline
-              onChange={(value) => updateField("brandStrapline", value)}
-              className="p-2 text-base leading-8 text-muted"
-            />
-            <div className="mt-5 grid gap-3 sm:grid-cols-2">
-              {services.map((service) => (
-                <div
-                  key={service.number}
-                  className="rounded-3xl border border-line bg-panel-secondary p-5"
-                >
-                  <p className="text-[0.62rem] uppercase tracking-eyebrow text-accent">
-                    {service.title}
-                  </p>
-                  <p className="mt-2 text-sm leading-6 text-muted">
-                    {service.description}
-                  </p>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      </section>
-
       <section className="px-6 py-10 sm:px-10">
-        <div className="grid gap-6 lg:grid-cols-2">
-          <div className="panel-2xl p-7">
-            <InlineText
-              value={formState.copy.home.servicesEyebrow}
-              placeholder="Services label"
-              ariaLabel="Services section label"
-              onChange={(value) =>
-                updateCopySection(formState, updateField, "home", {
-                  servicesEyebrow: value
-                })
-              }
-              className="w-fit px-2 py-1 text-[0.7rem] uppercase tracking-eyebrow text-muted"
-            />
-            <div className="font-[family:var(--font-display)] mt-5 text-4xl uppercase leading-none">
-              <InlineText
-                value={formState.copy.home.servicesHeadlineLead}
-                placeholder="Services headline"
-                ariaLabel="Services headline lead"
-                onChange={(value) =>
-                  updateCopySection(formState, updateField, "home", {
-                    servicesHeadlineLead: value
-                  })
-                }
-                className="px-2"
-              />
-              <InlineText
-                value={formState.copy.home.servicesHeadlineTrail}
-                placeholder="Services headline accent"
-                ariaLabel="Services headline trail"
-                onChange={(value) =>
-                  updateCopySection(formState, updateField, "home", {
-                    servicesHeadlineTrail: value
-                  })
-                }
-                className="ml-8 mt-1 px-2 text-accent"
-              />
-            </div>
-          </div>
-
           <div className="dark-panel rounded-[2rem] p-7 text-white">
             <InlineText
               value={formState.copy.home.ctaEyebrow}
@@ -315,7 +207,6 @@ export function HomePreview({
               className="action-button mt-5 w-auto cursor-text"
             />
           </div>
-        </div>
       </section>
     </>
   );

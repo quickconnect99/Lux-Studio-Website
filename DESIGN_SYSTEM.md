@@ -1,4 +1,4 @@
-# Design System – Northline Motion
+# Design System – Lux Studio
 
 > Last updated: 2026-03-17
 > Stack: Next.js 15 · React 19 · Tailwind CSS 3 · Framer Motion 12 · Supabase

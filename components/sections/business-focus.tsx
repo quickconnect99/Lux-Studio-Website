@@ -36,8 +36,8 @@ export function BusinessFocus({ cards }: BusinessFocusProps) {
           </h2>
           <p className="max-w-md text-sm leading-7 text-muted sm:text-base">
             {hasMultipleSectors
-              ? "Two focus areas, one visual language: composed films, stills, and launch assets built around place, pace, and intent."
-              : "Automotive films and stills shaped around launch moments, material detail, and measured motion."}
+              ? "Two sides of the same studio: automotive campaigns and hospitality films, shot by the same crew."
+              : "Automotive films and stills for launches, dealer campaigns, and events."}
           </p>
         </Reveal>
 

@@ -74,7 +74,13 @@ export function SiteSettingsPreview({
   isDirty = false,
   updateField,
   onSubmit,
-  working
+  working,
+  siteHeroVideoFile,
+  selectedFrameFiles,
+  setSiteHeroVideoFile,
+  addSelectedFrameFiles,
+  removeSelectedFrameFile,
+  handleFileSelection
 }: SiteSettingsEditorProps) {
   const [page, setPage] = useState<PreviewPage>("home");
   const [previewWidth, setPreviewWidth] = useState<PreviewWidth>("desktop");
@@ -154,6 +160,12 @@ export function SiteSettingsPreview({
         <SiteSettingsInspector
           formState={formState}
           updateField={updateField}
+          siteHeroVideoFile={siteHeroVideoFile}
+          selectedFrameFiles={selectedFrameFiles}
+          setSiteHeroVideoFile={setSiteHeroVideoFile}
+          addSelectedFrameFiles={addSelectedFrameFiles}
+          removeSelectedFrameFile={removeSelectedFrameFile}
+          handleFileSelection={handleFileSelection}
         />
       </div>
 

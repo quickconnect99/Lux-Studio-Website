@@ -94,8 +94,8 @@ export function HomeHero({
         </motion.div>
 
         <motion.div
-          initial={{ opacity: 0, scale: 0.96, y: 20 }}
-          animate={{ opacity: 1, scale: 1, y: 0 }}
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.9, delay: 0.1, ease: [0.22, 1, 0.36, 1] }}
           className="film-frame grain relative min-h-[360px] border border-white/60 bg-panel-dark text-white shadow-halo sm:min-h-[420px] lg:min-h-[560px]"
         >

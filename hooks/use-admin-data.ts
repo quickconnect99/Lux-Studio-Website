@@ -126,10 +126,6 @@ export function useAdminData() {
     reset: resetAuthForm
   } = authForm;
 
-  const isSettingsDirty =
-    serializeSiteSettingsFormState(siteSettingsFormState) !==
-    savedSiteSettingsSnapshot;
-
   const galleryImageList = parseMultilineInput(formState.galleryImagesText);
   const captionRawLines = formState.galleryCaptionsText.split("\n");
   const isTemplateProject = Boolean(formState.templateBusiness);
@@ -151,13 +147,19 @@ export function useAdminData() {
     coverFile,
     galleryFiles,
     videoFile,
+    siteHeroVideoFile,
+    selectedFrameFiles,
     coverPreviewUrl,
     setCoverFile,
     setVideoFile,
+    setSiteHeroVideoFile,
     addGalleryFiles,
     removeGalleryFile,
+    addSelectedFrameFiles,
+    removeSelectedFrameFile,
     handleFileSelection,
-    clearMedia
+    clearMedia,
+    clearSiteSettingsMedia
   } = useAdminMedia({
     onChange: clearSaveReport,
     onError: showStatus
@@ -174,6 +176,12 @@ export function useAdminData() {
     Boolean(coverFile) ||
     galleryFiles.length > 0 ||
     Boolean(videoFile);
+
+  const isSettingsDirty =
+    serializeSiteSettingsFormState(siteSettingsFormState) !==
+      savedSiteSettingsSnapshot ||
+    Boolean(siteHeroVideoFile) ||
+    selectedFrameFiles.length > 0;
 
   const coverPreviewImage = coverPreviewUrl ?? formState.coverImage;
 
@@ -846,11 +854,11 @@ export function useAdminData() {
 
   useEffect(() => {
     const handler = (e: BeforeUnloadEvent) => {
-      if (isDirty) e.preventDefault();
+      if (isDirty || isSettingsDirty) e.preventDefault();
     };
     window.addEventListener("beforeunload", handler);
     return () => window.removeEventListener("beforeunload", handler);
-  }, [isDirty]);
+  }, [isDirty, isSettingsDirty]);
 
   async function performDelete() {
     if (formState.templateBusiness) {
@@ -925,7 +933,44 @@ export function useAdminData() {
         return;
       }
 
-      const payload = buildSiteSettingsDatabasePayload(siteSettingsFormState);
+      let heroVideoUrl = siteSettingsFormState.heroVideoUrl;
+      let selectedFrames = parseMultilineInput(
+        siteSettingsFormState.selectedFramesText
+      );
+      const totalFiles =
+        (siteHeroVideoFile ? 1 : 0) + selectedFrameFiles.length;
+      let uploadedCount = 0;
+
+      if (siteHeroVideoFile) {
+        setUploadProgress({
+          current: ++uploadedCount,
+          total: totalFiles,
+          filename: siteHeroVideoFile.name
+        });
+        heroVideoUrl = await uploadFile(siteHeroVideoFile, "videos");
+      }
+
+      if (selectedFrameFiles.length > 0) {
+        const uploadedFrames: string[] = [];
+        for (const file of selectedFrameFiles) {
+          setUploadProgress({
+            current: ++uploadedCount,
+            total: totalFiles,
+            filename: file.name
+          });
+          uploadedFrames.push(await uploadFile(file, "selected-frames"));
+        }
+        selectedFrames = [...selectedFrames, ...uploadedFrames];
+      }
+
+      setUploadProgress(null);
+
+      const nextFormState: SiteSettingsFormState = {
+        ...siteSettingsFormState,
+        heroVideoUrl,
+        selectedFramesText: selectedFrames.join("\n")
+      };
+      const payload = buildSiteSettingsDatabasePayload(nextFormState);
 
       const { data, error } = await supabase
         .from("site_settings")
@@ -940,6 +985,7 @@ export function useAdminData() {
       );
       replaceSiteSettingsForm(savedState);
       setSavedSiteSettingsSnapshot(serializeSiteSettingsFormState(savedState));
+      clearSiteSettingsMedia();
       setStatusMessage("Global site settings saved to Supabase.");
       setSaveReport({
         title: "Site settings saved",
@@ -949,10 +995,33 @@ export function useAdminData() {
             label: "Global site settings saved",
             detail: "Supabase",
             tone: "success"
-          }
+          },
+          ...(siteHeroVideoFile
+            ? [
+                {
+                  id: "hero-video",
+                  label: "Hero reel uploaded",
+                  detail: siteHeroVideoFile.name,
+                  tone: "success" as const
+                }
+              ]
+            : []),
+          ...(selectedFrameFiles.length > 0
+            ? [
+                {
+                  id: "selected-frames",
+                  label: `${selectedFrameFiles.length} selected frame${
+                    selectedFrameFiles.length === 1 ? "" : "s"
+                  } uploaded`,
+                  detail: "Selected frames",
+                  tone: "success" as const
+                }
+              ]
+            : [])
         ]
       });
     } catch (err) {
+      setUploadProgress(null);
       showStatus(
         err instanceof Error
           ? err.message
@@ -1020,6 +1089,11 @@ export function useAdminData() {
     galleryFiles,
     videoFile,
     setVideoFile,
+    siteHeroVideoFile,
+    selectedFrameFiles,
+    setSiteHeroVideoFile,
+    addSelectedFrameFiles,
+    removeSelectedFrameFile,
     formState,
     isTemplateProject,
     updateField,

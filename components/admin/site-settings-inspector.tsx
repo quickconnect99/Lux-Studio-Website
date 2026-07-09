@@ -1,13 +1,28 @@
 "use client";
 
 import { Eye, EyeOff } from "lucide-react";
+import Image from "next/image";
+import { GalleryEditor } from "@/components/admin/gallery-editor";
 import type { SiteSettingsFieldsProps } from "@/components/admin/site-settings-editor-types";
+import { parseMultilineInput } from "@/lib/admin-utils";
 import { cn } from "@/lib/utils";
 
 export function SiteSettingsInspector({
   formState,
-  updateField
+  updateField,
+  siteHeroVideoFile = null,
+  selectedFrameFiles = [],
+  setSiteHeroVideoFile,
+  addSelectedFrameFiles,
+  removeSelectedFrameFile,
+  handleFileSelection
 }: SiteSettingsFieldsProps) {
+  const selectedFrames = parseMultilineInput(formState.selectedFramesText);
+
+  function handleSelectedFramesChange(images: string[]) {
+    updateField("selectedFramesText", images.join("\n"));
+  }
+
   return (
     <aside className="space-y-4 xl:sticky xl:top-6 xl:self-start">
       <div className="panel-2xl p-5">
@@ -90,35 +105,69 @@ export function SiteSettingsInspector({
             />
           </label>
           <label className="block space-y-2 text-xs uppercase tracking-meta text-muted">
-            Hero video URL
+            Hero reel link
             <input
               value={formState.heroVideoUrl}
-              onChange={(event) =>
-                updateField("heroVideoUrl", event.target.value)
-              }
+              onChange={(event) => {
+                updateField("heroVideoUrl", event.target.value);
+                if (event.target.value) setSiteHeroVideoFile?.(null);
+              }}
               className="input-field text-sm normal-case tracking-normal"
+              placeholder="https://.../hero-reel.mp4"
             />
             <span className="block text-[0.62rem] normal-case leading-5 tracking-normal text-muted">
-              Use a direct public video file URL, for example a Supabase Storage
-              `.mp4` or `.webm`. YouTube/Vimeo links are not used as the
-              autoplay hero background.
+              Direct public `.mp4` or `.webm` URL for the autoplay background.
+              You can also upload a file below.
             </span>
           </label>
-          <label className="block space-y-2 text-xs uppercase tracking-meta text-muted">
+          <div className="space-y-2 text-xs uppercase tracking-meta text-muted">
+            <span>
+              Hero reel upload
+              {siteHeroVideoFile ? " · queued" : ""}
+            </span>
+            <input
+              type="file"
+              accept="video/*"
+              onChange={(event) => {
+                handleFileSelection?.(event, "siteHeroVideo");
+                if ((event.target.files?.length ?? 0) > 0) {
+                  updateField("heroVideoUrl", "");
+                }
+              }}
+              className="block w-full text-xs uppercase tracking-meta text-muted"
+            />
+            {siteHeroVideoFile ? (
+              <p className="text-xs normal-case leading-5 tracking-normal text-muted">
+                Queued: {siteHeroVideoFile.name}. The URL is filled after save.
+              </p>
+            ) : null}
+          </div>
+          <div className="space-y-2 text-xs uppercase tracking-meta text-muted">
             Selected frames
-            <textarea
-              value={formState.selectedFramesText}
-              onChange={(event) =>
-                updateField("selectedFramesText", event.target.value)
+            <GalleryEditor
+              images={selectedFrames}
+              captions={[]}
+              pendingFiles={selectedFrameFiles}
+              onImagesChange={handleSelectedFramesChange}
+              onFilesAdd={addSelectedFrameFiles ?? (() => undefined)}
+              onFileRemove={removeSelectedFrameFile ?? (() => undefined)}
+              introText="Order controls the homepage selected-frame strip. Frame 01 is shown first."
+              captionPlaceholder={(index) =>
+                `Optional internal note for selected frame ${index + 1}`
               }
-              className="textarea-field min-h-32 text-sm normal-case leading-6 tracking-normal"
-              placeholder="/images/frame-01.jpg"
+              getFrameRole={(index) => ({
+                label: index === 0 ? "Homepage lead" : "Homepage frame",
+                description:
+                  index === 0
+                    ? "First still in the homepage selected-frame sequence."
+                    : "Supporting still in the homepage selected-frame sequence."
+              })}
             />
             <span className="block text-[0.62rem] normal-case leading-5 tracking-normal text-muted">
-              One image URL per line. These drive the first gallery impression
-              on the homepage.
+              These drive the first gallery impression on the homepage. Uploads
+              are added to the list after save.
             </span>
-          </label>
+          </div>
         </div>
       </div>
 
@@ -155,10 +204,33 @@ export function SiteSettingsInspector({
               className="input-field text-sm normal-case tracking-normal"
             />
             <span className="block text-[0.62rem] normal-case leading-5 tracking-normal text-muted">
-              Use a public image URL or a site path like
-              `/images/demo-car-01.jpg`.
+              This image is shown by link previews when the homepage is shared
+              on social apps, messaging apps, Slack, and search result cards.
+              Use a public image URL or a site path like `/images/demo-car-01.jpg`.
             </span>
           </label>
+          {formState.seoOgImage ? (
+            <div className="overflow-hidden rounded-[1rem] border border-line bg-panel-secondary">
+              <div className="relative aspect-[1.91/1] bg-panel-dark">
+                <Image
+                  src={formState.seoOgImage}
+                  alt="OG image preview"
+                  fill
+                  sizes="300px"
+                  unoptimized
+                  className="object-cover"
+                />
+              </div>
+              <div className="space-y-1 px-3 py-3">
+                <p className="truncate text-xs font-medium normal-case tracking-normal text-foreground">
+                  {formState.seoTitle}
+                </p>
+                <p className="line-clamp-2 text-[0.68rem] normal-case leading-5 tracking-normal text-muted">
+                  {formState.seoDescription}
+                </p>
+              </div>
+            </div>
+          ) : null}
         </div>
       </div>
 

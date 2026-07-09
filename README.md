@@ -1,4 +1,4 @@
-# Northline Motion
+# Lux Studio
 
 Premium automotive video portfolio and marketing site scaffolded with Next.js, Tailwind CSS, Framer Motion, and Supabase-ready data/storage hooks.
 

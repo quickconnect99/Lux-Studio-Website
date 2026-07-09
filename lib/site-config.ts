@@ -36,7 +36,7 @@ export const defaultSiteSettings: SiteSettings = {
     name: BRAND_NAME,
     mark: BRAND_MARK,
     strapline:
-      "Films and stills for automotive launches, places, and crafted brand moments."
+      "Films and photography for car launches, dealer campaigns, and events."
   },
   social: [
     { label: "Instagram", href: "https://instagram.com" },
@@ -44,40 +44,40 @@ export const defaultSiteSettings: SiteSettings = {
     { label: "Vimeo", href: "https://vimeo.com" }
   ],
   contact: {
-    email: "hello@northlinemotion.studio",
+    email: "nico.hagelberger@lux-studios.net",
     phone: "+41 00 000 00 00",
     city: "Zurich / Milan / Monaco"
   },
   seo: {
     title: `${BRAND_NAME} | Automotive Films & Campaign Stills`,
     description:
-      "Lux Studio creates films, stills, and campaign assets for automotive launches, hospitality spaces, and brand moments.",
+      "Lux Studio produces films and photography for car launches, dealer campaigns, and events.",
     ogImage: "/images/demo-car-01.jpg"
   },
   hero: {
-    eyebrow: "Films and stills for brands in motion",
+    eyebrow: "Automotive film & photography studio",
     headlineLead: "Lux",
     headlineTrail: "Studio",
-    copy: "We create controlled films, launch assets, and still-image systems for cars, spaces, and brand moments that need to feel deliberate from the first frame.",
+    copy: "We shoot launch films and stills for car brands and dealerships, built to hold up on a billboard, a product page, or a 15-second cut.",
     videoUrl: "/media/hero-showreel.mp4"
   },
   about: {
     founderNote:
       "The studio was built around a simple idea: strong subjects deserve careful pacing, clean framing, and images that hold attention without shouting for it.",
     positioning:
-      "The work sits between production partner and visual editor. Each project is shaped as one visual system across hero film, stills, social fragments, and website surfaces.",
+      "We work as an extension of your marketing team: one shoot, cut down into a hero film, stills, and social content that all look like they belong together.",
     values: [
       {
         title: "Precision",
-        copy: "Every motion decision should feel measured, not improvised."
+        copy: "Every shot is planned before the camera rolls, not improvised on set."
       },
       {
         title: "Atmosphere",
-        copy: "Light, sound, and spacing set the tone before a headline does."
+        copy: "Good lighting and sound design carry a brand further than another headline."
       },
       {
         title: "Clarity",
-        copy: "The subject stays legible even when the story becomes more atmospheric."
+        copy: "Whatever mood we build, the car stays the clear focus of the frame."
       }
     ]
   },
@@ -137,8 +137,8 @@ export const defaultSiteSettings: SiteSettings = {
       videoHeadlineLead: "Built",
       videoHeadlineTrail: "To Be Seen",
       brandEyebrow: "Brand statement",
-      brandHeadlineLead: "Cinematic",
-      brandHeadlineTrail: "Visual Stories",
+      brandHeadlineLead: "Shot",
+      brandHeadlineTrail: "To Sell",
       servicesEyebrow: "Services snapshot",
       servicesHeadlineLead: "Built",
       servicesHeadlineTrail: "For Campaigns",
@@ -146,25 +146,25 @@ export const defaultSiteSettings: SiteSettings = {
       ctaHeadlineLead: "Ready",
       ctaHeadlineTrail: "To Launch",
       ctaCopy:
-        "Films and stills for launches, spaces, and brand moments.",
+        "Tell us about your next launch, campaign, or event and we'll shape the shoot around it.",
       ctaButton: "Browse Work"
     },
     work: {
-      eyebrow: "Curated portfolio",
+      eyebrow: "Portfolio",
       headlineLead: "Selected",
       headlineTrail: "Projects",
-      copy: "A curated view of films, stills, and campaign fragments built around cars, spaces, and launch moments."
+      copy: "Films, stills, and campaign work from recent car launches and dealer projects."
     },
     services: {
       eyebrow: "What we create",
       headlineLead: "Visual",
       headlineTrail: "Services",
-      copy: "Films, stills, and rollout assets for campaigns that need a clear visual line."
+      copy: "Photography and film production for car brands, from single shoots to full campaign rollouts."
     },
     about: {
       eyebrow: "Studio profile",
-      headlineLead: "Story",
-      headlineTrail: "And Intent",
+      headlineLead: "Who We",
+      headlineTrail: "Are",
       founderLabel: "Founder note",
       positioningLabel: "Positioning"
     },
@@ -181,7 +181,7 @@ export const defaultSiteSettings: SiteSettings = {
     },
     footer: {
       headline:
-        "Built for cars, spaces, and private projects that need a clear visual point of view.",
+        "Film and photography for car brands, dealerships, and private commissions.",
       navigationLabel: "Navigation",
       connectLabel: "Connect",
       mediaNotice: "Externe Medien laden erst nach Klick"

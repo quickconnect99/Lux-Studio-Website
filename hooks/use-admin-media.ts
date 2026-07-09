@@ -22,6 +22,9 @@ export function useAdminMedia({
   const [coverFile, setCoverFileState] = useState<File | null>(null);
   const [galleryFiles, setGalleryFiles] = useState<File[]>([]);
   const [videoFile, setVideoFileState] = useState<File | null>(null);
+  const [siteHeroVideoFile, setSiteHeroVideoFileState] =
+    useState<File | null>(null);
+  const [selectedFrameFiles, setSelectedFrameFiles] = useState<File[]>([]);
   const [coverPreviewUrl, setCoverPreviewUrl] = useState<string | null>(null);
 
   useEffect(() => {
@@ -52,10 +55,25 @@ export function useAdminMedia({
     [onChange]
   );
 
+  const setSiteHeroVideoFile = useCallback(
+    (file: File | null) => {
+      onChange();
+      setSiteHeroVideoFileState(file);
+    },
+    [onChange]
+  );
+
   const clearMedia = useCallback(() => {
     setCoverFileState(null);
     setGalleryFiles([]);
     setVideoFileState(null);
+    setSiteHeroVideoFileState(null);
+    setSelectedFrameFiles([]);
+  }, []);
+
+  const clearSiteSettingsMedia = useCallback(() => {
+    setSiteHeroVideoFileState(null);
+    setSelectedFrameFiles([]);
   }, []);
 
   const addGalleryFiles = useCallback(
@@ -85,16 +103,47 @@ export function useAdminMedia({
     [onChange]
   );
 
+  const addSelectedFrameFiles = useCallback(
+    (newFiles: File[]) => {
+      const oversized = getOversizedFiles(newFiles, MAX_IMAGE_BYTES);
+
+      if (oversized.length > 0) {
+        onError(
+          `Files too large: ${oversized.map((file) => file.name).join(", ")}. Maximum 25 MB per image.`
+        );
+        return;
+      }
+
+      onChange();
+      setSelectedFrameFiles((current) => [...current, ...newFiles]);
+    },
+    [onChange, onError]
+  );
+
+  const removeSelectedFrameFile = useCallback(
+    (index: number) => {
+      onChange();
+      setSelectedFrameFiles((current) =>
+        current.filter((_, fileIndex) => fileIndex !== index)
+      );
+    },
+    [onChange]
+  );
+
   const handleFileSelection = useCallback(
-    (event: ChangeEvent<HTMLInputElement>, type: "cover" | "video") => {
+    (
+      event: ChangeEvent<HTMLInputElement>,
+      type: "cover" | "video" | "siteHeroVideo"
+    ) => {
       const files = Array.from(event.target.files ?? []);
-      const limit = type === "video" ? MAX_VIDEO_BYTES : MAX_IMAGE_BYTES;
-      const limitLabel = type === "video" ? "2 GB" : "25 MB";
+      const isVideo = type === "video" || type === "siteHeroVideo";
+      const limit = isVideo ? MAX_VIDEO_BYTES : MAX_IMAGE_BYTES;
+      const limitLabel = isVideo ? "2 GB" : "25 MB";
       const oversized = getOversizedFiles(files, limit);
 
       if (oversized.length > 0) {
         onError(
-          `File too large: ${oversized.map((file) => file.name).join(", ")}. Maximum size for ${type === "video" ? "videos" : "images"} is ${limitLabel}.`
+          `File too large: ${oversized.map((file) => file.name).join(", ")}. Maximum size for ${isVideo ? "videos" : "images"} is ${limitLabel}.`
         );
         event.target.value = "";
         return;
@@ -102,20 +151,27 @@ export function useAdminMedia({
 
       if (type === "cover") setCoverFile(files[0] ?? null);
       if (type === "video") setVideoFile(files[0] ?? null);
+      if (type === "siteHeroVideo") setSiteHeroVideoFile(files[0] ?? null);
     },
-    [onError, setCoverFile, setVideoFile]
+    [onError, setCoverFile, setSiteHeroVideoFile, setVideoFile]
   );
 
   return {
     coverFile,
     galleryFiles,
     videoFile,
+    siteHeroVideoFile,
+    selectedFrameFiles,
     coverPreviewUrl,
     setCoverFile,
     setVideoFile,
+    setSiteHeroVideoFile,
     addGalleryFiles,
     removeGalleryFile,
+    addSelectedFrameFiles,
+    removeSelectedFrameFile,
     handleFileSelection,
-    clearMedia
+    clearMedia,
+    clearSiteSettingsMedia
   };
 }

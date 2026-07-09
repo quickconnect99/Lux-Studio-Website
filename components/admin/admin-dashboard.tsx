@@ -59,6 +59,11 @@ export function AdminDashboard() {
     galleryFiles,
     videoFile,
     setVideoFile,
+    siteHeroVideoFile,
+    selectedFrameFiles,
+    setSiteHeroVideoFile,
+    addSelectedFrameFiles,
+    removeSelectedFrameFile,
     formState,
     isTemplateProject,
     updateField,
@@ -505,6 +510,12 @@ export function AdminDashboard() {
           updateField={updateSiteSettingsField}
           onSubmit={handleSaveSiteSettings}
           working={working}
+          siteHeroVideoFile={siteHeroVideoFile}
+          selectedFrameFiles={selectedFrameFiles}
+          setSiteHeroVideoFile={setSiteHeroVideoFile}
+          addSelectedFrameFiles={addSelectedFrameFiles}
+          removeSelectedFrameFile={removeSelectedFrameFile}
+          handleFileSelection={handleFileSelection}
         />
       ) : null}
 

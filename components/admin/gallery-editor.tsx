@@ -34,6 +34,12 @@ type GalleryEditorProps = {
   onImagesChange: (images: string[], captions: string[]) => void;
   onFilesAdd: (files: File[]) => void;
   onFileRemove: (index: number) => void;
+  introText?: string;
+  captionPlaceholder?: (index: number) => string;
+  getFrameRole?: (index: number) => {
+    label: string;
+    description: string;
+  };
 };
 
 // ── Sortable row ─────────────────────────────────────────────────────────────
@@ -43,6 +49,7 @@ type SortableItemProps = {
   displayIndex: number;
   roleLabel: string;
   roleDescription: string;
+  captionPlaceholder: string;
   onRemove: () => void;
   onImageChange: (value: string) => void;
   onCaptionChange: (value: string) => void;
@@ -53,6 +60,7 @@ function SortableItem({
   displayIndex,
   roleLabel,
   roleDescription,
+  captionPlaceholder,
   onRemove,
   onImageChange,
   onCaptionChange
@@ -152,7 +160,7 @@ function SortableItem({
           value={item.caption}
           onChange={(e) => onCaptionChange(e.target.value)}
           className="textarea-field min-h-[4rem] text-xs"
-          placeholder={`Caption for frame ${displayIndex + 1}…`}
+          placeholder={captionPlaceholder}
         />
       </div>
 
@@ -190,7 +198,10 @@ export function GalleryEditor({
   pendingFiles,
   onImagesChange,
   onFilesAdd,
-  onFileRemove
+  onFileRemove,
+  introText = "Gallery order controls the live page: frame 01 becomes the large project image below the narrative, frame 02+ appear lower on the page.",
+  captionPlaceholder = (index) => `Caption for frame ${index + 1}...`,
+  getFrameRole = getGalleryFrameRole
 }: GalleryEditorProps) {
   // ── Local state — initialized from props, owns drag order ───────────────
   // The parent uses `key` to remount this component on project switch/save,
@@ -278,8 +289,7 @@ export function GalleryEditor({
   return (
     <div className="space-y-2">
       <p className="text-[0.72rem] leading-5 text-muted">
-        Gallery order controls the live page: frame 01 becomes the large
-        project image below the narrative, frame 02+ appear lower on the page.
+        {introText}
       </p>
 
       {/* Sortable image list */}
@@ -293,7 +303,7 @@ export function GalleryEditor({
             <div className="space-y-2">
               {items.map((item, displayIndex) => (
                 (() => {
-                  const role = getGalleryFrameRole(displayIndex);
+                  const role = getFrameRole(displayIndex);
 
                   return (
                     <SortableItem
@@ -302,6 +312,7 @@ export function GalleryEditor({
                       displayIndex={displayIndex}
                       roleLabel={role.label}
                       roleDescription={role.description}
+                      captionPlaceholder={captionPlaceholder(displayIndex)}
                       onRemove={() => handleRemove(item.id)}
                       onImageChange={(value) =>
                         handleImageChange(item.id, value)
@@ -322,7 +333,7 @@ export function GalleryEditor({
           {pendingFiles.map((file, i) => (
             (() => {
               const frameIndex = items.length + i;
-              const role = getGalleryFrameRole(frameIndex);
+              const role = getFrameRole(frameIndex);
 
               return (
                 <div

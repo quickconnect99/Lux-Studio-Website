@@ -176,10 +176,10 @@ insert into public.site_settings (
 )
 values (
   'global',
-  'Northline Motion',
-  'N/M',
-  'Automotive films, stills, and campaign visuals built for launch moments.',
-  'hello@northlinemotion.studio',
+  'Lux Studio',
+  'L/S',
+  'Films and photography for car launches, dealer campaigns, and events.',
+  'nico.hagelberger@lux-studios.net',
   '+41 00 000 00 00',
   'Zurich / Milan / Monaco',
   '[{"label":"Instagram","href":"https://instagram.com"},{"label":"YouTube","href":"https://youtube.com"},{"label":"Vimeo","href":"https://vimeo.com"}]'::jsonb
