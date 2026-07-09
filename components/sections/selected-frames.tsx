@@ -99,10 +99,10 @@ export function SelectedFrames({ frames }: SelectedFramesProps) {
           "group absolute top-0 focus-visible:outline-none",
           "transition-all duration-500 ease-out",
           isCenter
-            ? "left-1/2 z-30 w-[82vw] -translate-x-1/2 sm:w-[50%]"
-            : "z-10 w-[82vw] translate-y-10 opacity-90 sm:w-[50%]",
-          position === "left" && "-left-[49vw] sm:left-0 lg:left-0",
-          position === "right" && "-right-[49vw] sm:right-0 lg:right-0"
+            ? "left-1/2 z-30 w-[78vw] -translate-x-1/2 sm:w-[48%]"
+            : "z-10 w-[78vw] translate-y-10 opacity-90 sm:w-[46%]",
+          position === "left" && "-left-[47vw] sm:left-0 lg:left-0",
+          position === "right" && "-right-[47vw] sm:right-0 lg:right-0"
         )}
       >
         <div className="film-frame relative overflow-hidden rounded-[2rem]">
@@ -112,7 +112,7 @@ export function SelectedFrames({ frames }: SelectedFramesProps) {
             fallbackSrc={fallbackFrameImages[index % fallbackFrameImages.length]}
             alt={`Automotive still ${index + 1}`}
             fill
-            sizes="(min-width: 1280px) 700px, (min-width: 640px) 50vw, 82vw"
+            sizes="(min-width: 1280px) 660px, (min-width: 640px) 48vw, 78vw"
             unoptimized
             className={cn(
               "object-cover transition-transform duration-700",
@@ -167,7 +167,7 @@ export function SelectedFrames({ frames }: SelectedFramesProps) {
         </div>
 
         <Reveal variant="default" className="pt-8">
-          <div className="relative mx-auto h-[72vw] min-h-[315px] max-w-[1360px] overflow-hidden pb-10 pt-4 sm:h-[39vw] sm:min-h-[360px] lg:max-h-[560px]">
+          <div className="relative mx-auto h-[70vw] min-h-[300px] max-w-[1360px] overflow-hidden pb-10 pt-4 sm:h-[38vw] sm:min-h-[340px] lg:max-h-[540px]">
             {frameItems.length > 1
               ? renderFrameButton({ index: previousIndex, position: "left" })
               : null}
