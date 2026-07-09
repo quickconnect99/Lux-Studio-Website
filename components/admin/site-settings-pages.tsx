@@ -355,7 +355,7 @@ export function WorkPreview({
       />
       <section className="px-6 pb-12 sm:px-10">
         <p className="rounded-2xl border border-line bg-panel-secondary px-5 py-4 text-xs text-muted">
-          Die Projektliste dieser Seite wird über den Bereich „Projects" im
+          Die Projektliste dieser Seite wird ueber den Bereich Projects im
           Admin-Dashboard gepflegt, nicht hier.
         </p>
       </section>
