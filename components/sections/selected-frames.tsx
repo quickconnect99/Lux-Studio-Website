@@ -15,11 +15,12 @@ type SelectedFramesProps = {
 const fallbackFrameImages = [
   "/images/demo-car-02.jpg",
   "/images/demo-car-03.jpg",
-  "/images/demo-car-04.jpg"
+  "/images/demo-car-04.jpg",
+  "/images/demo-car-05.jpg"
 ];
 
 export function SelectedFrames({ frames }: SelectedFramesProps) {
-  const frameItems = frames.slice(0, 3);
+  const frameItems = frames.slice(0, 8);
   const frameImages = frameItems.map((frame) => frame.image);
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
 
@@ -50,6 +51,16 @@ export function SelectedFrames({ frames }: SelectedFramesProps) {
     setActiveIndex((i) => (i === null ? 0 : (i + 1) % frameImages.length));
   }
 
+  function getFramePositionClass(index: number) {
+    const position = index % 3;
+
+    if (position === 1) {
+      return "lg:-translate-y-8 lg:z-20";
+    }
+
+    return position === 0 ? "lg:translate-y-7" : "lg:translate-y-7";
+  }
+
   return (
     <>
       <section className="section-shell section-space-tight pt-0">
@@ -66,71 +77,36 @@ export function SelectedFrames({ frames }: SelectedFramesProps) {
 
         </div>
 
-        <div className="grid gap-6 pt-8 lg:grid-cols-[1.18fr_0.82fr]">
-          <Reveal variant="default" className="order-1">
-            <button
-              type="button"
-              aria-label={frameItems[0].href ? "Open still link 1" : "Expand still 1"}
-              onClick={() => openFrame(0)}
-              className="group relative w-full focus-visible:outline-none"
-            >
-              <div className="film-frame relative overflow-hidden rounded-[2rem]">
-                <div className="aspect-[16/10]" />
-                <FallbackImage
-                  src={frameImages[0]}
-                  fallbackSrc={fallbackFrameImages[0]}
-                  alt="Automotive still 1"
-                  fill
-                  sizes="(min-width: 1024px) 62vw, 100vw"
-                  unoptimized
-                  className="object-cover transition-transform duration-700 group-hover:scale-[1.03]"
-                />
-                <div
-                  className={cn(
-                    "absolute inset-0 flex items-center justify-center",
-                    "bg-black/0 transition-colors duration-300 group-hover:bg-black/30"
-                  )}
-                >
-                  <div
-                    className={cn(
-                      "flex h-12 w-12 items-center justify-center rounded-full",
-                      "border border-white/30 bg-white/10 opacity-0 backdrop-blur",
-                      "transition-opacity duration-300 group-hover:opacity-100"
-                    )}
-                  >
-                    <Expand className="h-5 w-5 text-white" />
-                  </div>
-                </div>
-              </div>
-            </button>
-          </Reveal>
-
-          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-1">
-            {frameItems.slice(1).map((frame, index) => (
-              <Reveal
-                key={frame.image}
-                variant="subtle"
-                delay={(index + 1) * 0.05}
-                direction="right"
-              >
+        <Reveal variant="default" className="pt-8">
+          <div className="no-scrollbar -mx-4 snap-x snap-mandatory overflow-x-auto px-4 pb-12 pt-8 sm:-mx-8 sm:px-8 lg:-mx-10 lg:px-10">
+            <div className="flex min-w-max items-start gap-4 sm:gap-5 lg:gap-6">
+              {frameItems.map((frame, index) => (
                 <button
+                  key={`${frame.image}-${index}`}
                   type="button"
                   aria-label={
                     frame.href
-                      ? `Open still link ${index + 2}`
-                      : `Expand still ${index + 2}`
+                      ? `Open still link ${index + 1}`
+                      : `Expand still ${index + 1}`
                   }
-                  onClick={() => openFrame(index + 1)}
-                  className="group relative w-full focus-visible:outline-none"
+                  onClick={() => openFrame(index)}
+                  className={cn(
+                    "group relative w-[78vw] shrink-0 snap-center focus-visible:outline-none",
+                    "sm:w-[44vw] lg:w-[calc((100vw-8rem)/3)] xl:w-[calc((1440px-8rem)/3)]",
+                    "transition-transform duration-500 ease-out",
+                    getFramePositionClass(index)
+                  )}
                 >
                   <div className="film-frame relative overflow-hidden rounded-[2rem]">
                     <div className="aspect-[4/3]" />
                     <FallbackImage
                       src={frame.image}
-                      fallbackSrc={fallbackFrameImages[index + 1]}
-                      alt={`Automotive still ${index + 2}`}
+                      fallbackSrc={
+                        fallbackFrameImages[index % fallbackFrameImages.length]
+                      }
+                      alt={`Automotive still ${index + 1}`}
                       fill
-                      sizes="(min-width: 1024px) 32vw, (min-width: 640px) 50vw, 100vw"
+                      sizes="(min-width: 1280px) 420px, (min-width: 1024px) 31vw, (min-width: 640px) 44vw, 78vw"
                       unoptimized
                       className="object-cover transition-transform duration-700 group-hover:scale-[1.03]"
                     />
@@ -152,10 +128,10 @@ export function SelectedFrames({ frames }: SelectedFramesProps) {
                     </div>
                   </div>
                 </button>
-              </Reveal>
-            ))}
+              ))}
+            </div>
           </div>
-        </div>
+        </Reveal>
       </section>
 
       <Lightbox

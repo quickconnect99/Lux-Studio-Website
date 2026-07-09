@@ -59,7 +59,7 @@ export default async function HomePage() {
         posterSrc={publicSettings.seo.ogImage}
       />
 
-      <SelectedFrames frames={galleryFrames.slice(0, 3)} />
+      <SelectedFrames frames={galleryFrames.slice(0, 8)} />
 
       <HorizontalStillStrip
         frames={galleryFrames.slice(0, 6)}
