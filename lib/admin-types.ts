@@ -2,7 +2,8 @@ import type {
   Project,
   ProjectBusiness,
   ProjectCategory,
-  SiteCopy
+  SiteCopy,
+  TeamMember
 } from "@/lib/types";
 
 export type AdminTab = "projects" | "settings";
@@ -73,6 +74,7 @@ export type SiteSettingsFormState = {
   aboutFounderNote: string;
   aboutPositioning: string;
   aboutTeamImagesText: string;
+  aboutTeamMembers: TeamMember[];
   aboutValuesText: string; // one per line: "Title | Copy"
   // Services
   servicesText: string; // one per line: "01 | Title | Description | deliverable1, deliverable2"

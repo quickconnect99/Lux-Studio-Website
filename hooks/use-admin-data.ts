@@ -149,7 +149,7 @@ export function useAdminData() {
     videoFile,
     siteHeroVideoFile,
     selectedFrameFiles,
-    aboutTeamImageFiles,
+    aboutTeamMemberImageFiles,
     coverPreviewUrl,
     setCoverFile,
     setVideoFile,
@@ -158,8 +158,7 @@ export function useAdminData() {
     removeGalleryFile,
     addSelectedFrameFiles,
     removeSelectedFrameFile,
-    addAboutTeamImageFiles,
-    removeAboutTeamImageFile,
+    setAboutTeamMemberImageFile,
     handleFileSelection,
     clearMedia,
     clearSiteSettingsMedia
@@ -185,7 +184,7 @@ export function useAdminData() {
       savedSiteSettingsSnapshot ||
     Boolean(siteHeroVideoFile) ||
     selectedFrameFiles.length > 0 ||
-    aboutTeamImageFiles.length > 0;
+    aboutTeamMemberImageFiles.length > 0;
 
   const coverPreviewImage = coverPreviewUrl ?? formState.coverImage;
 
@@ -941,13 +940,11 @@ export function useAdminData() {
       let selectedFrames = parseMultilineInput(
         siteSettingsFormState.selectedFramesText
       );
-      let aboutTeamImages = parseMultilineInput(
-        siteSettingsFormState.aboutTeamImagesText
-      );
+      const aboutTeamMembers = [...siteSettingsFormState.aboutTeamMembers];
       const totalFiles =
         (siteHeroVideoFile ? 1 : 0) +
         selectedFrameFiles.length +
-        aboutTeamImageFiles.length;
+        aboutTeamMemberImageFiles.length;
       let uploadedCount = 0;
 
       if (siteHeroVideoFile) {
@@ -972,17 +969,18 @@ export function useAdminData() {
         selectedFrames = [...selectedFrames, ...uploadedFrames];
       }
 
-      if (aboutTeamImageFiles.length > 0) {
-        const uploadedTeamImages: string[] = [];
-        for (const file of aboutTeamImageFiles) {
+      if (aboutTeamMemberImageFiles.length > 0) {
+        for (const item of aboutTeamMemberImageFiles) {
           setUploadProgress({
             current: ++uploadedCount,
             total: totalFiles,
-            filename: file.name
+            filename: item.file.name
           });
-          uploadedTeamImages.push(await uploadFile(file, "about-team"));
+          aboutTeamMembers[item.index] = {
+            ...aboutTeamMembers[item.index],
+            image: await uploadFile(item.file, "about-team")
+          };
         }
-        aboutTeamImages = [...aboutTeamImages, ...uploadedTeamImages];
       }
 
       setUploadProgress(null);
@@ -991,7 +989,11 @@ export function useAdminData() {
         ...siteSettingsFormState,
         heroVideoUrl,
         selectedFramesText: selectedFrames.join("\n"),
-        aboutTeamImagesText: aboutTeamImages.join("\n")
+        aboutTeamImagesText: aboutTeamMembers
+          .map((member) => member.image)
+          .filter(Boolean)
+          .join("\n"),
+        aboutTeamMembers
       };
       const payload = buildSiteSettingsDatabasePayload(nextFormState);
 
@@ -1041,12 +1043,12 @@ export function useAdminData() {
                 }
               ]
             : []),
-          ...(aboutTeamImageFiles.length > 0
+          ...(aboutTeamMemberImageFiles.length > 0
             ? [
                 {
-                  id: "about-team-images",
-                  label: `${aboutTeamImageFiles.length} team image${
-                    aboutTeamImageFiles.length === 1 ? "" : "s"
+                  id: "about-team-member-images",
+                  label: `${aboutTeamMemberImageFiles.length} team portrait${
+                    aboutTeamMemberImageFiles.length === 1 ? "" : "s"
                   } uploaded`,
                   detail: "About team",
                   tone: "success" as const
@@ -1126,12 +1128,11 @@ export function useAdminData() {
     setVideoFile,
     siteHeroVideoFile,
     selectedFrameFiles,
-    aboutTeamImageFiles,
+    aboutTeamMemberImageFiles,
     setSiteHeroVideoFile,
     addSelectedFrameFiles,
     removeSelectedFrameFile,
-    addAboutTeamImageFiles,
-    removeAboutTeamImageFile,
+    setAboutTeamMemberImageFile,
     formState,
     isTemplateProject,
     updateField,

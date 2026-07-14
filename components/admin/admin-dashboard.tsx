@@ -61,12 +61,11 @@ export function AdminDashboard() {
     setVideoFile,
     siteHeroVideoFile,
     selectedFrameFiles,
-    aboutTeamImageFiles,
+    aboutTeamMemberImageFiles,
     setSiteHeroVideoFile,
     addSelectedFrameFiles,
     removeSelectedFrameFile,
-    addAboutTeamImageFiles,
-    removeAboutTeamImageFile,
+    setAboutTeamMemberImageFile,
     formState,
     isTemplateProject,
     updateField,
@@ -515,12 +514,11 @@ export function AdminDashboard() {
           working={working}
           siteHeroVideoFile={siteHeroVideoFile}
           selectedFrameFiles={selectedFrameFiles}
-          aboutTeamImageFiles={aboutTeamImageFiles}
+          aboutTeamMemberImageFiles={aboutTeamMemberImageFiles}
           setSiteHeroVideoFile={setSiteHeroVideoFile}
           addSelectedFrameFiles={addSelectedFrameFiles}
           removeSelectedFrameFile={removeSelectedFrameFile}
-          addAboutTeamImageFiles={addAboutTeamImageFiles}
-          removeAboutTeamImageFile={removeAboutTeamImageFile}
+          setAboutTeamMemberImageFile={setAboutTeamMemberImageFile}
           handleFileSelection={handleFileSelection}
         />
       ) : null}

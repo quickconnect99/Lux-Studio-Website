@@ -25,7 +25,9 @@ export function useAdminMedia({
   const [siteHeroVideoFile, setSiteHeroVideoFileState] =
     useState<File | null>(null);
   const [selectedFrameFiles, setSelectedFrameFiles] = useState<File[]>([]);
-  const [aboutTeamImageFiles, setAboutTeamImageFiles] = useState<File[]>([]);
+  const [aboutTeamMemberImageFiles, setAboutTeamMemberImageFiles] = useState<
+    Array<{ index: number; file: File }>
+  >([]);
   const [coverPreviewUrl, setCoverPreviewUrl] = useState<string | null>(null);
 
   useEffect(() => {
@@ -70,13 +72,13 @@ export function useAdminMedia({
     setVideoFileState(null);
     setSiteHeroVideoFileState(null);
     setSelectedFrameFiles([]);
-    setAboutTeamImageFiles([]);
+    setAboutTeamMemberImageFiles([]);
   }, []);
 
   const clearSiteSettingsMedia = useCallback(() => {
     setSiteHeroVideoFileState(null);
     setSelectedFrameFiles([]);
-    setAboutTeamImageFiles([]);
+    setAboutTeamMemberImageFiles([]);
   }, []);
 
   const addGalleryFiles = useCallback(
@@ -133,9 +135,9 @@ export function useAdminMedia({
     [onChange]
   );
 
-  const addAboutTeamImageFiles = useCallback(
-    (newFiles: File[]) => {
-      const oversized = getOversizedFiles(newFiles, MAX_IMAGE_BYTES);
+  const setAboutTeamMemberImageFile = useCallback(
+    (index: number, file: File | null) => {
+      const oversized = file ? getOversizedFiles([file], MAX_IMAGE_BYTES) : [];
 
       if (oversized.length > 0) {
         onError(
@@ -145,19 +147,12 @@ export function useAdminMedia({
       }
 
       onChange();
-      setAboutTeamImageFiles((current) => [...current, ...newFiles]);
+      setAboutTeamMemberImageFiles((current) => {
+        const withoutIndex = current.filter((item) => item.index !== index);
+        return file ? [...withoutIndex, { index, file }] : withoutIndex;
+      });
     },
     [onChange, onError]
-  );
-
-  const removeAboutTeamImageFile = useCallback(
-    (index: number) => {
-      onChange();
-      setAboutTeamImageFiles((current) =>
-        current.filter((_, fileIndex) => fileIndex !== index)
-      );
-    },
-    [onChange]
   );
 
   const handleFileSelection = useCallback(
@@ -192,7 +187,7 @@ export function useAdminMedia({
     videoFile,
     siteHeroVideoFile,
     selectedFrameFiles,
-    aboutTeamImageFiles,
+    aboutTeamMemberImageFiles,
     coverPreviewUrl,
     setCoverFile,
     setVideoFile,
@@ -201,8 +196,7 @@ export function useAdminMedia({
     removeGalleryFile,
     addSelectedFrameFiles,
     removeSelectedFrameFile,
-    addAboutTeamImageFiles,
-    removeAboutTeamImageFile,
+    setAboutTeamMemberImageFile,
     handleFileSelection,
     clearMedia,
     clearSiteSettingsMedia

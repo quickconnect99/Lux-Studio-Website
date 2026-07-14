@@ -1,10 +1,16 @@
 "use client";
 
 import {
+  ArrowDown,
+  ArrowUp,
   Mail,
   MapPin,
-  Phone
+  Phone,
+  Plus,
+  Trash2,
+  Upload
 } from "lucide-react";
+import Image from "next/image";
 import { updateCopySection } from "@/components/admin/site-settings-copy";
 import {
   type SiteSettingsEditorProps as Props
@@ -23,8 +29,24 @@ import {
 
 export function HomePreview({
   formState,
-  updateField
-}: Pick<Props, "formState" | "updateField">) {
+  updateField,
+  selectedFrameFiles = [],
+  addSelectedFrameFiles,
+  removeSelectedFrameFile
+}: Pick<
+  Props,
+  | "formState"
+  | "updateField"
+  | "selectedFrameFiles"
+  | "addSelectedFrameFiles"
+  | "removeSelectedFrameFile"
+>) {
+  const selectedFrames = parseMultilineInput(formState.selectedFramesText);
+
+  function handleSelectedFramesChange(images: string[]) {
+    updateField("selectedFramesText", images.join("\n"));
+  }
+
   return (
     <>
       <section className="relative overflow-hidden px-6 py-12 sm:px-10 sm:py-16">
@@ -146,6 +168,39 @@ export function HomePreview({
           }
           className="w-fit px-2 py-1 text-xs uppercase tracking-eyebrow text-muted"
         />
+      </section>
+
+      <section className="px-6 py-10 sm:px-10">
+        <div className="panel-2xl p-7">
+          <p className="text-xs uppercase tracking-eyebrow text-muted">
+            Selected Frames
+          </p>
+          <p className="mt-2 max-w-2xl text-xs leading-5 text-muted">
+            Diese Bilder steuern die Galerie auf der Startseite. Frame 01 wird
+            als erstes angezeigt.
+          </p>
+          <div className="mt-5">
+            <GalleryEditor
+              images={selectedFrames}
+              captions={[]}
+              pendingFiles={selectedFrameFiles}
+              onImagesChange={handleSelectedFramesChange}
+              onFilesAdd={addSelectedFrameFiles ?? (() => undefined)}
+              onFileRemove={removeSelectedFrameFile ?? (() => undefined)}
+              introText="Order controls the homepage selected-frame strip."
+              captionPlaceholder={(index) =>
+                `Optional internal note for selected frame ${index + 1}`
+              }
+              getFrameRole={(index) => ({
+                label: index === 0 ? "Homepage lead" : "Homepage frame",
+                description:
+                  index === 0
+                    ? "First still in the homepage selected-frame sequence."
+                    : "Supporting still in the homepage selected-frame sequence."
+              })}
+            />
+          </div>
+        </div>
       </section>
 
       <section className="px-6 py-10 sm:px-10">
@@ -367,19 +422,17 @@ export function ServicesPreview({
 export function AboutPreview({
   formState,
   updateField,
-  aboutTeamImageFiles = [],
-  addAboutTeamImageFiles,
-  removeAboutTeamImageFile
+  aboutTeamMemberImageFiles = [],
+  setAboutTeamMemberImageFile
 }: Pick<
   Props,
   | "formState"
   | "updateField"
-  | "aboutTeamImageFiles"
-  | "addAboutTeamImageFiles"
-  | "removeAboutTeamImageFile"
+  | "aboutTeamMemberImageFiles"
+  | "setAboutTeamMemberImageFile"
 >) {
   const values = parseValuesText(formState.aboutValuesText);
-  const aboutTeamImages = parseMultilineInput(formState.aboutTeamImagesText);
+  const teamMembers = formState.aboutTeamMembers;
 
   function updateValue(index: number, key: "title" | "copy", value: string) {
     const next = [...values];
@@ -387,8 +440,49 @@ export function AboutPreview({
     updateField("aboutValuesText", formatValuesText(next));
   }
 
-  function handleAboutTeamImagesChange(images: string[]) {
-    updateField("aboutTeamImagesText", images.join("\n"));
+  function updateTeamMember(
+    index: number,
+    key: keyof (typeof teamMembers)[number],
+    value: string
+  ) {
+    const next = [...teamMembers];
+    next[index] = { ...next[index], [key]: value };
+    updateField("aboutTeamMembers", next);
+    updateField(
+      "aboutTeamImagesText",
+      next.map((member) => member.image).filter(Boolean).join("\n")
+    );
+  }
+
+  function addTeamMember() {
+    updateField("aboutTeamMembers", [
+      ...teamMembers,
+      {
+        name: "New team member",
+        title: "",
+        position: "",
+        description: "",
+        image: ""
+      }
+    ]);
+  }
+
+  function removeTeamMember(index: number) {
+    const next = teamMembers.filter((_, memberIndex) => memberIndex !== index);
+    updateField("aboutTeamMembers", next);
+    updateField(
+      "aboutTeamImagesText",
+      next.map((member) => member.image).filter(Boolean).join("\n")
+    );
+  }
+
+  function moveTeamMember(index: number, direction: -1 | 1) {
+    const target = index + direction;
+    if (target < 0 || target >= teamMembers.length) return;
+    const next = [...teamMembers];
+    const [member] = next.splice(index, 1);
+    next.splice(target, 0, member);
+    updateField("aboutTeamMembers", next);
   }
 
   return (
@@ -487,41 +581,183 @@ export function AboutPreview({
           ))}
         </div>
         <div className="mt-5 panel-2xl p-7">
-          <p className="text-xs uppercase tracking-eyebrow text-muted">
-            Team Bilder
-          </p>
-          <p className="mt-2 max-w-2xl text-xs leading-5 text-muted">
-            Bild 01 wird fuer Nico verwendet, Bild 02 fuer Benjamin. Du kannst
-            Links eintragen, lokale Dateien hochladen und die Reihenfolge wie
-            bei Projekt-Galerien verschieben.
-          </p>
-          <div className="mt-5">
-            <GalleryEditor
-              images={aboutTeamImages}
-              captions={[]}
-              pendingFiles={aboutTeamImageFiles}
-              onImagesChange={handleAboutTeamImagesChange}
-              onFilesAdd={addAboutTeamImageFiles ?? (() => undefined)}
-              onFileRemove={removeAboutTeamImageFile ?? (() => undefined)}
-              introText="Separate portraits for the About page team section."
-              captionPlaceholder={(index) =>
-                `Optional internal note for team image ${index + 1}`
-              }
-              getFrameRole={(index) => ({
-                label:
-                  index === 0
-                    ? "Nico portrait"
-                    : index === 1
-                      ? "Benjamin portrait"
-                      : "Team fallback",
-                description:
-                  index === 0
-                    ? "Shown for Nico in the About team section."
-                    : index === 1
-                      ? "Shown for Benjamin in the About team section."
-                      : "Available as an additional team image."
-              })}
-            />
+          <div className="flex flex-wrap items-start justify-between gap-4">
+            <div>
+              <p className="text-xs uppercase tracking-eyebrow text-muted">
+                Team Mitarbeiter
+              </p>
+              <p className="mt-2 max-w-2xl text-xs leading-5 text-muted">
+                Jeder Eintrag wird als eigener Team-Tab auf der About-Seite
+                angezeigt. Du kannst beliebig viele Mitarbeiter anlegen.
+              </p>
+            </div>
+            <button type="button" onClick={addTeamMember} className="control-pill">
+              <Plus className="h-3.5 w-3.5" />
+              Add member
+            </button>
+          </div>
+
+          <div className="mt-5 space-y-4">
+            {teamMembers.map((member, index) => {
+              const queued = aboutTeamMemberImageFiles.find(
+                (item) => item.index === index
+              );
+
+              return (
+                <div
+                  key={`${member.name}-${index}`}
+                  className="grid gap-5 rounded-[1.75rem] border border-line bg-panel-secondary p-5 lg:grid-cols-[180px_1fr]"
+                >
+                  <div className="space-y-3">
+                    <div className="relative aspect-[4/5] overflow-hidden rounded-[1.25rem] border border-line bg-panel-dark">
+                      {member.image ? (
+                        <Image
+                          src={member.image}
+                          alt={`${member.name || "Team member"} portrait`}
+                          fill
+                          sizes="180px"
+                          unoptimized
+                          className="object-cover"
+                        />
+                      ) : (
+                        <div className="flex h-full items-center justify-center px-4 text-center text-[0.62rem] uppercase tracking-meta text-muted">
+                          No image
+                        </div>
+                      )}
+                    </div>
+                    {queued ? (
+                      <p className="rounded-xl border border-accent/30 bg-accent/10 px-3 py-2 text-[0.62rem] leading-5 text-accent">
+                        Queued: {queued.file.name}
+                      </p>
+                    ) : null}
+                    <label className="control-pill w-full cursor-pointer justify-center">
+                      <Upload className="h-3.5 w-3.5" />
+                      Upload portrait
+                      <input
+                        type="file"
+                        accept="image/*"
+                        className="sr-only"
+                        onChange={(event) =>
+                          setAboutTeamMemberImageFile?.(
+                            index,
+                            event.target.files?.[0] ?? null
+                          )
+                        }
+                      />
+                    </label>
+                  </div>
+
+                  <div className="space-y-3">
+                    <div className="flex flex-wrap items-center justify-between gap-3">
+                      <p className="text-[0.62rem] uppercase tracking-eyebrow text-muted">
+                        Mitarbeiter {String(index + 1).padStart(2, "0")}
+                      </p>
+                      <div className="flex gap-1">
+                        <button
+                          type="button"
+                          onClick={() => moveTeamMember(index, -1)}
+                          disabled={index === 0}
+                          className="flex h-8 w-8 items-center justify-center rounded-full border border-line bg-panel text-muted transition-colors hover:text-foreground disabled:opacity-35"
+                          aria-label="Move member up"
+                        >
+                          <ArrowUp className="h-4 w-4" />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => moveTeamMember(index, 1)}
+                          disabled={index === teamMembers.length - 1}
+                          className="flex h-8 w-8 items-center justify-center rounded-full border border-line bg-panel text-muted transition-colors hover:text-foreground disabled:opacity-35"
+                          aria-label="Move member down"
+                        >
+                          <ArrowDown className="h-4 w-4" />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => removeTeamMember(index)}
+                          className="flex h-8 w-8 items-center justify-center rounded-full border border-line bg-panel text-muted transition-colors hover:text-error"
+                          aria-label="Remove member"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </button>
+                      </div>
+                    </div>
+
+                    <div className="grid gap-3 sm:grid-cols-2">
+                      <label className="block space-y-2 text-xs uppercase tracking-meta text-muted">
+                        Name
+                        <input
+                          value={member.name}
+                          onChange={(event) =>
+                            updateTeamMember(index, "name", event.target.value)
+                          }
+                          className="input-field text-sm normal-case tracking-normal"
+                        />
+                      </label>
+                      <label className="block space-y-2 text-xs uppercase tracking-meta text-muted">
+                        Title
+                        <input
+                          value={member.title}
+                          onChange={(event) =>
+                            updateTeamMember(index, "title", event.target.value)
+                          }
+                          className="input-field text-sm normal-case tracking-normal"
+                        />
+                      </label>
+                      <label className="block space-y-2 text-xs uppercase tracking-meta text-muted">
+                        Position
+                        <input
+                          value={member.position}
+                          onChange={(event) =>
+                            updateTeamMember(
+                              index,
+                              "position",
+                              event.target.value
+                            )
+                          }
+                          className="input-field text-sm normal-case tracking-normal"
+                        />
+                      </label>
+                      <label className="block space-y-2 text-xs uppercase tracking-meta text-muted">
+                        Image URL
+                        <input
+                          value={member.image}
+                          onChange={(event) =>
+                            updateTeamMember(index, "image", event.target.value)
+                          }
+                          className="input-field text-sm normal-case tracking-normal"
+                          placeholder="https://... or /images/..."
+                        />
+                      </label>
+                    </div>
+                    <label className="block space-y-2 text-xs uppercase tracking-meta text-muted">
+                      Individueller Text
+                      <textarea
+                        value={member.description}
+                        onChange={(event) =>
+                          updateTeamMember(
+                            index,
+                            "description",
+                            event.target.value
+                          )
+                        }
+                        className="textarea-field min-h-28 text-sm normal-case leading-6 tracking-normal"
+                      />
+                    </label>
+                  </div>
+                </div>
+              );
+            })}
+
+            {teamMembers.length === 0 ? (
+              <button
+                type="button"
+                onClick={addTeamMember}
+                className="flex min-h-40 w-full items-center justify-center rounded-[1.75rem] border border-dashed border-line text-xs uppercase tracking-ui text-muted transition-colors hover:border-accent hover:text-accent"
+              >
+                <Plus className="mr-2 h-4 w-4" />
+                Add first team member
+              </button>
+            ) : null}
           </div>
         </div>
       </section>

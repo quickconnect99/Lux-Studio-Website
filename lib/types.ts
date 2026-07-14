@@ -29,6 +29,14 @@ export type SocialLink = {
   href: string;
 };
 
+export type TeamMember = {
+  name: string;
+  title: string;
+  position: string;
+  description: string;
+  image: string;
+};
+
 export type Service = {
   number: string;
   title: string;
@@ -129,6 +137,7 @@ export type SiteSettings = {
     positioning: string;
     values: Array<{ title: string; copy: string }>;
     teamImages: string[];
+    teamMembers: TeamMember[];
   };
   services: Service[];
   selectedFrames: string[];

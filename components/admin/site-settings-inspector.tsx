@@ -1,27 +1,16 @@
 "use client";
 
 import { Eye, EyeOff } from "lucide-react";
-import { GalleryEditor } from "@/components/admin/gallery-editor";
 import type { SiteSettingsFieldsProps } from "@/components/admin/site-settings-editor-types";
-import { parseMultilineInput } from "@/lib/admin-utils";
 import { cn } from "@/lib/utils";
 
 export function SiteSettingsInspector({
   formState,
   updateField,
   siteHeroVideoFile = null,
-  selectedFrameFiles = [],
   setSiteHeroVideoFile,
-  addSelectedFrameFiles,
-  removeSelectedFrameFile,
   handleFileSelection
 }: SiteSettingsFieldsProps) {
-  const selectedFrames = parseMultilineInput(formState.selectedFramesText);
-
-  function handleSelectedFramesChange(images: string[]) {
-    updateField("selectedFramesText", images.join("\n"));
-  }
-
   return (
     <aside className="space-y-4 xl:sticky xl:top-6 xl:self-start">
       <div className="panel-2xl p-5">
@@ -140,32 +129,6 @@ export function SiteSettingsInspector({
                 Queued: {siteHeroVideoFile.name}. The URL is filled after save.
               </p>
             ) : null}
-          </div>
-          <div className="space-y-2 text-xs uppercase tracking-meta text-muted">
-            Selected frames
-            <GalleryEditor
-              images={selectedFrames}
-              captions={[]}
-              pendingFiles={selectedFrameFiles}
-              onImagesChange={handleSelectedFramesChange}
-              onFilesAdd={addSelectedFrameFiles ?? (() => undefined)}
-              onFileRemove={removeSelectedFrameFile ?? (() => undefined)}
-              introText="Order controls the homepage selected-frame strip. Frame 01 is shown first."
-              captionPlaceholder={(index) =>
-                `Optional internal note for selected frame ${index + 1}`
-              }
-              getFrameRole={(index) => ({
-                label: index === 0 ? "Homepage lead" : "Homepage frame",
-                description:
-                  index === 0
-                    ? "First still in the homepage selected-frame sequence."
-                    : "Supporting still in the homepage selected-frame sequence."
-              })}
-            />
-            <span className="block text-[0.62rem] normal-case leading-5 tracking-normal text-muted">
-              These drive the first gallery impression on the homepage. Uploads
-              are added to the list after save.
-            </span>
           </div>
         </div>
       </div>

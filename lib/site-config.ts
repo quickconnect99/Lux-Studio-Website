@@ -70,6 +70,24 @@ export const defaultSiteSettings: SiteSettings = {
       "/images/demo-car-02.jpg",
       "/images/demo-car-03.jpg"
     ],
+    teamMembers: [
+      {
+        name: "Nico Hagelberger",
+        title: "Creative Partner",
+        position: "Production & Client Direction",
+        description:
+          "Nico shapes the project brief, keeps communication clear, and translates campaign goals into shoot priorities, deliverables, and rollout-ready assets.",
+        image: "/images/demo-car-02.jpg"
+      },
+      {
+        name: "Benjamin Reuteler",
+        title: "Creative Partner",
+        position: "Film & Visual Direction",
+        description:
+          "Benjamin leads framing, pacing, and visual consistency on set, making sure each film and still set carries the same controlled studio language.",
+        image: "/images/demo-car-03.jpg"
+      }
+    ],
     values: [
       {
         title: "Precision",

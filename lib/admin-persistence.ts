@@ -11,7 +11,7 @@ import {
 } from "@/lib/admin-utils";
 import { normalizeProjectGallery } from "@/lib/project-images";
 import { SITE_SETTINGS_ID } from "@/lib/supabase";
-import type { Project } from "@/lib/types";
+import type { Project, TeamMember } from "@/lib/types";
 
 export const MAX_IMAGE_BYTES = 25 * 1024 * 1024;
 export const MAX_VIDEO_BYTES = 2 * 1024 * 1024 * 1024;
@@ -141,6 +141,8 @@ export function buildLocalProject({
 export function buildSiteSettingsDatabasePayload(
   formState: SiteSettingsFormState
 ) {
+  const teamMembers = normalizeTeamMembersForSave(formState.aboutTeamMembers);
+
   return {
     id: SITE_SETTINGS_ID,
     brand_name: formState.brandName,
@@ -160,7 +162,8 @@ export function buildSiteSettingsDatabasePayload(
     hero_video_url: formState.heroVideoUrl,
     about_founder_note: formState.aboutFounderNote,
     about_positioning: formState.aboutPositioning,
-    about_team_images: parseMultilineInput(formState.aboutTeamImagesText),
+    about_team_images: teamMembers.map((member) => member.image),
+    about_team_members: teamMembers,
     about_values: parseValuesText(formState.aboutValuesText),
     services: parseServicesText(formState.servicesText),
     selected_frames: parseMultilineInput(formState.selectedFramesText),
@@ -173,4 +176,16 @@ export function buildSiteSettingsDatabasePayload(
     },
     site_copy: formState.copy
   };
+}
+
+function normalizeTeamMembersForSave(members: TeamMember[]) {
+  return members
+    .map((member) => ({
+      name: member.name.trim(),
+      title: member.title.trim(),
+      position: member.position.trim(),
+      description: member.description.trim(),
+      image: member.image.trim()
+    }))
+    .filter((member) => member.name || member.image);
 }

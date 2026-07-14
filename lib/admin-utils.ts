@@ -315,7 +315,11 @@ export function toSiteSettingsFormState(
     heroVideoUrl: settings.hero.videoUrl,
     aboutFounderNote: settings.about.founderNote,
     aboutPositioning: settings.about.positioning,
-    aboutTeamImagesText: settings.about.teamImages.join("\n"),
+    aboutTeamImagesText: settings.about.teamMembers
+      .map((member) => member.image)
+      .filter(Boolean)
+      .join("\n"),
+    aboutTeamMembers: settings.about.teamMembers,
     aboutValuesText: formatValuesText(settings.about.values),
     servicesText: formatServicesText(settings.services),
     selectedFramesText: settings.selectedFrames.join("\n"),

@@ -12,7 +12,8 @@ import type {
   Service,
   SiteCopy,
   SiteSettings,
-  SocialLink
+  SocialLink,
+  TeamMember
 } from "@/lib/types";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -120,6 +121,7 @@ type SupabaseSiteSettingsRow = {
   about_founder_note: string | null;
   about_positioning: string | null;
   about_team_images: string[] | null;
+  about_team_members: TeamMember[] | null;
   about_values: Array<{ title: string; copy: string }> | null;
   services: Service[] | null;
   selected_frames: string[] | null;
@@ -189,6 +191,30 @@ function normalizeSelectedFrames(frames: string[] | null | undefined) {
   }
 
   return frames.map((frame) => frame.trim()).filter(Boolean);
+}
+
+function normalizeTeamMembers(
+  members: TeamMember[] | null | undefined,
+  legacyImages: string[] | null | undefined
+) {
+  if (Array.isArray(members) && members.length > 0) {
+    return members
+      .map((member) => ({
+        name: member?.name?.trim() ?? "",
+        title: member?.title?.trim() ?? "",
+        position: member?.position?.trim() ?? "",
+        description: member?.description?.trim() ?? "",
+        image: normalizePublicMediaUrl(member?.image) || ""
+      }))
+      .filter((member) => member.name && member.image);
+  }
+
+  const legacy = filterPublicMediaUrls(legacyImages);
+
+  return defaultSiteSettings.about.teamMembers.map((member, index) => ({
+    ...member,
+    image: legacy[index] ?? member.image
+  }));
 }
 
 export function normalizeProjectRecord(record: SupabaseProjectRow): Project {
@@ -265,6 +291,10 @@ export function normalizeSiteSettingsRecord(
         record.about_positioning?.trim() ||
         defaultSiteSettings.about.positioning,
       teamImages: filterPublicMediaUrls(record.about_team_images),
+      teamMembers: normalizeTeamMembers(
+        record.about_team_members,
+        record.about_team_images
+      ),
       values:
         Array.isArray(record.about_values) && record.about_values.length > 0
           ? record.about_values
