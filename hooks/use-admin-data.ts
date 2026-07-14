@@ -149,6 +149,7 @@ export function useAdminData() {
     videoFile,
     siteHeroVideoFile,
     selectedFrameFiles,
+    aboutTeamImageFiles,
     coverPreviewUrl,
     setCoverFile,
     setVideoFile,
@@ -157,6 +158,8 @@ export function useAdminData() {
     removeGalleryFile,
     addSelectedFrameFiles,
     removeSelectedFrameFile,
+    addAboutTeamImageFiles,
+    removeAboutTeamImageFile,
     handleFileSelection,
     clearMedia,
     clearSiteSettingsMedia
@@ -181,7 +184,8 @@ export function useAdminData() {
     serializeSiteSettingsFormState(siteSettingsFormState) !==
       savedSiteSettingsSnapshot ||
     Boolean(siteHeroVideoFile) ||
-    selectedFrameFiles.length > 0;
+    selectedFrameFiles.length > 0 ||
+    aboutTeamImageFiles.length > 0;
 
   const coverPreviewImage = coverPreviewUrl ?? formState.coverImage;
 
@@ -937,8 +941,13 @@ export function useAdminData() {
       let selectedFrames = parseMultilineInput(
         siteSettingsFormState.selectedFramesText
       );
+      let aboutTeamImages = parseMultilineInput(
+        siteSettingsFormState.aboutTeamImagesText
+      );
       const totalFiles =
-        (siteHeroVideoFile ? 1 : 0) + selectedFrameFiles.length;
+        (siteHeroVideoFile ? 1 : 0) +
+        selectedFrameFiles.length +
+        aboutTeamImageFiles.length;
       let uploadedCount = 0;
 
       if (siteHeroVideoFile) {
@@ -963,12 +972,26 @@ export function useAdminData() {
         selectedFrames = [...selectedFrames, ...uploadedFrames];
       }
 
+      if (aboutTeamImageFiles.length > 0) {
+        const uploadedTeamImages: string[] = [];
+        for (const file of aboutTeamImageFiles) {
+          setUploadProgress({
+            current: ++uploadedCount,
+            total: totalFiles,
+            filename: file.name
+          });
+          uploadedTeamImages.push(await uploadFile(file, "about-team"));
+        }
+        aboutTeamImages = [...aboutTeamImages, ...uploadedTeamImages];
+      }
+
       setUploadProgress(null);
 
       const nextFormState: SiteSettingsFormState = {
         ...siteSettingsFormState,
         heroVideoUrl,
-        selectedFramesText: selectedFrames.join("\n")
+        selectedFramesText: selectedFrames.join("\n"),
+        aboutTeamImagesText: aboutTeamImages.join("\n")
       };
       const payload = buildSiteSettingsDatabasePayload(nextFormState);
 
@@ -1014,6 +1037,18 @@ export function useAdminData() {
                     selectedFrameFiles.length === 1 ? "" : "s"
                   } uploaded`,
                   detail: "Selected frames",
+                  tone: "success" as const
+                }
+              ]
+            : []),
+          ...(aboutTeamImageFiles.length > 0
+            ? [
+                {
+                  id: "about-team-images",
+                  label: `${aboutTeamImageFiles.length} team image${
+                    aboutTeamImageFiles.length === 1 ? "" : "s"
+                  } uploaded`,
+                  detail: "About team",
                   tone: "success" as const
                 }
               ]
@@ -1091,9 +1126,12 @@ export function useAdminData() {
     setVideoFile,
     siteHeroVideoFile,
     selectedFrameFiles,
+    aboutTeamImageFiles,
     setSiteHeroVideoFile,
     addSelectedFrameFiles,
     removeSelectedFrameFile,
+    addAboutTeamImageFiles,
+    removeAboutTeamImageFile,
     formState,
     isTemplateProject,
     updateField,

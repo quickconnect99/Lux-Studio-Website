@@ -128,6 +128,7 @@ export type SiteSettings = {
     founderNote: string;
     positioning: string;
     values: Array<{ title: string; copy: string }>;
+    teamImages: string[];
   };
   services: Service[];
   selectedFrames: string[];

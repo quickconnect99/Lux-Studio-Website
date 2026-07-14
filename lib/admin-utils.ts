@@ -315,6 +315,7 @@ export function toSiteSettingsFormState(
     heroVideoUrl: settings.hero.videoUrl,
     aboutFounderNote: settings.about.founderNote,
     aboutPositioning: settings.about.positioning,
+    aboutTeamImagesText: settings.about.teamImages.join("\n"),
     aboutValuesText: formatValuesText(settings.about.values),
     servicesText: formatServicesText(settings.services),
     selectedFramesText: settings.selectedFrames.join("\n"),

@@ -25,6 +25,7 @@ export function useAdminMedia({
   const [siteHeroVideoFile, setSiteHeroVideoFileState] =
     useState<File | null>(null);
   const [selectedFrameFiles, setSelectedFrameFiles] = useState<File[]>([]);
+  const [aboutTeamImageFiles, setAboutTeamImageFiles] = useState<File[]>([]);
   const [coverPreviewUrl, setCoverPreviewUrl] = useState<string | null>(null);
 
   useEffect(() => {
@@ -69,11 +70,13 @@ export function useAdminMedia({
     setVideoFileState(null);
     setSiteHeroVideoFileState(null);
     setSelectedFrameFiles([]);
+    setAboutTeamImageFiles([]);
   }, []);
 
   const clearSiteSettingsMedia = useCallback(() => {
     setSiteHeroVideoFileState(null);
     setSelectedFrameFiles([]);
+    setAboutTeamImageFiles([]);
   }, []);
 
   const addGalleryFiles = useCallback(
@@ -130,6 +133,33 @@ export function useAdminMedia({
     [onChange]
   );
 
+  const addAboutTeamImageFiles = useCallback(
+    (newFiles: File[]) => {
+      const oversized = getOversizedFiles(newFiles, MAX_IMAGE_BYTES);
+
+      if (oversized.length > 0) {
+        onError(
+          `Files too large: ${oversized.map((file) => file.name).join(", ")}. Maximum 25 MB per image.`
+        );
+        return;
+      }
+
+      onChange();
+      setAboutTeamImageFiles((current) => [...current, ...newFiles]);
+    },
+    [onChange, onError]
+  );
+
+  const removeAboutTeamImageFile = useCallback(
+    (index: number) => {
+      onChange();
+      setAboutTeamImageFiles((current) =>
+        current.filter((_, fileIndex) => fileIndex !== index)
+      );
+    },
+    [onChange]
+  );
+
   const handleFileSelection = useCallback(
     (
       event: ChangeEvent<HTMLInputElement>,
@@ -162,6 +192,7 @@ export function useAdminMedia({
     videoFile,
     siteHeroVideoFile,
     selectedFrameFiles,
+    aboutTeamImageFiles,
     coverPreviewUrl,
     setCoverFile,
     setVideoFile,
@@ -170,6 +201,8 @@ export function useAdminMedia({
     removeGalleryFile,
     addSelectedFrameFiles,
     removeSelectedFrameFile,
+    addAboutTeamImageFiles,
+    removeAboutTeamImageFile,
     handleFileSelection,
     clearMedia,
     clearSiteSettingsMedia

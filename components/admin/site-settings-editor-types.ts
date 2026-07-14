@@ -12,9 +12,12 @@ export type SiteSettingsEditorProps = {
   working: boolean;
   siteHeroVideoFile?: File | null;
   selectedFrameFiles?: File[];
+  aboutTeamImageFiles?: File[];
   setSiteHeroVideoFile?: (file: File | null) => void;
   addSelectedFrameFiles?: (files: File[]) => void;
   removeSelectedFrameFile?: (index: number) => void;
+  addAboutTeamImageFiles?: (files: File[]) => void;
+  removeAboutTeamImageFile?: (index: number) => void;
   handleFileSelection?: (
     event: ChangeEvent<HTMLInputElement>,
     type: "cover" | "video" | "siteHeroVideo"
@@ -27,9 +30,12 @@ export type SiteSettingsFieldsProps = Pick<
   | "updateField"
   | "siteHeroVideoFile"
   | "selectedFrameFiles"
+  | "aboutTeamImageFiles"
   | "setSiteHeroVideoFile"
   | "addSelectedFrameFiles"
   | "removeSelectedFrameFile"
+  | "addAboutTeamImageFiles"
+  | "removeAboutTeamImageFile"
   | "handleFileSelection"
 >;
 

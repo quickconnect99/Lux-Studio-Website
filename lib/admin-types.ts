@@ -72,6 +72,7 @@ export type SiteSettingsFormState = {
   // About
   aboutFounderNote: string;
   aboutPositioning: string;
+  aboutTeamImagesText: string;
   aboutValuesText: string; // one per line: "Title | Copy"
   // Services
   servicesText: string; // one per line: "01 | Title | Description | deliverable1, deliverable2"

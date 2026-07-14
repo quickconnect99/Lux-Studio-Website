@@ -119,6 +119,7 @@ type SupabaseSiteSettingsRow = {
   hero_video_url: string | null;
   about_founder_note: string | null;
   about_positioning: string | null;
+  about_team_images: string[] | null;
   about_values: Array<{ title: string; copy: string }> | null;
   services: Service[] | null;
   selected_frames: string[] | null;
@@ -263,6 +264,7 @@ export function normalizeSiteSettingsRecord(
       positioning:
         record.about_positioning?.trim() ||
         defaultSiteSettings.about.positioning,
+      teamImages: filterPublicMediaUrls(record.about_team_images),
       values:
         Array.isArray(record.about_values) && record.about_values.length > 0
           ? record.about_values

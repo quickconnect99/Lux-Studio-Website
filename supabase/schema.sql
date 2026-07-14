@@ -201,6 +201,7 @@ alter table public.site_settings
   add column if not exists hero_video_url   text,
   add column if not exists about_founder_note text,
   add column if not exists about_positioning  text,
+  add column if not exists about_team_images  text[] not null default '{}',
   add column if not exists about_values     jsonb not null default '[]'::jsonb,
   add column if not exists services         jsonb not null default '[]'::jsonb,
   add column if not exists selected_frames  text[] not null default '{}',

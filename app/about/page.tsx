@@ -30,6 +30,7 @@ export default async function AboutPage() {
     stills[0] ?? "/images/demo-car-02.jpg",
     stills[1] ?? "/images/demo-car-03.jpg"
   ];
+  const teamImages = publicSettings.about.teamImages;
   const teamMembers = [
     {
       name: "Nico Hagelberger",
@@ -38,7 +39,7 @@ export default async function AboutPage() {
       description:
         "Nico shapes the project brief, keeps communication clear, and translates campaign goals into shoot priorities, deliverables, and rollout-ready assets.",
       image:
-        publicSettings.selectedFrames[0] ??
+        teamImages[0] ??
         founderImages[0] ??
         "/images/demo-car-02.jpg"
     },
@@ -49,7 +50,7 @@ export default async function AboutPage() {
       description:
         "Benjamin leads framing, pacing, and visual consistency on set, making sure each film and still set carries the same controlled studio language.",
       image:
-        publicSettings.selectedFrames[1] ??
+        teamImages[1] ??
         founderImages[1] ??
         "/images/demo-car-03.jpg"
     }

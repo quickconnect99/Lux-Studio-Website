@@ -160,6 +160,7 @@ export function buildSiteSettingsDatabasePayload(
     hero_video_url: formState.heroVideoUrl,
     about_founder_note: formState.aboutFounderNote,
     about_positioning: formState.aboutPositioning,
+    about_team_images: parseMultilineInput(formState.aboutTeamImagesText),
     about_values: parseValuesText(formState.aboutValuesText),
     services: parseServicesText(formState.servicesText),
     selected_frames: parseMultilineInput(formState.selectedFramesText),

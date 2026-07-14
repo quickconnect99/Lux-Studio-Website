@@ -66,6 +66,10 @@ export const defaultSiteSettings: SiteSettings = {
       "The studio was built around a simple idea: strong subjects deserve careful pacing, clean framing, and images that hold attention without shouting for it.",
     positioning:
       "We work as an extension of your marketing team: one shoot, cut down into a hero film, stills, and social content that all look like they belong together.",
+    teamImages: [
+      "/images/demo-car-02.jpg",
+      "/images/demo-car-03.jpg"
+    ],
     values: [
       {
         title: "Precision",

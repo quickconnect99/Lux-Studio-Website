@@ -12,15 +12,23 @@ export function SiteSettingsInspector({
   updateField,
   siteHeroVideoFile = null,
   selectedFrameFiles = [],
+  aboutTeamImageFiles = [],
   setSiteHeroVideoFile,
   addSelectedFrameFiles,
   removeSelectedFrameFile,
+  addAboutTeamImageFiles,
+  removeAboutTeamImageFile,
   handleFileSelection
 }: SiteSettingsFieldsProps) {
   const selectedFrames = parseMultilineInput(formState.selectedFramesText);
+  const aboutTeamImages = parseMultilineInput(formState.aboutTeamImagesText);
 
   function handleSelectedFramesChange(images: string[]) {
     updateField("selectedFramesText", images.join("\n"));
+  }
+
+  function handleAboutTeamImagesChange(images: string[]) {
+    updateField("aboutTeamImagesText", images.join("\n"));
   }
 
   return (
@@ -166,6 +174,39 @@ export function SiteSettingsInspector({
             <span className="block text-[0.62rem] normal-case leading-5 tracking-normal text-muted">
               These drive the first gallery impression on the homepage. Uploads
               are added to the list after save.
+            </span>
+          </div>
+          <div className="space-y-2 text-xs uppercase tracking-meta text-muted">
+            About team images
+            <GalleryEditor
+              images={aboutTeamImages}
+              captions={[]}
+              pendingFiles={aboutTeamImageFiles}
+              onImagesChange={handleAboutTeamImagesChange}
+              onFilesAdd={addAboutTeamImageFiles ?? (() => undefined)}
+              onFileRemove={removeAboutTeamImageFile ?? (() => undefined)}
+              introText="These images drive the About page team portraits. Frame 01 is used for Nico, frame 02 for Benjamin."
+              captionPlaceholder={(index) =>
+                `Optional internal note for team image ${index + 1}`
+              }
+              getFrameRole={(index) => ({
+                label:
+                  index === 0
+                    ? "Nico portrait"
+                    : index === 1
+                      ? "Benjamin portrait"
+                      : "Team fallback",
+                description:
+                  index === 0
+                    ? "Shown for Nico in the About team section."
+                    : index === 1
+                      ? "Shown for Benjamin in the About team section."
+                      : "Available as an additional team image."
+              })}
+            />
+            <span className="block text-[0.62rem] normal-case leading-5 tracking-normal text-muted">
+              These are separate from homepage selected frames and project
+              galleries. Uploads are added to the list after save.
             </span>
           </div>
         </div>
