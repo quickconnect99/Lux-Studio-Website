@@ -100,7 +100,7 @@ export function SelectedFrames({ frames }: SelectedFramesProps) {
           "transition-all duration-500 ease-out",
           isCenter
             ? "left-1/2 top-0 z-30 w-[78vw] -translate-x-1/2 sm:w-[48%]"
-            : "top-[20%] z-10 w-[78vw] opacity-90 sm:w-[46%]",
+            : "top-[30%] z-10 w-[78vw] opacity-90 sm:w-[46%]",
           position === "left" && "-left-[47vw] sm:left-0 lg:left-0",
           position === "right" && "-right-[47vw] sm:right-0 lg:right-0"
         )}
@@ -167,7 +167,7 @@ export function SelectedFrames({ frames }: SelectedFramesProps) {
         </div>
 
         <Reveal variant="default" className="pt-8">
-          <div className="relative mx-auto h-[82vw] min-h-[340px] max-w-[1360px] overflow-hidden pb-10 pt-4 sm:h-[45vw] sm:min-h-[400px] lg:max-h-[620px]">
+          <div className="relative mx-auto h-[92vw] min-h-[380px] max-w-[1360px] overflow-hidden pb-10 pt-4 sm:h-[51vw] sm:min-h-[440px] lg:max-h-[690px]">
             {frameItems.length > 1
               ? renderFrameButton({ index: previousIndex, position: "left" })
               : null}
