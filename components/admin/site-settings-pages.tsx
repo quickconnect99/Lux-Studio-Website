@@ -9,11 +9,13 @@ import { updateCopySection } from "@/components/admin/site-settings-copy";
 import {
   type SiteSettingsEditorProps as Props
 } from "@/components/admin/site-settings-editor-types";
+import { GalleryEditor } from "@/components/admin/gallery-editor";
 import { InlineText } from "@/components/admin/site-settings-inline-text";
 import { SiteSettingsPageHeader } from "@/components/admin/site-settings-page-header";
 import {
   formatServicesText,
   formatValuesText,
+  parseMultilineInput,
   parseServicesText,
   parseSocialLinksText,
   parseValuesText
@@ -364,14 +366,29 @@ export function ServicesPreview({
 
 export function AboutPreview({
   formState,
-  updateField
-}: Pick<Props, "formState" | "updateField">) {
+  updateField,
+  aboutTeamImageFiles = [],
+  addAboutTeamImageFiles,
+  removeAboutTeamImageFile
+}: Pick<
+  Props,
+  | "formState"
+  | "updateField"
+  | "aboutTeamImageFiles"
+  | "addAboutTeamImageFiles"
+  | "removeAboutTeamImageFile"
+>) {
   const values = parseValuesText(formState.aboutValuesText);
+  const aboutTeamImages = parseMultilineInput(formState.aboutTeamImagesText);
 
   function updateValue(index: number, key: "title" | "copy", value: string) {
     const next = [...values];
     next[index] = { ...next[index], [key]: value };
     updateField("aboutValuesText", formatValuesText(next));
+  }
+
+  function handleAboutTeamImagesChange(images: string[]) {
+    updateField("aboutTeamImagesText", images.join("\n"));
   }
 
   return (
@@ -468,6 +485,44 @@ export function AboutPreview({
               />
             </div>
           ))}
+        </div>
+        <div className="mt-5 panel-2xl p-7">
+          <p className="text-xs uppercase tracking-eyebrow text-muted">
+            Team Bilder
+          </p>
+          <p className="mt-2 max-w-2xl text-xs leading-5 text-muted">
+            Bild 01 wird fuer Nico verwendet, Bild 02 fuer Benjamin. Du kannst
+            Links eintragen, lokale Dateien hochladen und die Reihenfolge wie
+            bei Projekt-Galerien verschieben.
+          </p>
+          <div className="mt-5">
+            <GalleryEditor
+              images={aboutTeamImages}
+              captions={[]}
+              pendingFiles={aboutTeamImageFiles}
+              onImagesChange={handleAboutTeamImagesChange}
+              onFilesAdd={addAboutTeamImageFiles ?? (() => undefined)}
+              onFileRemove={removeAboutTeamImageFile ?? (() => undefined)}
+              introText="Separate portraits for the About page team section."
+              captionPlaceholder={(index) =>
+                `Optional internal note for team image ${index + 1}`
+              }
+              getFrameRole={(index) => ({
+                label:
+                  index === 0
+                    ? "Nico portrait"
+                    : index === 1
+                      ? "Benjamin portrait"
+                      : "Team fallback",
+                description:
+                  index === 0
+                    ? "Shown for Nico in the About team section."
+                    : index === 1
+                      ? "Shown for Benjamin in the About team section."
+                      : "Available as an additional team image."
+              })}
+            />
+          </div>
         </div>
       </section>
     </>

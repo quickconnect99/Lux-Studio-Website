@@ -1,7 +1,6 @@
 "use client";
 
 import { Eye, EyeOff } from "lucide-react";
-import Image from "next/image";
 import { GalleryEditor } from "@/components/admin/gallery-editor";
 import type { SiteSettingsFieldsProps } from "@/components/admin/site-settings-editor-types";
 import { parseMultilineInput } from "@/lib/admin-utils";
@@ -12,23 +11,15 @@ export function SiteSettingsInspector({
   updateField,
   siteHeroVideoFile = null,
   selectedFrameFiles = [],
-  aboutTeamImageFiles = [],
   setSiteHeroVideoFile,
   addSelectedFrameFiles,
   removeSelectedFrameFile,
-  addAboutTeamImageFiles,
-  removeAboutTeamImageFile,
   handleFileSelection
 }: SiteSettingsFieldsProps) {
   const selectedFrames = parseMultilineInput(formState.selectedFramesText);
-  const aboutTeamImages = parseMultilineInput(formState.aboutTeamImagesText);
 
   function handleSelectedFramesChange(images: string[]) {
     updateField("selectedFramesText", images.join("\n"));
-  }
-
-  function handleAboutTeamImagesChange(images: string[]) {
-    updateField("aboutTeamImagesText", images.join("\n"));
   }
 
   return (
@@ -176,39 +167,6 @@ export function SiteSettingsInspector({
               are added to the list after save.
             </span>
           </div>
-          <div className="space-y-2 text-xs uppercase tracking-meta text-muted">
-            About team images
-            <GalleryEditor
-              images={aboutTeamImages}
-              captions={[]}
-              pendingFiles={aboutTeamImageFiles}
-              onImagesChange={handleAboutTeamImagesChange}
-              onFilesAdd={addAboutTeamImageFiles ?? (() => undefined)}
-              onFileRemove={removeAboutTeamImageFile ?? (() => undefined)}
-              introText="These images drive the About page team portraits. Frame 01 is used for Nico, frame 02 for Benjamin."
-              captionPlaceholder={(index) =>
-                `Optional internal note for team image ${index + 1}`
-              }
-              getFrameRole={(index) => ({
-                label:
-                  index === 0
-                    ? "Nico portrait"
-                    : index === 1
-                      ? "Benjamin portrait"
-                      : "Team fallback",
-                description:
-                  index === 0
-                    ? "Shown for Nico in the About team section."
-                    : index === 1
-                      ? "Shown for Benjamin in the About team section."
-                      : "Available as an additional team image."
-              })}
-            />
-            <span className="block text-[0.62rem] normal-case leading-5 tracking-normal text-muted">
-              These are separate from homepage selected frames and project
-              galleries. Uploads are added to the list after save.
-            </span>
-          </div>
         </div>
       </div>
 
@@ -235,43 +193,6 @@ export function SiteSettingsInspector({
               className="textarea-field min-h-28 text-sm normal-case leading-6 tracking-normal"
             />
           </label>
-          <label className="block space-y-2 text-xs uppercase tracking-meta text-muted">
-            OG image
-            <input
-              value={formState.seoOgImage}
-              onChange={(event) =>
-                updateField("seoOgImage", event.target.value)
-              }
-              className="input-field text-sm normal-case tracking-normal"
-            />
-            <span className="block text-[0.62rem] normal-case leading-5 tracking-normal text-muted">
-              This image is shown by link previews when the homepage is shared
-              on social apps, messaging apps, Slack, and search result cards.
-              Use a public image URL or a site path like `/images/demo-car-01.jpg`.
-            </span>
-          </label>
-          {formState.seoOgImage ? (
-            <div className="overflow-hidden rounded-[1rem] border border-line bg-panel-secondary">
-              <div className="relative aspect-[1.91/1] bg-panel-dark">
-                <Image
-                  src={formState.seoOgImage}
-                  alt="OG image preview"
-                  fill
-                  sizes="300px"
-                  unoptimized
-                  className="object-cover"
-                />
-              </div>
-              <div className="space-y-1 px-3 py-3">
-                <p className="truncate text-xs font-medium normal-case tracking-normal text-foreground">
-                  {formState.seoTitle}
-                </p>
-                <p className="line-clamp-2 text-[0.68rem] normal-case leading-5 tracking-normal text-muted">
-                  {formState.seoDescription}
-                </p>
-              </div>
-            </div>
-          ) : null}
         </div>
       </div>
 

@@ -77,9 +77,12 @@ export function SiteSettingsPreview({
   working,
   siteHeroVideoFile,
   selectedFrameFiles,
+  aboutTeamImageFiles,
   setSiteHeroVideoFile,
   addSelectedFrameFiles,
   removeSelectedFrameFile,
+  addAboutTeamImageFiles,
+  removeAboutTeamImageFile,
   handleFileSelection
 }: SiteSettingsEditorProps) {
   const [page, setPage] = useState<PreviewPage>("home");
@@ -141,6 +144,9 @@ export function SiteSettingsPreview({
                 <SiteSettingsAboutPreview
                   formState={formState}
                   updateField={updateField}
+                  aboutTeamImageFiles={aboutTeamImageFiles}
+                  addAboutTeamImageFiles={addAboutTeamImageFiles}
+                  removeAboutTeamImageFile={removeAboutTeamImageFile}
                 />
               ) : null}
               {page === "contact" ? (
