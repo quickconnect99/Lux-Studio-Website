@@ -12,7 +12,7 @@ export function SiteSettingsInspector({
   handleFileSelection
 }: SiteSettingsFieldsProps) {
   return (
-    <aside className="space-y-4 xl:sticky xl:top-6 xl:self-start">
+    <section className="grid gap-4 lg:grid-cols-2">
       <div className="panel-2xl p-5">
         <p className="text-xs uppercase tracking-eyebrow text-muted">
           Main navigation
@@ -133,7 +133,7 @@ export function SiteSettingsInspector({
         </div>
       </div>
 
-      <div className="panel-2xl p-5">
+      <div className="panel-2xl p-5 lg:col-span-2">
         <p className="text-xs uppercase tracking-eyebrow text-muted">
           SEO & sharing
         </p>
@@ -159,7 +159,7 @@ export function SiteSettingsInspector({
         </div>
       </div>
 
-      <div className="panel-2xl p-5">
+      <div className="panel-2xl p-5 lg:col-span-2">
         <p className="text-xs uppercase tracking-eyebrow text-muted">
           Social destinations
         </p>
@@ -175,6 +175,6 @@ export function SiteSettingsInspector({
           One line per link: label | URL
         </p>
       </div>
-    </aside>
+    </section>
   );
 }

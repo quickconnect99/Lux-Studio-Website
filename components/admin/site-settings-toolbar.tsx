@@ -58,53 +58,60 @@ export function SiteSettingsToolbar({
       <div className="flex flex-wrap items-center gap-2">
         <div className="flex flex-wrap rounded-full border border-line bg-panel-secondary p-1">
           {(
-            ["home", "work", "services", "about", "contact"] as PreviewPage[]
-          ).map(
-            (previewPage) => (
-              <button
-                key={previewPage}
-                type="button"
-                onClick={() => onPageChange(previewPage)}
-                className={cn(
-                  "rounded-full px-3 py-2 text-[0.58rem] uppercase tracking-ui",
-                  page === previewPage
-                    ? "bg-foreground text-background"
-                    : "text-muted"
-                )}
-              >
-                {previewPage}
-              </button>
-            )
-          )}
+            [
+              ["general", "00 General"],
+              ["home", "01 Home"],
+              ["work", "02 Work"],
+              ["services", "03 Services"],
+              ["about", "04 About"],
+              ["contact", "05 Contact"]
+            ] as Array<[PreviewPage, string]>
+          ).map(([previewPage, label]) => (
+            <button
+              key={previewPage}
+              type="button"
+              onClick={() => onPageChange(previewPage)}
+              className={cn(
+                "rounded-full px-3 py-2 text-[0.58rem] uppercase tracking-ui",
+                page === previewPage
+                  ? "bg-foreground text-background"
+                  : "text-muted"
+              )}
+            >
+              {label}
+            </button>
+          ))}
         </div>
-        <div className="flex rounded-full border border-line bg-panel-secondary p-1">
-          <button
-            type="button"
-            onClick={() => onPreviewWidthChange("desktop")}
-            aria-label="Desktop preview"
-            className={cn(
-              "rounded-full p-2",
-              previewWidth === "desktop"
-                ? "bg-foreground text-background"
-                : "text-muted"
-            )}
-          >
-            <Monitor className="h-4 w-4" />
-          </button>
-          <button
-            type="button"
-            onClick={() => onPreviewWidthChange("mobile")}
-            aria-label="Mobile preview"
-            className={cn(
-              "rounded-full p-2",
-              previewWidth === "mobile"
-                ? "bg-foreground text-background"
-                : "text-muted"
-            )}
-          >
-            <Smartphone className="h-4 w-4" />
-          </button>
-        </div>
+        {page !== "general" ? (
+          <div className="flex rounded-full border border-line bg-panel-secondary p-1">
+            <button
+              type="button"
+              onClick={() => onPreviewWidthChange("desktop")}
+              aria-label="Desktop preview"
+              className={cn(
+                "rounded-full p-2",
+                previewWidth === "desktop"
+                  ? "bg-foreground text-background"
+                  : "text-muted"
+              )}
+            >
+              <Monitor className="h-4 w-4" />
+            </button>
+            <button
+              type="button"
+              onClick={() => onPreviewWidthChange("mobile")}
+              aria-label="Mobile preview"
+              className={cn(
+                "rounded-full p-2",
+                previewWidth === "mobile"
+                  ? "bg-foreground text-background"
+                  : "text-muted"
+              )}
+            >
+              <Smartphone className="h-4 w-4" />
+            </button>
+          </div>
+        ) : null}
         <a href="/" target="_blank" rel="noreferrer" className="control-pill">
           Live site
           <ExternalLink className="h-3.5 w-3.5" />

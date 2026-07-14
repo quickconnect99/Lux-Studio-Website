@@ -84,8 +84,9 @@ export function SiteSettingsPreview({
   setAboutTeamMemberImageFile,
   handleFileSelection
 }: SiteSettingsEditorProps) {
-  const [page, setPage] = useState<PreviewPage>("home");
+  const [page, setPage] = useState<PreviewPage>("general");
   const [previewWidth, setPreviewWidth] = useState<PreviewWidth>("desktop");
+  const isGeneralPage = page === "general";
 
   return (
     <form onSubmit={onSubmit} id="site-settings-form" className="space-y-5">
@@ -98,12 +99,14 @@ export function SiteSettingsPreview({
         onPreviewWidthChange={setPreviewWidth}
       />
 
-      <div className="grid items-start gap-5 xl:grid-cols-[minmax(0,1fr)_300px]">
+      <div>
         <div className="bg-panel-dark/20 min-w-0 overflow-x-auto rounded-[2rem] border border-line p-2 sm:p-4">
           <div
             className={cn(
               "mx-auto overflow-hidden rounded-[1.5rem] border border-line bg-background shadow-2xl transition-[max-width] duration-300",
-              previewWidth === "mobile" ? "max-w-[430px]" : "max-w-none"
+              !isGeneralPage && previewWidth === "mobile"
+                ? "max-w-[430px]"
+                : "max-w-none"
             )}
           >
             <div className="flex items-center gap-1.5 border-b border-line bg-panel-secondary px-4 py-3">
@@ -111,16 +114,31 @@ export function SiteSettingsPreview({
               <span className="bg-warning/70 h-2.5 w-2.5 rounded-full" />
               <span className="bg-success/70 h-2.5 w-2.5 rounded-full" />
               <span className="ml-3 truncate rounded-full border border-line bg-panel px-4 py-1 text-[0.58rem] uppercase tracking-ui text-muted">
-                Live preview · click any highlighted text to edit
+                {isGeneralPage
+                  ? "General settings · not visible as live page"
+                  : "Live preview · click any highlighted text to edit"}
               </span>
             </div>
-            <SiteSettingsPreviewHeader
-              formState={formState}
-              updateField={updateField}
-              page={page}
-              onPageChange={setPage}
-            />
+            {!isGeneralPage ? (
+              <SiteSettingsPreviewHeader
+                formState={formState}
+                updateField={updateField}
+                page={page}
+                onPageChange={setPage}
+              />
+            ) : null}
             <main>
+              {isGeneralPage ? (
+                <div className="p-5 sm:p-7">
+                  <SiteSettingsInspector
+                    formState={formState}
+                    updateField={updateField}
+                    siteHeroVideoFile={siteHeroVideoFile}
+                    setSiteHeroVideoFile={setSiteHeroVideoFile}
+                    handleFileSelection={handleFileSelection}
+                  />
+                </div>
+              ) : null}
               {page === "home" ? (
                 <SiteSettingsHomePreview
                   formState={formState}
@@ -157,23 +175,14 @@ export function SiteSettingsPreview({
                 />
               ) : null}
             </main>
-            <SiteSettingsPreviewFooter
-              formState={formState}
-              updateField={updateField}
-            />
+            {!isGeneralPage ? (
+              <SiteSettingsPreviewFooter
+                formState={formState}
+                updateField={updateField}
+              />
+            ) : null}
           </div>
         </div>
-
-        <SiteSettingsInspector
-          formState={formState}
-          updateField={updateField}
-          siteHeroVideoFile={siteHeroVideoFile}
-          selectedFrameFiles={selectedFrameFiles}
-          setSiteHeroVideoFile={setSiteHeroVideoFile}
-          addSelectedFrameFiles={addSelectedFrameFiles}
-          removeSelectedFrameFile={removeSelectedFrameFile}
-          handleFileSelection={handleFileSelection}
-        />
       </div>
 
       <div className="sticky bottom-4 z-30 flex items-center justify-between gap-4 rounded-2xl border border-line bg-panel px-4 py-3 shadow-lg backdrop-blur-xl">

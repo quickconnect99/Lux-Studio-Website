@@ -37,5 +37,11 @@ export type SiteSettingsFieldsProps = Pick<
   | "handleFileSelection"
 >;
 
-export type PreviewPage = "home" | "work" | "services" | "about" | "contact";
+export type PreviewPage =
+  | "general"
+  | "home"
+  | "work"
+  | "services"
+  | "about"
+  | "contact";
 export type PreviewWidth = "desktop" | "mobile";
