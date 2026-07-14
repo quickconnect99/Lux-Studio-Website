@@ -7,6 +7,7 @@ import {
   sanitizeInquiry,
   validateInquiry
 } from "@/lib/inquiry";
+import { sendInquiryEmail } from "@/lib/email";
 import {
   consumeRateLimitAttempt,
   pruneRateLimitStore
@@ -172,6 +173,17 @@ export async function POST(request: Request) {
       { message: "The inquiry could not be saved." },
       { status: 500 }
     );
+  }
+
+  try {
+    const email = await sendInquiryEmail(inquiry);
+    if (email.skipped) {
+      console.warn(
+        "[inquiries] Email notification skipped. Set RESEND_API_KEY and INQUIRY_EMAIL_TO to enable mail."
+      );
+    }
+  } catch (emailError) {
+    console.error("[inquiries] Failed to send inquiry email", emailError);
   }
 
   return NextResponse.json({

@@ -99,7 +99,7 @@ export function SelectedFrames({ frames }: SelectedFramesProps) {
           "group absolute focus-visible:outline-none",
           "transition-all duration-500 ease-out",
           isCenter
-            ? "left-1/2 top-0 z-30 w-[78vw] -translate-x-1/2 sm:w-[48%]"
+            ? "left-1/2 top-[8%] z-30 w-[78vw] -translate-x-1/2 sm:top-[10%] sm:w-[48%]"
             : "top-[30%] z-10 w-[78vw] opacity-90 sm:w-[46%]",
           position === "left" && "-left-[47vw] sm:left-0 lg:left-0",
           position === "right" && "-right-[47vw] sm:right-0 lg:right-0"

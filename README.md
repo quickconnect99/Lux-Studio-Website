@@ -32,6 +32,7 @@ Premium automotive video portfolio and marketing site scaffolded with Next.js, T
 - SQL schema is in `supabase/schema.sql`.
 - Create a public storage bucket named `projects` or change `NEXT_PUBLIC_SUPABASE_STORAGE_BUCKET`.
 - Add `SUPABASE_SERVICE_ROLE_KEY` on the server so `/api/inquiries` can persist contact requests without exposing open client-side inserts.
+- Add `RESEND_API_KEY`, `INQUIRY_EMAIL_TO`, and optionally `INQUIRY_EMAIL_FROM` so saved inquiries also send an email notification.
 - `/admin` uses Supabase Auth directly. Database and storage access is restricted to users listed in `public.admin_users`.
 - Public pages fall back to local placeholder content if Supabase is not configured.
 - The admin page works in demo mode without Supabase and persists to Supabase once auth/env vars are added.
