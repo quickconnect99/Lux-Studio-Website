@@ -56,7 +56,6 @@ export default async function HomePage() {
       <HomeHero
         hero={publicSettings.hero}
         copy={publicSettings.copy.home}
-        posterSrc={publicSettings.seo.ogImage}
       />
 
       <SelectedFrames frames={galleryFrames.slice(0, 8)} />

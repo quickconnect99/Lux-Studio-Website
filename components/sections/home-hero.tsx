@@ -1,9 +1,9 @@
 "use client";
 
-import Image from "next/image";
 import { Pause, Play } from "lucide-react";
 import { motion, useReducedMotion } from "framer-motion";
 import { useEffect, useRef, useState } from "react";
+import { EmbeddedVideoConsent } from "@/components/legal/embedded-video-consent";
 import { LinkButton } from "@/components/ui/link-button";
 import { SplitHeadline } from "@/components/ui/split-headline";
 import type { SiteSettings } from "@/lib/types";
@@ -12,14 +12,11 @@ import { resolveVideoSource } from "@/lib/video";
 type HomeHeroProps = {
   hero: SiteSettings["hero"];
   copy: SiteSettings["copy"]["home"];
-  /** OG/poster image — should be a real raster image (JPG/WebP), not SVG */
-  posterSrc?: string;
 };
 
 export function HomeHero({
   hero,
-  copy,
-  posterSrc = "/images/demo-car-01.jpg"
+  copy
 }: HomeHeroProps) {
   const shouldReduceMotion = useReducedMotion();
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -27,6 +24,8 @@ export function HomeHero({
   const [heroRevealed, setHeroRevealed] = useState(false);
   const videoSource = resolveVideoSource(hero.videoUrl);
   const fileVideoSrc = videoSource?.kind === "file" ? videoSource.src : null;
+  const isExternalEmbed =
+    videoSource?.kind === "youtube" || videoSource?.kind === "vimeo";
 
   useEffect(() => {
     const video = videoRef.current;
@@ -97,23 +96,8 @@ export function HomeHero({
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.9, delay: 0.1, ease: [0.22, 1, 0.36, 1] }}
-          className="film-frame grain relative min-h-[360px] border border-white/60 bg-panel-dark text-white shadow-halo sm:min-h-[420px] lg:min-h-[560px]"
+          className="relative min-h-[360px] overflow-hidden rounded-[1.35rem] border border-white/25 bg-black text-white shadow-halo sm:min-h-[420px] sm:rounded-[1.75rem] lg:min-h-[560px]"
         >
-          <div
-            className="absolute inset-0"
-            style={{
-              background:
-                "radial-gradient(circle at 20% 20%, color-mix(in srgb, var(--accent) 18%, transparent), transparent 25%), radial-gradient(circle at 80% 0%, color-mix(in srgb, var(--accent-blue) 24%, transparent), transparent 30%), linear-gradient(180deg, rgba(15, 20, 25, 0.2), rgba(15, 20, 25, 0.88))"
-            }}
-          />
-          <Image
-            src={posterSrc}
-            alt=""
-            fill
-            priority
-            sizes="(min-width: 1280px) 52vw, 100vw"
-            className="object-cover opacity-45"
-          />
           {fileVideoSrc ? (
             <video
               ref={videoRef}
@@ -122,7 +106,6 @@ export function HomeHero({
               loop
               playsInline
               preload="metadata"
-              poster={posterSrc}
               onError={() => {
                 setIsPlaying(false);
               }}
@@ -132,27 +115,37 @@ export function HomeHero({
             >
               <source src={fileVideoSrc} />
             </video>
+          ) : isExternalEmbed && videoSource ? (
+            <EmbeddedVideoConsent
+              title={[copy.videoHeadlineLead, copy.videoHeadlineTrail]
+                .filter(Boolean)
+                .join(" ")}
+              providerLabel={videoSource.label}
+              embedSrc={videoSource.src}
+              externalHref={videoSource.externalHref}
+            />
           ) : null}
 
           <div className="relative z-10 flex h-full flex-col justify-between p-5 sm:p-8">
             <div className="flex justify-end">
-              <button
-                type="button"
-                onClick={togglePlayback}
-                disabled={!fileVideoSrc}
-                aria-pressed={isPlaying}
-                aria-label={
-                  isPlaying ? "Pause showreel video" : "Play showreel video"
-                }
-                className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3 py-2 text-[0.62rem] tracking-[0.18em] text-white/85 backdrop-blur disabled:opacity-50"
-              >
-                {isPlaying ? (
-                  <Pause className="h-3.5 w-3.5" />
-                ) : (
-                  <Play className="h-3.5 w-3.5" />
-                )}
-                {isPlaying ? "Pause Reel" : "Play Reel"}
-              </button>
+              {fileVideoSrc ? (
+                <button
+                  type="button"
+                  onClick={togglePlayback}
+                  aria-pressed={isPlaying}
+                  aria-label={
+                    isPlaying ? "Pause showreel video" : "Play showreel video"
+                  }
+                  className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3 py-2 text-[0.62rem] tracking-[0.18em] text-white/85 backdrop-blur disabled:opacity-50"
+                >
+                  {isPlaying ? (
+                    <Pause className="h-3.5 w-3.5" />
+                  ) : (
+                    <Play className="h-3.5 w-3.5" />
+                  )}
+                  {isPlaying ? "Pause Reel" : "Play Reel"}
+                </button>
+              ) : null}
             </div>
 
             <div className="max-w-xl space-y-5">

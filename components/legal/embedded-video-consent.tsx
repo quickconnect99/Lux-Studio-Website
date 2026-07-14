@@ -10,7 +10,7 @@ type EmbeddedVideoConsentProps = {
   providerLabel: string;
   embedSrc: string;
   externalHref: string;
-  posterSrc: string;
+  posterSrc?: string;
 };
 
 export function EmbeddedVideoConsent({
@@ -37,14 +37,17 @@ export function EmbeddedVideoConsent({
 
   return (
     <div className="absolute inset-0">
-      <Image
-        src={posterSrc}
-        alt={`${title} Vorschaubild`}
-        fill
-        sizes="(min-width: 1024px) 55vw, 100vw"
-        quality={90}
-        className="object-cover"
-      />
+      {posterSrc ? (
+        <Image
+          src={posterSrc}
+          alt={`${title} Vorschaubild`}
+          fill
+          sizes="(min-width: 1024px) 55vw, 100vw"
+          quality={90}
+          unoptimized
+          className="object-cover"
+        />
+      ) : null}
       <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(5,8,10,0.24)_0%,rgba(5,8,10,0.82)_100%)]" />
 
       <div className="absolute inset-x-0 bottom-0 z-10 p-6 text-white sm:p-8">
