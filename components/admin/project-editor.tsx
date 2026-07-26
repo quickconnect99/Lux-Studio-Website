@@ -26,14 +26,13 @@ import {
   getGalleryFrameRole
 } from "@/lib/admin-project-fields";
 import type {
+  AdminUploadProgress,
   AdminProjectFieldKey,
   ProjectFormState,
   SlugValidationState
 } from "@/lib/admin-types";
 import { businesses, categories, slugify } from "@/lib/admin-utils";
 import { cn } from "@/lib/utils";
-
-type UploadProgress = { current: number; total: number; filename: string };
 
 function FieldHelpTooltip({ fieldKey }: { fieldKey: AdminProjectFieldKey }) {
   const meta = adminProjectFieldMeta[fieldKey];
@@ -234,7 +233,7 @@ type Props = {
   isProjectComplete: boolean;
   galleryImageList: string[];
   captionRawLines: string[];
-  uploadProgress: UploadProgress | null;
+  uploadProgress: AdminUploadProgress | null;
   slugValidation: SlugValidationState;
   onSlugBlur: () => void;
   onApplySuggestedSlug: () => void;

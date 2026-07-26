@@ -180,3 +180,23 @@ test("admin field help remains inside the mobile viewport", async ({
   expect(bounds.right).toBeLessThanOrEqual(bounds.viewportWidth);
   expect(bounds.bottom).toBeLessThanOrEqual(bounds.viewportHeight);
 });
+
+test("admin switches to the lazy-loaded settings workspace", async ({
+  page
+}, testInfo) => {
+  test.skip(testInfo.project.name !== "mobile-320");
+  const errors = collectBrowserErrors(page);
+  await page.goto("/admin", { waitUntil: "networkidle" });
+
+  await page.getByRole("button", { name: /Site Settings/ }).click();
+
+  const settingsForm = page.locator("#site-settings-form");
+  await expect(settingsForm).toBeVisible();
+  await expect(
+    settingsForm.getByText("Live site editor", { exact: true })
+  ).toBeVisible();
+
+  await page.getByRole("button", { name: /^Projects/ }).click();
+  await expect(settingsForm).toBeHidden();
+  expect(errors).toEqual([]);
+});

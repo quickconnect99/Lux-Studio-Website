@@ -10,34 +10,40 @@ import {
 import { useAdminDraft } from "@/hooks/use-admin-draft";
 import { useAdminMedia } from "@/hooks/use-admin-media";
 import { useAdminSession } from "@/hooks/use-admin-session";
+import { useAdminSiteSettings } from "@/hooks/use-admin-site-settings";
 import { useForm } from "@/hooks/use-form";
 import {
   buildLocalProject,
   buildProjectDatabasePayload,
-  buildSiteSettingsDatabasePayload,
-  getProjectMediaState,
+  getProjectMediaState
 } from "@/lib/admin-persistence";
 import {
   buildLocalProjectSaveReport,
   buildRemoteProjectSaveReport
 } from "@/lib/admin-save-report";
-import { defaultSiteSettings } from "@/lib/site-config";
 import {
-  SITE_SETTINGS_ID,
-  SUPABASE_BUCKET,
+  deleteAdminProjectRecord,
+  loadAdminProjects,
+  mergeAdminProjectList,
+  removeAdminProjectFromList,
+  saveAdminProjectRecord
+} from "@/lib/admin-project-repository";
+import {
+  revalidateAdminPublicContent,
+  uploadAdminFile
+} from "@/lib/admin-storage";
+import {
   createBrowserSupabaseClient,
-  isSupabaseConfigured,
-  normalizeSiteSettingsRecord,
-  normalizeProjectRecord
+  isSupabaseConfigured
 } from "@/lib/supabase";
 import type {
   AdminConfirmDialogState,
   AdminProjectListItem,
   AdminSaveReport,
   AdminTab,
+  AdminUploadProgress,
   ProjectFormState,
-  SlugValidationState,
-  SiteSettingsFormState
+  SlugValidationState
 } from "@/lib/admin-types";
 import {
   buildUniqueSlugSuggestion,
@@ -48,24 +54,13 @@ import {
   projectTemplates,
   toAdminProjectListItem,
   toFormState,
-  toSiteSettingsFormState,
   createEmptyProject
 } from "@/lib/admin-utils";
-
-type UploadProgress = { current: number; total: number; filename: string };
 
 const DRAFT_PROJECT_KEY = "draft:new-project";
 const EMPTY_AUTH_FORM = { email: "", password: "" };
 const DEFAULT_STATUS_MESSAGE =
   "Two starter templates are always available. Editing one and saving creates a new project.";
-
-function serializeSiteSettingsFormState(formState: SiteSettingsFormState) {
-  return JSON.stringify(
-    toSiteSettingsFormState(
-      normalizeSiteSettingsRecord(buildSiteSettingsDatabasePayload(formState))
-    )
-  );
-}
 
 export function useAdminData() {
   const supabase = createBrowserSupabaseClient();
@@ -73,9 +68,6 @@ export function useAdminData() {
   const defaultTemplate = templateProjects[0];
 
   const projectForm = useForm<ProjectFormState>(toFormState(defaultTemplate));
-  const siteSettingsForm = useForm<SiteSettingsFormState>(
-    toSiteSettingsFormState(defaultSiteSettings)
-  );
   const authForm = useForm(EMPTY_AUTH_FORM);
 
   const [activeTab, setActiveTab] = useState<AdminTab>("projects");
@@ -87,18 +79,11 @@ export function useAdminData() {
   const [statusMessage, setStatusMessage] = useState(DEFAULT_STATUS_MESSAGE);
   const [saveReport, setSaveReport] = useState<AdminSaveReport | null>(null);
   const [working, setWorking] = useState(false);
-  const [uploadProgress, setUploadProgress] = useState<UploadProgress | null>(
-    null
-  );
+  const [uploadProgress, setUploadProgress] =
+    useState<AdminUploadProgress | null>(null);
   const [savedFormSnapshot, setSavedFormSnapshot] = useState<string>(
     JSON.stringify(toFormState(defaultTemplate))
   );
-  const [savedSiteSettingsSnapshot, setSavedSiteSettingsSnapshot] =
-    useState<string>(
-      serializeSiteSettingsFormState(
-        toSiteSettingsFormState(defaultSiteSettings)
-      )
-    );
   const [saveCount, setSaveCount] = useState(0);
   const [slugValidation, setSlugValidation] = useState<SlugValidationState>({
     status: "idle",
@@ -116,11 +101,6 @@ export function useAdminData() {
     replace: replaceProjectForm,
     updateField: updateProjectFormField
   } = projectForm;
-  const {
-    values: siteSettingsFormState,
-    replace: replaceSiteSettingsForm,
-    updateField: updateSiteSettingsFormField
-  } = siteSettingsForm;
   const {
     values: authFormState,
     updateField: updateAuthFormField,
@@ -168,6 +148,25 @@ export function useAdminData() {
     onError: showStatus
   });
 
+  const {
+    formState: siteSettingsFormState,
+    isDirty: isSettingsDirty,
+    load: loadSiteSettings,
+    save: handleSaveSiteSettings,
+    updateField: updateSiteSettingsField
+  } = useAdminSiteSettings({
+    supabase,
+    sessionEmail,
+    siteHeroVideoFile,
+    selectedFrameFiles,
+    aboutTeamMemberImageFiles,
+    clearSiteSettingsMedia,
+    setSaveReport,
+    setUploadProgress,
+    setWorking,
+    showStatus
+  });
+
   const completionIssues = getProjectCompletionIssues(formState, {
     hasQueuedCover: Boolean(coverFile),
     queuedGalleryCount: galleryFiles.length
@@ -179,13 +178,6 @@ export function useAdminData() {
     Boolean(coverFile) ||
     galleryFiles.length > 0 ||
     Boolean(videoFile);
-
-  const isSettingsDirty =
-    serializeSiteSettingsFormState(siteSettingsFormState) !==
-      savedSiteSettingsSnapshot ||
-    Boolean(siteHeroVideoFile) ||
-    selectedFrameFiles.length > 0 ||
-    aboutTeamMemberImageFiles.length > 0;
 
   const coverPreviewImage = coverPreviewUrl ?? formState.coverImage;
 
@@ -228,17 +220,6 @@ export function useAdminData() {
       updateProjectFormField(key, value);
     },
     [updateProjectFormField]
-  );
-
-  const updateSiteSettingsField = useCallback(
-    <K extends keyof SiteSettingsFormState>(
-      key: K,
-      value: SiteSettingsFormState[K]
-    ) => {
-      setSaveReport(null);
-      updateSiteSettingsFormField(key, value);
-    },
-    [updateSiteSettingsFormField]
   );
 
   function updateCaption(index: number, value: string) {
@@ -531,11 +512,9 @@ export function useAdminData() {
 
   const loadProjects = useCallback(async () => {
     if (!supabase) return;
-    const { data } = await supabase
-      .from("projects")
-      .select("*")
-      .order("created_at", { ascending: false });
-    if (!data || data.length === 0) {
+    const normalized = await loadAdminProjects(supabase);
+
+    if (normalized.length === 0) {
       setProjects([]);
       if (!hasAppliedInitialProject.current) {
         hasAppliedInitialProject.current = true;
@@ -544,9 +523,6 @@ export function useAdminData() {
       return;
     }
 
-    const normalized = data
-      .map((item) => normalizeProjectRecord(item))
-      .map(toAdminProjectListItem);
     setProjects(normalized);
 
     if (!hasAppliedInitialProject.current) {
@@ -558,29 +534,6 @@ export function useAdminData() {
       );
     }
   }, [applyProject, defaultTemplate, supabase]);
-
-  const loadSiteSettings = useCallback(async () => {
-    if (!supabase) {
-      const state = toSiteSettingsFormState(defaultSiteSettings);
-      replaceSiteSettingsForm(state);
-      setSavedSiteSettingsSnapshot(serializeSiteSettingsFormState(state));
-      return;
-    }
-    const { data } = await supabase
-      .from("site_settings")
-      .select("*")
-      .eq("id", SITE_SETTINGS_ID)
-      .maybeSingle();
-    if (!data) {
-      const state = toSiteSettingsFormState(defaultSiteSettings);
-      replaceSiteSettingsForm(state);
-      setSavedSiteSettingsSnapshot(serializeSiteSettingsFormState(state));
-      return;
-    }
-    const state = toSiteSettingsFormState(normalizeSiteSettingsRecord(data));
-    replaceSiteSettingsForm(state);
-    setSavedSiteSettingsSnapshot(serializeSiteSettingsFormState(state));
-  }, [supabase, replaceSiteSettingsForm]);
 
   const resetSessionWorkspace = useCallback(() => {
     setProjects([]);
@@ -617,42 +570,6 @@ export function useAdminData() {
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
   }, []);
-
-  // Best-effort: the public site still catches up within the 5-minute
-  // fallback window (see app/layout.tsx) if this call fails for any reason,
-  // so a failure here must never block or fail the save itself.
-  async function triggerPublicRevalidate() {
-    if (!supabase) return;
-
-    try {
-      const {
-        data: { session }
-      } = await supabase.auth.getSession();
-      const accessToken = session?.access_token;
-
-      if (!accessToken) return;
-
-      await fetch("/api/admin/revalidate", {
-        method: "POST",
-        headers: { Authorization: `Bearer ${accessToken}` }
-      });
-    } catch {
-      // Ignored — see comment above.
-    }
-  }
-
-  async function uploadFile(file: File, folder: string): Promise<string> {
-    if (!supabase) throw new Error("Supabase is not configured.");
-    const filePath = `${folder}/${Date.now()}-${slugify(file.name)}`;
-    const { error } = await supabase.storage
-      .from(SUPABASE_BUCKET)
-      .upload(filePath, file, { upsert: true });
-    if (error) throw error;
-    const {
-      data: { publicUrl }
-    } = supabase.storage.from(SUPABASE_BUCKET).getPublicUrl(filePath);
-    return publicUrl;
-  }
 
   async function handleSave(event?: { preventDefault(): void }) {
     event?.preventDefault();
@@ -702,7 +619,11 @@ export function useAdminData() {
             total: totalFiles,
             filename: coverFile.name
           });
-          coverImage = await uploadFile(coverFile, "covers");
+          coverImage = await uploadAdminFile(
+            supabase,
+            coverFile,
+            "covers"
+          );
         }
         if (videoFile) {
           setUploadProgress({
@@ -710,7 +631,11 @@ export function useAdminData() {
             total: totalFiles,
             filename: videoFile.name
           });
-          uploadedVideo = await uploadFile(videoFile, "videos");
+          uploadedVideo = await uploadAdminFile(
+            supabase,
+            videoFile,
+            "videos"
+          );
         }
         if (galleryFiles.length > 0) {
           const uploaded: string[] = [];
@@ -720,7 +645,7 @@ export function useAdminData() {
               total: totalFiles,
               filename: f.name
             });
-            uploaded.push(await uploadFile(f, "gallery"));
+            uploaded.push(await uploadAdminFile(supabase, f, "gallery"));
           }
           galleryImages = [...galleryImages, ...uploaded];
         }
@@ -738,19 +663,10 @@ export function useAdminData() {
           media
         });
 
-        const { data, error } = await supabase
-          .from("projects")
-          .upsert(payload, { onConflict: "slug" })
-          .select("*")
-          .single();
-
-        if (error) throw error;
-
-        const saved = toAdminProjectListItem(normalizeProjectRecord(data));
-        const nextProjects = [
-          saved,
-          ...projects.filter((p) => p.id !== saved.id && p.slug !== saved.slug)
-        ].sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+        const saved = await saveAdminProjectRecord(supabase, payload);
+        const nextProjects = mergeAdminProjectList(projects, saved, {
+          sortByCreatedAt: true
+        });
 
         setProjects(nextProjects);
         const nextState = toFormState(saved);
@@ -763,7 +679,7 @@ export function useAdminData() {
             ? "New project created from template and saved to Supabase."
             : "Project saved to Supabase."
         );
-        void triggerPublicRevalidate();
+        void revalidateAdminPublicContent(supabase);
         nextReport = buildRemoteProjectSaveReport({
           isTemplateSource,
           coverFile,
@@ -785,10 +701,7 @@ export function useAdminData() {
           })
         );
 
-        const nextProjects = [
-          saved,
-          ...projects.filter((p) => p.id !== saved.id && p.slug !== saved.slug)
-        ];
+        const nextProjects = mergeAdminProjectList(projects, saved);
         setProjects(nextProjects);
         const nextState = toFormState(saved);
         setSelectedProjectKey(saved.adminKey);
@@ -859,15 +772,11 @@ export function useAdminData() {
 
     try {
       if (supabase && sessionEmail) {
-        const { error } = await supabase
-          .from("projects")
-          .delete()
-          .eq("id", formState.id);
-        if (error) throw error;
-        void triggerPublicRevalidate();
+        await deleteAdminProjectRecord(supabase, formState.id);
+        void revalidateAdminPublicContent(supabase);
       }
 
-      const next = projects.filter((p) => p.id !== formState.id);
+      const next = removeAdminProjectFromList(projects, formState.id);
       setProjects(next);
       if (next[0]) {
         applyProject(next[0]);
@@ -893,157 +802,6 @@ export function useAdminData() {
       });
     } catch (err) {
       showStatus(err instanceof Error ? err.message : "Delete failed.");
-    } finally {
-      setWorking(false);
-    }
-  }
-
-  async function handleSaveSiteSettings(event: { preventDefault(): void }) {
-    event.preventDefault();
-    setSaveReport(null);
-    setWorking(true);
-
-    try {
-      if (!supabase) {
-        showStatus(
-          "Connect Supabase to persist global links and contact details. Static fallback still lives in lib/site-config.ts."
-        );
-        return;
-      }
-      if (!sessionEmail) {
-        showStatus("Sign in to save global site settings.");
-        return;
-      }
-
-      let heroVideoUrl = siteSettingsFormState.heroVideoUrl;
-      let selectedFrames = parseMultilineInput(
-        siteSettingsFormState.selectedFramesText
-      );
-      const aboutTeamMembers = [...siteSettingsFormState.aboutTeamMembers];
-      const totalFiles =
-        (siteHeroVideoFile ? 1 : 0) +
-        selectedFrameFiles.length +
-        aboutTeamMemberImageFiles.length;
-      let uploadedCount = 0;
-
-      if (siteHeroVideoFile) {
-        setUploadProgress({
-          current: ++uploadedCount,
-          total: totalFiles,
-          filename: siteHeroVideoFile.name
-        });
-        heroVideoUrl = await uploadFile(siteHeroVideoFile, "videos");
-      }
-
-      if (selectedFrameFiles.length > 0) {
-        const uploadedFrames: string[] = [];
-        for (const file of selectedFrameFiles) {
-          setUploadProgress({
-            current: ++uploadedCount,
-            total: totalFiles,
-            filename: file.name
-          });
-          uploadedFrames.push(await uploadFile(file, "selected-frames"));
-        }
-        selectedFrames = [...selectedFrames, ...uploadedFrames];
-      }
-
-      if (aboutTeamMemberImageFiles.length > 0) {
-        for (const item of aboutTeamMemberImageFiles) {
-          setUploadProgress({
-            current: ++uploadedCount,
-            total: totalFiles,
-            filename: item.file.name
-          });
-          aboutTeamMembers[item.index] = {
-            ...aboutTeamMembers[item.index],
-            image: await uploadFile(item.file, "about-team")
-          };
-        }
-      }
-
-      setUploadProgress(null);
-
-      const nextFormState: SiteSettingsFormState = {
-        ...siteSettingsFormState,
-        heroVideoUrl,
-        selectedFramesText: selectedFrames.join("\n"),
-        aboutTeamImagesText: aboutTeamMembers
-          .map((member) => member.image)
-          .filter(Boolean)
-          .join("\n"),
-        aboutTeamMembers
-      };
-      const payload = buildSiteSettingsDatabasePayload(nextFormState);
-
-      const { data, error } = await supabase
-        .from("site_settings")
-        .upsert(payload, { onConflict: "id" })
-        .select("*")
-        .single();
-
-      if (error) throw error;
-
-      const savedState = toSiteSettingsFormState(
-        normalizeSiteSettingsRecord(data)
-      );
-      replaceSiteSettingsForm(savedState);
-      setSavedSiteSettingsSnapshot(serializeSiteSettingsFormState(savedState));
-      clearSiteSettingsMedia();
-      setStatusMessage("Global site settings saved to Supabase.");
-      void triggerPublicRevalidate();
-      setSaveReport({
-        title: "Site settings saved",
-        items: [
-          {
-            id: "site-settings",
-            label: "Global site settings saved",
-            detail: "Supabase",
-            tone: "success"
-          },
-          ...(siteHeroVideoFile
-            ? [
-                {
-                  id: "hero-video",
-                  label: "Hero reel uploaded",
-                  detail: siteHeroVideoFile.name,
-                  tone: "success" as const
-                }
-              ]
-            : []),
-          ...(selectedFrameFiles.length > 0
-            ? [
-                {
-                  id: "selected-frames",
-                  label: `${selectedFrameFiles.length} selected frame${
-                    selectedFrameFiles.length === 1 ? "" : "s"
-                  } uploaded`,
-                  detail: "Selected frames",
-                  tone: "success" as const
-                }
-              ]
-            : []),
-          ...(aboutTeamMemberImageFiles.length > 0
-            ? [
-                {
-                  id: "about-team-member-images",
-                  label: `${aboutTeamMemberImageFiles.length} team portrait${
-                    aboutTeamMemberImageFiles.length === 1 ? "" : "s"
-                  } uploaded`,
-                  detail: "About team",
-                  tone: "success" as const
-                }
-              ]
-            : [])
-        ]
-      });
-    } catch (err) {
-      setUploadProgress(null);
-      showStatus(
-        err instanceof Error
-          ? err.message
-          : "The site settings could not be saved."
-      );
     } finally {
       setWorking(false);
     }

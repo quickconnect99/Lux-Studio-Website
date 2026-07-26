@@ -118,7 +118,7 @@ Akzeptanzkriterien:
 
 ## Phase 4 — Admin-Modularisierung und Bundle
 
-Status: aktuelle Iteration `Erledigt`, Folgeiteration `Geplant`
+Status: zwei Iterationen `Erledigt`, Folgeiteration `Geplant`
 
 Priorität: mittel
 
@@ -137,17 +137,30 @@ Diese Iteration:
 - Loading-Zustände so gestalten, dass Layout und Fokus stabil bleiben.
 - Reine Logik an Modulgrenzen mit Unit-Tests absichern.
 
+Zweite Iteration:
+
+- Site-Settings-Formularzustand, Laden und Speichern in
+  `use-admin-site-settings.ts` kapseln.
+- Storage-Uploads und öffentliche Revalidierung aus dem UI-Hook in
+  `admin-storage.ts` verschieben.
+- Projekt-Laden, Upsert und Löschen über `admin-project-repository.ts`
+  abstrahieren.
+- Zusammenführen lokaler Projekte ohne Datenbank-ID mit Unit-Tests absichern.
+
 Geplante Folgeiteration:
 
-- Projekt-Laden, Projekt-CRUD und Site-Settings-Mutationen in getrennte Hooks
-  überführen.
-- Upload-Transport vom UI-State trennen.
+- Projektauswahl, Slug-Prüfung und Bestätigungsdialoge in einen
+  `use-admin-project-workspace`-Hook überführen.
+- Mutationsergebnisse und Repository-Fehler über typisierte Resultate statt
+  über verteilte Status-Strings transportieren.
 - `use-admin-data.ts` anschließend als kleinen Orchestrator beibehalten oder
   durch einen Admin-Context ersetzen.
 
 Akzeptanzkriterien:
 
-- Auth, Media-Queue und Draft-Persistenz liegen nicht mehr im zentralen Hook.
+- Auth, Media-Queue, Draft-Persistenz und Site-Settings liegen nicht mehr im
+  zentralen Hook.
+- Projekt-CRUD greift nur über das Repository auf Supabase zu.
 - Settings-Code wird beim initialen Projekt-Editor nicht zwingend geladen.
 - Bestehende Datenbank- und lokale Payloads bleiben kompatibel.
 - Der Admin-Build wird nicht größer; Änderungen der Chunk-Größen werden im

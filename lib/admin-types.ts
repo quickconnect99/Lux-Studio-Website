@@ -113,6 +113,12 @@ export type AdminSaveReport = {
   items: AdminSaveReportItem[];
 };
 
+export type AdminUploadProgress = {
+  current: number;
+  total: number;
+  filename: string;
+};
+
 export type AdminConfirmDialogState = {
   action: "delete" | "reset";
   title: string;
