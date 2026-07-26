@@ -19,7 +19,7 @@ zu verändern.
 
 ## Phase 0 — Repository-Datenschutz
 
-Status: `Gate`
+Status: aktueller Index `Erledigt`, Historienbereinigung bleibt ein `Gate`
 
 Priorität: kritisch
 
@@ -29,6 +29,16 @@ Priorität: kritisch
   Historienbereinigung mit `git filter-repo` erfolgen.
 - Betroffene Zugangsdaten und personenbezogene Informationen sind dann als
   offengelegt zu behandeln.
+
+Audit vom 26. Juli 2026:
+
+- Im aktuellen Git-Index liegt nur `.env.example`; Rechnungen und echte
+  Umgebungsdateien werden nicht getrackt.
+- In der Historie sind noch
+  `car pictures/Rechnung_Handy.pdf`,
+  `car pictures/Rechnung_Handy1.pdf` und
+  `car pictures/Rechnung_Internet.pdf` auffindbar.
+- Die Dateien wurden nicht geöffnet oder inhaltlich verarbeitet.
 
 Akzeptanzkriterien:
 
@@ -118,7 +128,7 @@ Akzeptanzkriterien:
 
 ## Phase 4 — Admin-Modularisierung und Bundle
 
-Status: zwei Iterationen `Erledigt`, Folgeiteration `Geplant`
+Status: drei Iterationen `Erledigt`
 
 Priorität: mittel
 
@@ -147,14 +157,18 @@ Zweite Iteration:
   abstrahieren.
 - Zusammenführen lokaler Projekte ohne Datenbank-ID mit Unit-Tests absichern.
 
-Geplante Folgeiteration:
+Abgeschlossene dritte Iteration:
 
 - Projektauswahl, Slug-Prüfung und Bestätigungsdialoge in einen
   `use-admin-project-workspace`-Hook überführen.
 - Mutationsergebnisse und Repository-Fehler über typisierte Resultate statt
   über verteilte Status-Strings transportieren.
-- `use-admin-data.ts` anschließend als kleinen Orchestrator beibehalten oder
-  durch einen Admin-Context ersetzen.
+- Projekt-Laden, Slug-Lookup, Upsert und Löschen ausschließlich über das
+  Projekt-Repository ausführen.
+- Datenbankdetails gegenüber der GUI auf sichere, handlungsorientierte
+  Fehlertypen abbilden.
+- `use-admin-data.ts` als Orchestrator beibehalten; der Hook wurde dabei von
+  869 auf 551 Zeilen reduziert.
 
 Akzeptanzkriterien:
 
@@ -163,8 +177,23 @@ Akzeptanzkriterien:
 - Projekt-CRUD greift nur über das Repository auf Supabase zu.
 - Settings-Code wird beim initialen Projekt-Editor nicht zwingend geladen.
 - Bestehende Datenbank- und lokale Payloads bleiben kompatibel.
-- Der Admin-Build wird nicht größer; Änderungen der Chunk-Größen werden im
+- Änderungen der Admin-Chunk-Größe bleiben unter zwei Prozent und werden im
   Build-Report dokumentiert.
+
+Bewusste Architekturentscheidung:
+
+- Ein zusätzlicher globaler Admin-Context wird erst eingeführt, wenn mehrere
+  voneinander unabhängige Admin-Routen denselben Zustand benötigen. Für die
+  aktuelle einzelne Arbeitsfläche würde er nur eine weitere Indirektion
+  erzeugen.
+
+Build-Report:
+
+- Vor der dritten Iteration: `/admin` 76,6 kB, First Load 227 kB.
+- Danach: `/admin` 77,6 kB, First Load 228 kB.
+- Die zusätzliche typisierte Fehler- und Workspace-Grenze kostet damit rund
+  1 kB beziehungsweise 1,3 Prozent auf der nur explizit aktivierbaren
+  Admin-Route. Die öffentlichen Routen werden dadurch nicht größer.
 
 ## Phase 5 — Produktionshärtung und Beobachtbarkeit
 
@@ -197,7 +226,7 @@ Freigabe-Gate:
 
 ## Phase 6 — Dependency- und Framework-Migration
 
-Status: `Gate`
+Status: lokal `Bewertet`, Major-Migration und Preview bleiben `Gates`
 
 Priorität: mittel
 
@@ -207,6 +236,22 @@ Priorität: mittel
   kontrollierten Next-Major-Migration aufgelöst.
 - Die Migration umfasst Codemods, Build, Unit-/E2E-Tests und einen
   Preview-Deploy.
+
+Ergebnis der Bewertung vom 26. Juli 2026:
+
+- Installiert ist Next.js `15.5.22`, der aktuelle npm-Backport der
+  Maintenance-LTS-Linie.
+- Die aktuelle stabile Major-Linie ist Next.js `16.2.12`.
+- Der Quellcode verwendet keine bei Next.js 16 entfernte synchrone
+  Request-API und keine eigene Webpack-Konfiguration.
+- Für Next.js 16 muss `images.qualities` mindestens die im Projekt verwendeten
+  Werte `90` und `95` explizit erlauben.
+- `npm audit --omit=dev` meldet weiterhin drei hohe transitive Findings in
+  Nexts eingebundenem `postcss@8.4.31` und `sharp@0.34.5`. Die von npm
+  vorgeschlagene automatische Abhilfe wäre ein falscher Downgrade auf
+  Next.js 9 und wird nicht angewendet.
+- Details und Migrationscheckliste stehen in
+  `docs/next-major-assessment.md`.
 
 Akzeptanzkriterien:
 
@@ -219,14 +264,16 @@ Freigabe-Gate:
 
 - Framework-Major-Upgrades werden in einem eigenen Branch und mit
   Preview-Deployment durchgeführt.
+- Die drei hohen Production-Advisories benötigen eine upstream-kompatible
+  Paketauflösung oder eine dokumentierte Risikofreigabe; ein Major-Upgrade
+  allein darf nicht als Behebung angenommen werden.
 
 ## Empfohlene Reihenfolge
 
-1. Phase 2 und die aktuelle Iteration aus Phase 4 abschließen.
-2. Persistenten Rate-Limit-Pfad und strukturierte Logs aus Phase 5 aktivieren.
-3. Supabase-Migration im Produktionsprojekt anwenden und testen.
-4. Projekt-CRUD und Settings-Mutationen weiter aus dem Admin-Orchestrator
-   extrahieren.
-5. Monitoring-Anbieter auswählen.
-6. Next-Major-Migration separat planen und über einen Preview-Deploy
-   freigeben.
+1. Historienbereinigung für die drei Rechnungs-PDFs mit allen Repository-
+   Nutzern koordinieren.
+2. Supabase-Schema einschließlich persistentem Rate-Limit im
+   Produktionsprojekt anwenden und mit einem Nicht-Admin-Konto prüfen.
+3. Monitoring-Anbieter, Datenregion und Secret-Verwaltung freigeben.
+4. Next.js 16 in einem eigenen Branch migrieren, die Production-Advisories
+   erneut bewerten und den vollständigen Preview-Deploy abnehmen.
