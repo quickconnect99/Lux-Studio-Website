@@ -19,7 +19,7 @@ zu verändern.
 
 ## Phase 0 — Repository-Datenschutz
 
-Status: aktueller Index `Erledigt`, Historienbereinigung bleibt ein `Gate`
+Status: lokal `Erledigt`, Remote-Aktualisierung bleibt ein `Gate`
 
 Priorität: kritisch
 
@@ -30,27 +30,31 @@ Priorität: kritisch
 - Betroffene Zugangsdaten und personenbezogene Informationen sind dann als
   offengelegt zu behandeln.
 
-Audit vom 26. Juli 2026:
+Audit und Bereinigung vom 26. Juli 2026:
 
 - Im aktuellen Git-Index liegt nur `.env.example`; Rechnungen und echte
   Umgebungsdateien werden nicht getrackt.
-- In der Historie sind noch
+- Aus sämtlichen lokalen Branch-, Remote-Tracking- und Stash-Referenzen wurden
   `car pictures/Rechnung_Handy.pdf`,
   `car pictures/Rechnung_Handy1.pdf` und
-  `car pictures/Rechnung_Internet.pdf` auffindbar.
+  `car pictures/Rechnung_Internet.pdf` entfernt.
 - Die Dateien wurden nicht geöffnet oder inhaltlich verarbeitet.
+- Alte Wiederherstellungsreferenzen und Reflogs wurden nach erfolgreicher
+  Prüfung entfernt; die zugehörigen unerreichbaren Objekte wurden lokal
+  bereinigt.
 
 Akzeptanzkriterien:
 
 - `git ls-files` listet keine Rechnungen oder privaten Dokumente.
 - Neue PDF-Rechnungen können nicht versehentlich committed werden.
-- Eine notwendige Historienbereinigung wurde mit allen Repository-Nutzern
-  abgestimmt.
+- Der bereinigte Branch wurde koordiniert force-gepusht und alle
+  Repository-Nutzer haben ihre Klone anschließend neu aufgebaut.
 
 Freigabe-Gate:
 
-- Git-Historie nicht automatisch umschreiben. Das betrifft alle Klone und
-  benötigt ein koordiniertes Wartungsfenster.
+- Der lokale Rewrite ist abgeschlossen. Vor dem Force-Push auf GitHub muss ein
+  Wartungsfenster mit allen Repository-Nutzern abgestimmt werden; vorhandene
+  Klone dürfen die alte Historie danach nicht erneut pushen.
 
 ## Phase 1 — Korrektheit und Zugriffsschutz
 
@@ -270,8 +274,8 @@ Freigabe-Gate:
 
 ## Empfohlene Reihenfolge
 
-1. Historienbereinigung für die drei Rechnungs-PDFs mit allen Repository-
-   Nutzern koordinieren.
+1. Bereinigtes `main` koordiniert mit `--force-with-lease` auf GitHub
+   veröffentlichen und bestehende Klone danach neu aufsetzen.
 2. Supabase-Schema einschließlich persistentem Rate-Limit im
    Produktionsprojekt anwenden und mit einem Nicht-Admin-Konto prüfen.
 3. Monitoring-Anbieter, Datenregion und Secret-Verwaltung freigeben.
