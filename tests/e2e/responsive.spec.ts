@@ -65,6 +65,12 @@ test("reduced motion hydrates without hiding content", async ({
 
   await expect(page.locator("main")).toBeVisible();
   await expect(page.locator("h1")).toBeVisible();
+
+  const frame = page.locator('[data-selected-frame="center"]');
+  await frame.scrollIntoViewIfNeeded();
+  await page.locator('[data-selected-frame-control="next"]').click();
+  await expect(frame.locator("[data-selected-frame-image]")).toHaveCount(1);
+
   expect(errors).toEqual([]);
 });
 
@@ -149,8 +155,7 @@ test("theme menu supports roving keyboard focus", async ({
 
 test("selected-frame navigation uses full-height 15-percent overlays", async ({
   page
-}, testInfo) => {
-  test.skip(!testInfo.project.name.startsWith("mobile-"));
+}) => {
   await page.goto("/", { waitUntil: "networkidle" });
 
   const frame = page.locator('[data-selected-frame="center"]');
@@ -188,12 +193,17 @@ test("selected-frame navigation uses full-height 15-percent overlays", async ({
   expect(dimensions.nextWidth / dimensions.frameWidth).toBeCloseTo(0.15, 2);
 
   const openControl = page.locator('[data-selected-frame-control="open"]');
+  const imageLayers = frame.locator("[data-selected-frame-image]");
   const initialLabel = await openControl.getAttribute("aria-label");
+
+  await expect(imageLayers).toHaveCount(1);
   await next.click();
+  await expect(imageLayers).toHaveCount(2);
   await expect(openControl).not.toHaveAttribute(
     "aria-label",
     initialLabel ?? ""
   );
+  await expect(imageLayers).toHaveCount(1, { timeout: 2_000 });
 });
 
 test("home hero atmosphere and copy follow the active theme", async ({

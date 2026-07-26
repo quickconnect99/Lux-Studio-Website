@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { ChevronLeft, ChevronRight, Expand } from "lucide-react";
 import { Lightbox } from "@/components/ui/lightbox";
 import { FallbackImage } from "@/components/ui/fallback-image";
@@ -22,8 +23,10 @@ const fallbackFrameImages = [
 export function SelectedFrames({ frames }: SelectedFramesProps) {
   const frameItems = frames.slice(0, 8);
   const frameImages = frameItems.map((frame) => frame.image);
+  const shouldReduceMotion = useReducedMotion();
   const [focusedIndex, setFocusedIndex] = useState(0);
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
+  const [transitionDirection, setTransitionDirection] = useState<-1 | 1>(1);
 
   if (frameItems.length === 0) return null;
 
@@ -57,10 +60,12 @@ export function SelectedFrames({ frames }: SelectedFramesProps) {
   }
 
   function showPreviousFrame() {
+    setTransitionDirection(-1);
     setFocusedIndex(previousIndex);
   }
 
   function showNextFrame() {
+    setTransitionDirection(1);
     setFocusedIndex(nextIndex);
   }
 
@@ -75,14 +80,17 @@ export function SelectedFrames({ frames }: SelectedFramesProps) {
 
     return (
       <button
-        key={`${position}-${frame.image}-${index}`}
+        key={`side-${position}`}
         type="button"
         aria-label={
           position === "left"
             ? "Select previous still preview"
             : "Select next still preview"
         }
-        onClick={() => setFocusedIndex(index)}
+        onClick={() => {
+          setTransitionDirection(position === "left" ? -1 : 1);
+          setFocusedIndex(index);
+        }}
         className={cn(
           "group absolute top-[30%] z-10 w-[78vw] opacity-90 focus-visible:outline-none sm:w-[46%]",
           "transition-all duration-500 ease-out",
@@ -92,18 +100,49 @@ export function SelectedFrames({ frames }: SelectedFramesProps) {
       >
         <div className="film-frame relative overflow-hidden rounded-[2rem]">
           <div className="aspect-[4/3]" />
-          <FallbackImage
-            src={frame.image}
-            fallbackSrc={
-              fallbackFrameImages[index % fallbackFrameImages.length]
-            }
-            alt={`Automotive still ${index + 1}`}
-            fill
-            sizes="(min-width: 1280px) 660px, (min-width: 640px) 48vw, 78vw"
-            unoptimized
-            className="scale-[1.01] object-cover transition-transform duration-700"
-          />
-          <div className="absolute inset-0 bg-black/20 transition-colors duration-300 group-hover:bg-black/10" />
+          <AnimatePresence initial={false} custom={transitionDirection}>
+            <motion.div
+              key={`${position}-${frame.image}-${index}`}
+              initial={
+                shouldReduceMotion
+                  ? false
+                  : {
+                      opacity: 0,
+                      x: transitionDirection * 24,
+                      scale: 1.035
+                    }
+              }
+              animate={{ opacity: 1, x: 0, scale: 1.01 }}
+              exit={
+                shouldReduceMotion
+                  ? { opacity: 0 }
+                  : {
+                      opacity: 0,
+                      x: transitionDirection * -18,
+                      scale: 0.99
+                    }
+              }
+              transition={{
+                duration: shouldReduceMotion ? 0 : 0.46,
+                ease: [0.22, 1, 0.36, 1]
+              }}
+              className="absolute inset-0"
+              style={{ willChange: "transform, opacity" }}
+            >
+              <FallbackImage
+                src={frame.image}
+                fallbackSrc={
+                  fallbackFrameImages[index % fallbackFrameImages.length]
+                }
+                alt={`Automotive still ${index + 1}`}
+                fill
+                sizes="(min-width: 1280px) 660px, (min-width: 640px) 48vw, 78vw"
+                unoptimized
+                className="object-cover"
+              />
+            </motion.div>
+          </AnimatePresence>
+          <div className="absolute inset-0 z-10 bg-black/20 transition-colors duration-300 group-hover:bg-black/10" />
         </div>
       </button>
     );
@@ -117,7 +156,7 @@ export function SelectedFrames({ frames }: SelectedFramesProps) {
 
     return (
       <div
-        key={`center-${frame.image}-${index}`}
+        key="center-frame"
         className="group/frame absolute left-1/2 top-[8%] z-30 w-[78vw] -translate-x-1/2 sm:top-[10%] sm:w-[48%]"
       >
         <div
@@ -125,16 +164,69 @@ export function SelectedFrames({ frames }: SelectedFramesProps) {
           className="film-frame relative overflow-hidden rounded-[2rem]"
         >
           <div className="aspect-[4/3]" />
-          <FallbackImage
-            src={frame.image}
-            fallbackSrc={
-              fallbackFrameImages[index % fallbackFrameImages.length]
-            }
-            alt={`Automotive still ${index + 1}`}
-            fill
-            sizes="(min-width: 1280px) 660px, (min-width: 640px) 48vw, 78vw"
-            unoptimized
-            className="object-cover transition-transform duration-700 group-hover/frame:scale-[1.03]"
+          <AnimatePresence initial={false} custom={transitionDirection}>
+            <motion.div
+              key={`${frame.image}-${index}`}
+              data-selected-frame-image={index}
+              initial={
+                shouldReduceMotion
+                  ? false
+                  : {
+                      opacity: 0,
+                      x: transitionDirection * 38,
+                      scale: 1.055
+                    }
+              }
+              animate={{ opacity: 1, x: 0, scale: 1 }}
+              exit={
+                shouldReduceMotion
+                  ? { opacity: 0 }
+                  : {
+                      opacity: 0,
+                      x: transitionDirection * -28,
+                      scale: 0.985
+                    }
+              }
+              transition={{
+                duration: shouldReduceMotion ? 0 : 0.58,
+                ease: [0.22, 1, 0.36, 1]
+              }}
+              className="absolute inset-0"
+              style={{ willChange: "transform, opacity" }}
+            >
+              <div className="absolute inset-0 transition-transform duration-700 group-hover/frame:scale-[1.03]">
+                <FallbackImage
+                  src={frame.image}
+                  fallbackSrc={
+                    fallbackFrameImages[index % fallbackFrameImages.length]
+                  }
+                  alt={`Automotive still ${index + 1}`}
+                  fill
+                  sizes="(min-width: 1280px) 660px, (min-width: 640px) 48vw, 78vw"
+                  unoptimized
+                  className="object-cover"
+                />
+              </div>
+            </motion.div>
+          </AnimatePresence>
+
+          <motion.div
+            key={`light-sweep-${index}-${transitionDirection}`}
+            aria-hidden="true"
+            initial={{
+              x: transitionDirection > 0 ? "-125%" : "340%",
+              opacity: 0
+            }}
+            animate={{
+              x: transitionDirection > 0 ? "340%" : "-125%",
+              opacity: [0, 0.62, 0]
+            }}
+            transition={{
+              duration: shouldReduceMotion ? 0 : 0.72,
+              ease: [0.22, 1, 0.36, 1]
+            }}
+            className="pointer-events-none absolute inset-y-0 z-10 w-[42%] bg-gradient-to-r from-transparent via-white/20 to-transparent mix-blend-screen"
+            style={{ willChange: "transform, opacity" }}
           />
 
           <button
@@ -208,10 +300,39 @@ export function SelectedFrames({ frames }: SelectedFramesProps) {
               ? renderSideFrameButton({ index: nextIndex, position: "right" })
               : null}
             {frameItems.length > 1 ? (
-              <div className="absolute bottom-0 left-1/2 z-40 -translate-x-1/2">
-                <span className="rounded-full border border-line bg-panel px-4 py-2 text-xs uppercase tracking-ui text-muted">
-                  {focusedIndex + 1} / {frameItems.length}
-                </span>
+              <div
+                aria-live="polite"
+                className="absolute bottom-0 left-1/2 z-40 min-w-[4rem] -translate-x-1/2 overflow-hidden rounded-full border border-line bg-panel px-4 py-2 text-center text-xs uppercase tracking-ui text-muted"
+              >
+                <AnimatePresence initial={false} mode="wait">
+                  <motion.span
+                    key={focusedIndex}
+                    initial={
+                      shouldReduceMotion
+                        ? false
+                        : {
+                            opacity: 0,
+                            y: transitionDirection * 8
+                          }
+                    }
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={
+                      shouldReduceMotion
+                        ? { opacity: 0 }
+                        : {
+                            opacity: 0,
+                            y: transitionDirection * -8
+                          }
+                    }
+                    transition={{
+                      duration: shouldReduceMotion ? 0 : 0.24,
+                      ease: "easeOut"
+                    }}
+                    className="block"
+                  >
+                    {focusedIndex + 1} / {frameItems.length}
+                  </motion.span>
+                </AnimatePresence>
               </div>
             ) : null}
           </div>
