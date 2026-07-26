@@ -42,7 +42,7 @@ export function FeaturedProjects({ projects }: FeaturedProjectsProps) {
                 >
                   <span
                     aria-hidden="true"
-                    className="font-[family-name:var(--font-display)] text-foreground/[0.05] pointer-events-none absolute -right-2 -top-3 select-none text-[6rem] leading-none sm:-right-4 sm:-top-6 sm:text-[11rem] lg:text-[14rem]"
+                    className="pointer-events-none absolute -right-2 -top-3 select-none font-[family-name:var(--font-display)] text-[6rem] leading-none text-foreground opacity-5 sm:-right-4 sm:-top-6 sm:text-[11rem] lg:text-[14rem]"
                   >
                     0{index + 1}
                   </span>
@@ -69,7 +69,10 @@ export function FeaturedProjects({ projects }: FeaturedProjectsProps) {
                     </div>
 
                     <div className="grid gap-3 sm:flex sm:flex-wrap sm:items-center sm:gap-4">
-                      <LinkButton href={`/work/${project.slug}`} className="w-full sm:w-auto">
+                      <LinkButton
+                        href={`/work/${project.slug}`}
+                        className="w-full sm:w-auto"
+                      >
                         Open Project
                       </LinkButton>
                       <span className="text-[0.65rem] uppercase tracking-meta text-muted">
