@@ -4,6 +4,7 @@ import { useCallback, useState } from "react";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { useForm } from "@/hooks/use-form";
 import { buildSiteSettingsDatabasePayload } from "@/lib/admin-persistence";
+import { toAdminOperationError } from "@/lib/admin-result";
 import {
   revalidateAdminPublicContent,
   uploadAdminFile
@@ -103,18 +104,29 @@ export function useAdminSiteSettings({
       return;
     }
 
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from("site_settings")
       .select("*")
       .eq("id", SITE_SETTINGS_ID)
       .maybeSingle();
+
+    if (error) {
+      showStatus(
+        toAdminOperationError(
+          error,
+          "Global site settings could not be loaded."
+        ).message
+      );
+      return;
+    }
+
     const state = data
       ? toSiteSettingsFormState(normalizeSiteSettingsRecord(data))
       : toSiteSettingsFormState(defaultSiteSettings);
 
     replaceForm(state);
     setSavedSnapshot(serializeSiteSettingsFormState(state));
-  }, [replaceForm, supabase]);
+  }, [replaceForm, showStatus, supabase]);
 
   const save = useCallback(
     async (event: { preventDefault(): void }) => {
@@ -214,7 +226,13 @@ export function useAdminSiteSettings({
           .single();
 
         if (error) {
-          throw error;
+          showStatus(
+            toAdminOperationError(
+              error,
+              "The site settings could not be saved."
+            ).message
+          );
+          return;
         }
 
         const savedState = toSiteSettingsFormState(
@@ -273,9 +291,10 @@ export function useAdminSiteSettings({
       } catch (error) {
         setUploadProgress(null);
         showStatus(
-          error instanceof Error
-            ? error.message
-            : "The site settings could not be saved."
+          toAdminOperationError(
+            error,
+            "The site settings could not be saved."
+          ).message
         );
       } finally {
         setWorking(false);
