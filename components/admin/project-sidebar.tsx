@@ -100,7 +100,7 @@ export function ProjectSidebar({
             ) : null}
           </div>
         </div>
-        <p className="font-[family:var(--font-display)] mt-2 text-lg uppercase leading-tight">
+        <p className="font-[family-name:var(--font-display)] mt-2 text-lg uppercase leading-tight">
           {project.title}
         </p>
         <p className="mt-1.5 text-xs uppercase tracking-meta opacity-60">
@@ -131,7 +131,7 @@ export function ProjectSidebar({
         <button
           type="button"
           onClick={onNew}
-          className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-line bg-panel hover:border-accent"
+          className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-line bg-panel hover:border-accent"
           aria-label="New project"
         >
           <Plus className="h-4 w-4" />
@@ -156,7 +156,7 @@ export function ProjectSidebar({
             key={f.key}
             type="button"
             onClick={() => setFilter(f.key)}
-            className={`flex-1 rounded-full py-1.5 text-[0.62rem] uppercase tracking-eyebrow transition-colors ${
+            className={`min-h-11 flex-1 rounded-full py-1.5 text-[0.62rem] uppercase tracking-eyebrow transition-colors ${
               filter === f.key
                 ? "bg-foreground text-background"
                 : "text-muted hover:text-foreground"
@@ -173,7 +173,7 @@ export function ProjectSidebar({
             <button
               type="button"
               onClick={() => setTemplatesCollapsed((current) => !current)}
-              className="flex w-full items-center justify-between gap-3 rounded-[1rem] px-2 py-2 text-left transition-colors hover:bg-panel-secondary"
+              className="flex min-h-11 w-full items-center justify-between gap-3 rounded-[1rem] px-2 py-2 text-left transition-colors hover:bg-panel-secondary"
               aria-expanded={!templatesCollapsed}
               aria-controls="admin-template-list"
             >

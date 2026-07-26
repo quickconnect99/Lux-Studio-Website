@@ -75,7 +75,7 @@ export function AdminConfirmModal({
             <div className="space-y-2">
               <h2
                 id="admin-confirm-title"
-                className="font-[family:var(--font-display)] text-3xl uppercase leading-none text-foreground"
+                className="font-[family-name:var(--font-display)] text-3xl uppercase leading-none text-foreground"
               >
                 {dialog.title}
               </h2>
@@ -89,7 +89,7 @@ export function AdminConfirmModal({
             type="button"
             onClick={onClose}
             disabled={working}
-            className="flex h-10 w-10 items-center justify-center rounded-full border border-line bg-panel-secondary text-muted"
+            className="flex h-11 w-11 items-center justify-center rounded-full border border-line bg-panel-secondary text-muted"
             aria-label="Close dialog"
           >
             <X className="h-4 w-4" />
@@ -111,7 +111,7 @@ export function AdminConfirmModal({
               />
             </label>
             <p className="text-xs leading-6 text-muted">
-              Tippe exakt <span className="font-medium text-foreground">{dialog.requireMatchText}</span> ein, um fortzufahren.
+              Type <span className="font-medium text-foreground">{dialog.requireMatchText}</span> exactly to continue.
             </p>
           </div>
         ) : null}

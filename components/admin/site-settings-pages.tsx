@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import {
   ArrowDown,
   ArrowUp,
@@ -60,7 +61,7 @@ export function HomePreview({
               onChange={(value) => updateField("heroEyebrow", value)}
               className="w-fit px-2 py-1 text-[0.68rem] uppercase tracking-eyebrow text-muted"
             />
-            <div className="font-[family:var(--font-display)] space-y-1 text-[clamp(3rem,7vw,6.5rem)] uppercase leading-[0.88] tracking-[-0.04em]">
+            <div className="font-[family-name:var(--font-display)] space-y-1 text-[clamp(3rem,7vw,6.5rem)] uppercase leading-[0.88] tracking-[-0.04em]">
               <InlineText
                 value={formState.heroHeadlineLead}
                 placeholder="Headline"
@@ -127,7 +128,7 @@ export function HomePreview({
             ) : null}
             <div className="absolute inset-0 bg-gradient-to-b from-transparent to-black/75" />
             <div className="absolute bottom-8 left-8 z-10">
-              <div className="font-[family:var(--font-display)] text-4xl uppercase leading-none">
+              <div className="font-[family-name:var(--font-display)] text-4xl uppercase leading-none">
                 <InlineText
                   value={formState.copy.home.videoHeadlineLead}
                   placeholder="Video headline"
@@ -176,8 +177,7 @@ export function HomePreview({
             Selected Frames
           </p>
           <p className="mt-2 max-w-2xl text-xs leading-5 text-muted">
-            Diese Bilder steuern die Galerie auf der Startseite. Frame 01 wird
-            als erstes angezeigt.
+            These images control the homepage gallery. Frame 01 is shown first.
           </p>
           <div className="mt-5">
             <GalleryEditor
@@ -216,7 +216,7 @@ export function HomePreview({
               }
               className="w-fit px-2 py-1 text-[0.7rem] uppercase tracking-eyebrow text-white/70"
             />
-            <div className="font-[family:var(--font-display)] mt-5 text-4xl uppercase leading-none">
+            <div className="font-[family-name:var(--font-display)] mt-5 text-4xl uppercase leading-none">
               <InlineText
                 value={formState.copy.home.ctaHeadlineLead}
                 placeholder="CTA headline"
@@ -303,8 +303,8 @@ export function WorkPreview({
       />
       <section className="px-6 pb-12 sm:px-10">
         <p className="rounded-2xl border border-line bg-panel-secondary px-5 py-4 text-xs text-muted">
-          Die Projektliste dieser Seite wird ueber den Bereich Projects im
-          Admin-Dashboard gepflegt, nicht hier.
+          The project list for this page is managed in the Projects area of the
+          admin dashboard, not here.
         </p>
       </section>
     </>
@@ -378,7 +378,7 @@ export function ServicesPreview({
               placeholder="00"
               ariaLabel={`Service ${index + 1} number`}
               onChange={(value) => updateService(index, "number", value)}
-              className="font-[family:var(--font-mono)] w-fit p-2 text-sm text-accent"
+              className="font-[family-name:var(--font-mono)] w-fit p-2 text-sm text-accent"
             />
             <div className="space-y-3">
               <InlineText
@@ -386,7 +386,7 @@ export function ServicesPreview({
                 placeholder="Service title"
                 ariaLabel={`Service ${index + 1} title`}
                 onChange={(value) => updateService(index, "title", value)}
-                className="font-[family:var(--font-display)] p-2 text-3xl uppercase leading-none"
+                className="font-[family-name:var(--font-display)] p-2 text-3xl uppercase leading-none"
                 inputClassName="text-xl uppercase"
               />
               <InlineText
@@ -416,6 +416,52 @@ export function ServicesPreview({
         ))}
       </section>
     </>
+  );
+}
+
+// Object URL preview for a queued (not-yet-uploaded) team portrait — without
+// this, the thumbnail only updates after the file has been saved to Supabase.
+function TeamMemberPortrait({
+  image,
+  name,
+  queuedFile
+}: {
+  image: string;
+  name: string;
+  queuedFile?: File;
+}) {
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!queuedFile) {
+      setPreviewUrl(null);
+      return;
+    }
+
+    const url = URL.createObjectURL(queuedFile);
+    setPreviewUrl(url);
+    return () => URL.revokeObjectURL(url);
+  }, [queuedFile]);
+
+  const src = previewUrl ?? image;
+
+  if (!src) {
+    return (
+      <div className="flex h-full items-center justify-center px-4 text-center text-[0.62rem] uppercase tracking-meta text-muted">
+        No image
+      </div>
+    );
+  }
+
+  return (
+    <Image
+      src={src}
+      alt={`${name || "Team member"} portrait`}
+      fill
+      sizes="180px"
+      unoptimized
+      className="object-cover"
+    />
   );
 }
 
@@ -584,11 +630,11 @@ export function AboutPreview({
           <div className="flex flex-wrap items-start justify-between gap-4">
             <div>
               <p className="text-xs uppercase tracking-eyebrow text-muted">
-                Team Mitarbeiter
+                Team Members
               </p>
               <p className="mt-2 max-w-2xl text-xs leading-5 text-muted">
-                Jeder Eintrag wird als eigener Team-Tab auf der About-Seite
-                angezeigt. Du kannst beliebig viele Mitarbeiter anlegen.
+                Each entry appears as its own team tab on the About page. You
+                can add as many members as needed.
               </p>
             </div>
             <button type="button" onClick={addTeamMember} className="control-pill">
@@ -610,20 +656,11 @@ export function AboutPreview({
                 >
                   <div className="space-y-3">
                     <div className="relative aspect-[4/5] overflow-hidden rounded-[1.25rem] border border-line bg-panel-dark">
-                      {member.image ? (
-                        <Image
-                          src={member.image}
-                          alt={`${member.name || "Team member"} portrait`}
-                          fill
-                          sizes="180px"
-                          unoptimized
-                          className="object-cover"
-                        />
-                      ) : (
-                        <div className="flex h-full items-center justify-center px-4 text-center text-[0.62rem] uppercase tracking-meta text-muted">
-                          No image
-                        </div>
-                      )}
+                      <TeamMemberPortrait
+                        image={member.image}
+                        name={member.name}
+                        queuedFile={queued?.file}
+                      />
                     </div>
                     {queued ? (
                       <p className="rounded-xl border border-accent/30 bg-accent/10 px-3 py-2 text-[0.62rem] leading-5 text-accent">
@@ -650,14 +687,14 @@ export function AboutPreview({
                   <div className="space-y-3">
                     <div className="flex flex-wrap items-center justify-between gap-3">
                       <p className="text-[0.62rem] uppercase tracking-eyebrow text-muted">
-                        Mitarbeiter {String(index + 1).padStart(2, "0")}
+                        Member {String(index + 1).padStart(2, "0")}
                       </p>
                       <div className="flex gap-1">
                         <button
                           type="button"
                           onClick={() => moveTeamMember(index, -1)}
                           disabled={index === 0}
-                          className="flex h-8 w-8 items-center justify-center rounded-full border border-line bg-panel text-muted transition-colors hover:text-foreground disabled:opacity-35"
+                          className="flex h-11 w-11 items-center justify-center rounded-full border border-line bg-panel text-muted transition-colors hover:text-foreground disabled:opacity-35"
                           aria-label="Move member up"
                         >
                           <ArrowUp className="h-4 w-4" />
@@ -666,7 +703,7 @@ export function AboutPreview({
                           type="button"
                           onClick={() => moveTeamMember(index, 1)}
                           disabled={index === teamMembers.length - 1}
-                          className="flex h-8 w-8 items-center justify-center rounded-full border border-line bg-panel text-muted transition-colors hover:text-foreground disabled:opacity-35"
+                          className="flex h-11 w-11 items-center justify-center rounded-full border border-line bg-panel text-muted transition-colors hover:text-foreground disabled:opacity-35"
                           aria-label="Move member down"
                         >
                           <ArrowDown className="h-4 w-4" />
@@ -674,7 +711,7 @@ export function AboutPreview({
                         <button
                           type="button"
                           onClick={() => removeTeamMember(index)}
-                          className="flex h-8 w-8 items-center justify-center rounded-full border border-line bg-panel text-muted transition-colors hover:text-error"
+                          className="flex h-11 w-11 items-center justify-center rounded-full border border-line bg-panel text-muted transition-colors hover:text-error"
                           aria-label="Remove member"
                         >
                           <Trash2 className="h-4 w-4" />
@@ -730,7 +767,7 @@ export function AboutPreview({
                       </label>
                     </div>
                     <label className="block space-y-2 text-xs uppercase tracking-meta text-muted">
-                      Individueller Text
+                      Member Description
                       <textarea
                         value={member.description}
                         onChange={(event) =>

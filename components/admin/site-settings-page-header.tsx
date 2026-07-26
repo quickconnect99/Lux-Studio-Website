@@ -37,7 +37,7 @@ export function SiteSettingsPageHeader({
             {eyebrow}
           </p>
         )}
-        <div className="font-[family:var(--font-display)] mt-5 text-[clamp(3rem,7vw,6rem)] uppercase leading-[0.88] tracking-[-0.04em]">
+        <div className="font-[family-name:var(--font-display)] mt-5 text-[clamp(3rem,7vw,6rem)] uppercase leading-[0.88] tracking-[-0.04em]">
           {onLeadChange ? (
             <InlineText
               value={lead}

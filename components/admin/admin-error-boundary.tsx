@@ -18,7 +18,7 @@ export class AdminErrorBoundary extends Component<Props, State> {
         <div className="section-shell pb-24">
           <div className="panel-2xl p-8 max-w-xl">
             <p className="text-xs uppercase tracking-eyebrow text-error">Admin error</p>
-            <h2 className="font-[family:var(--font-display)] mt-3 text-2xl uppercase">
+            <h2 className="font-[family-name:var(--font-display)] mt-3 text-2xl uppercase">
               Something went wrong
             </h2>
             <p className="mt-4 text-sm leading-7 text-muted">

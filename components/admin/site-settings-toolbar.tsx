@@ -52,7 +52,7 @@ export function SiteSettingsToolbar({
         </p>
         <p className="border-accent/40 bg-accent/10 mt-2 inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-[0.62rem] uppercase tracking-ui text-foreground">
           <Pencil className="h-3 w-3 text-accent" />
-          Grün markierte Inhalte sind direkt editierbar
+          Green-highlighted content is directly editable
         </p>
       </div>
       <div className="flex flex-wrap items-center gap-2">
@@ -72,7 +72,7 @@ export function SiteSettingsToolbar({
               type="button"
               onClick={() => onPageChange(previewPage)}
               className={cn(
-                "rounded-full px-3 py-2 text-[0.58rem] uppercase tracking-ui",
+                "min-h-11 rounded-full px-3 py-2 text-[0.58rem] uppercase tracking-ui",
                 page === previewPage
                   ? "bg-foreground text-background"
                   : "text-muted"
@@ -89,7 +89,7 @@ export function SiteSettingsToolbar({
               onClick={() => onPreviewWidthChange("desktop")}
               aria-label="Desktop preview"
               className={cn(
-                "rounded-full p-2",
+                "flex h-11 w-11 items-center justify-center rounded-full",
                 previewWidth === "desktop"
                   ? "bg-foreground text-background"
                   : "text-muted"
@@ -102,7 +102,7 @@ export function SiteSettingsToolbar({
               onClick={() => onPreviewWidthChange("mobile")}
               aria-label="Mobile preview"
               className={cn(
-                "rounded-full p-2",
+                "flex h-11 w-11 items-center justify-center rounded-full",
                 previewWidth === "mobile"
                   ? "bg-foreground text-background"
                   : "text-muted"

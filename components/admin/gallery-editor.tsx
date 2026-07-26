@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useId, useMemo, useRef, useState } from "react";
 import Image from "next/image";
 import { GripVertical, Plus, X } from "lucide-react";
 import {
@@ -96,7 +96,7 @@ function SortableItem({
         transition
       }}
       className={cn(
-        "grid grid-cols-[28px_68px_1fr_32px] items-start gap-3 rounded-[1.25rem] border border-line bg-panel-secondary p-3",
+        "grid grid-cols-[44px_68px_minmax(0,1fr)_44px] items-start gap-2 rounded-[1.25rem] border border-line bg-panel-secondary p-3 sm:gap-3",
         isDragging && "z-50 opacity-75 shadow-lg"
       )}
     >
@@ -105,7 +105,7 @@ function SortableItem({
         type="button"
         {...attributes}
         {...listeners}
-        className="mt-1.5 flex h-6 w-6 cursor-grab items-center justify-center rounded-md text-muted hover:text-foreground active:cursor-grabbing"
+        className="flex h-11 w-11 cursor-grab items-center justify-center rounded-xl text-muted hover:bg-panel hover:text-foreground active:cursor-grabbing"
         aria-label="Drag to reorder"
       >
         <GripVertical className="h-4 w-4" />
@@ -160,6 +160,7 @@ function SortableItem({
           value={item.caption}
           onChange={(e) => onCaptionChange(e.target.value)}
           className="textarea-field min-h-[4rem] text-xs"
+          aria-label={`Caption for frame ${displayIndex + 1}`}
           placeholder={captionPlaceholder}
         />
       </div>
@@ -168,12 +169,39 @@ function SortableItem({
       <button
         type="button"
         onClick={onRemove}
-        className="mt-1.5 flex h-6 w-6 items-center justify-center rounded-md text-muted transition-colors hover:text-error"
+        className="flex h-11 w-11 items-center justify-center rounded-xl text-muted transition-colors hover:bg-panel hover:text-error"
         aria-label={`Remove frame ${displayIndex + 1}`}
       >
         <X className="h-4 w-4" />
       </button>
     </div>
+  );
+}
+
+// ── Pending file thumbnail ───────────────────────────────────────────────────
+// Object URLs let the browser render a local file before it's ever uploaded.
+function PendingThumbnail({ file }: { file: File }) {
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+
+  useEffect(() => {
+    const url = URL.createObjectURL(file);
+    setPreviewUrl(url);
+    return () => URL.revokeObjectURL(url);
+  }, [file]);
+
+  if (!previewUrl) {
+    return null;
+  }
+
+  return (
+    <Image
+      src={previewUrl}
+      alt=""
+      fill
+      sizes="48px"
+      unoptimized
+      className="object-cover"
+    />
   );
 }
 
@@ -213,6 +241,7 @@ export function GalleryEditor({
   const [showUrlInput, setShowUrlInput] = useState(false);
   const [urlDraft, setUrlDraft] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const dndContextId = useId();
 
   const ids = useMemo(() => items.map((item) => item.id), [items]);
 
@@ -295,6 +324,7 @@ export function GalleryEditor({
       {/* Sortable image list */}
       {items.length > 0 ? (
         <DndContext
+          id={dndContextId}
           sensors={sensors}
           collisionDetection={closestCenter}
           onDragEnd={handleDragEnd}
@@ -341,9 +371,12 @@ export function GalleryEditor({
                   className="flex items-center justify-between gap-3 rounded-[1.25rem] border border-dashed border-accent/40 bg-accent/5 px-4 py-2.5"
                 >
                   <div className="flex min-w-0 items-start gap-3">
-                    <span className="mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-accent/25 text-[0.48rem] font-medium text-accent">
-                      {frameIndex + 1}
-                    </span>
+                    <div className="relative h-12 w-12 shrink-0 overflow-hidden rounded-[0.75rem] border border-accent/30 bg-panel-dark">
+                      <PendingThumbnail file={file} />
+                      <span className="absolute bottom-0.5 right-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-black/70 text-[0.48rem] font-medium text-white">
+                        {frameIndex + 1}
+                      </span>
+                    </div>
                     <div className="min-w-0 space-y-1">
                       <div className="flex flex-wrap items-center gap-2">
                         <span className="truncate text-xs text-muted">
@@ -361,7 +394,7 @@ export function GalleryEditor({
                   <button
                     type="button"
                     onClick={() => onFileRemove(i)}
-                    className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md text-muted transition-colors hover:text-error"
+                    className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-muted transition-colors hover:bg-panel hover:text-error"
                     aria-label="Remove queued file"
                   >
                     <X className="h-4 w-4" />

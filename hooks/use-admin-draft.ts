@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef } from "react";
 import type { ProjectFormState } from "@/lib/admin-types";
 import { restoreProjectDraft } from "@/lib/admin-persistence";
 import { DRAFT_STORAGE_KEY } from "@/lib/admin-utils";
@@ -43,13 +43,13 @@ export function useAdminDraft({
     }
   }, [formState, sessionEmail]);
 
-  function clearDraft() {
+  const clearDraft = useCallback(() => {
     try {
       localStorage.removeItem(DRAFT_STORAGE_KEY);
     } catch {
       // Ignore unavailable browser storage.
     }
-  }
+  }, []);
 
   return { clearDraft };
 }

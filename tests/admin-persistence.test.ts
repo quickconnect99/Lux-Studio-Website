@@ -28,7 +28,7 @@ test("restores drafts with safe defaults and a valid business", () => {
   });
 
   assert.equal(restored?.title, "Saved draft");
-  assert.equal(restored?.business, "Car");
+  assert.equal(restored?.business, "Automotive");
   assert.equal(restored?.year, "2025");
   assert.equal(restored?.slug, createEmptyProject().slug);
 });

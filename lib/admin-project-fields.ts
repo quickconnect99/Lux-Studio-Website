@@ -17,82 +17,82 @@ export const adminProjectFieldMeta: Record<
   business: {
     label: "Business",
     helpText:
-      "Erscheint auf der Projektdetailseite und steuert, in welchem Bereich das Projekt auf der Website einsortiert wird."
+      "Appears on the project detail page and determines which business category the project belongs to on the website."
   },
   title: {
     label: "Title",
     helpText:
-      "Steht als Hauptueberschrift auf der Projektdetailseite und taucht auf Homepage-Karten sowie im Featured-Bereich auf."
+      "Used as the main heading on the project detail page and also appears on homepage cards and featured sections."
   },
   slug: {
     label: "Slug",
     helpText:
-      "Bildet die URL unter /work/<slug>. Wird fuer Deep Links, SEO und das Oeffnen der Live-Seite verwendet."
+      "Forms the URL under /work/<slug>. Used for deep links, SEO, and opening the live page."
   },
   category: {
     label: "Category",
     helpText:
-      "Wird als Projektkategorie auf der Detailseite und in Uebersichten wie Featured Projects angezeigt."
+      "Displayed as the project category on the detail page and in overview surfaces such as Featured Projects."
   },
   carModel: {
     label: "Primary Subject",
     helpText:
-      "Steht als erstes Meta-Feld auf der Projektdetailseite und in Projektkarten. Bei Hospitality ist das der Venue- oder Property-Name."
+      "Shown as the first metadata field on the project detail page and on project cards. For hospitality work, this should be the venue or property name."
   },
   location: {
     label: "Location",
     helpText:
-      "Wird in den Meta-Daten der Projektdetailseite und in mehreren Karten/Overlays als Standort gezeigt."
+      "Displayed as the location in project detail metadata and across multiple cards and overlays."
   },
   year: {
     label: "Year",
     helpText:
-      "Erscheint im Meta-Grid auf der Projektdetailseite und in Content-Uebersichten als zeitliche Einordnung."
+      "Appears in the project detail metadata grid and in content overviews as the time marker."
   },
   shortDescription: {
     label: "Short Description",
     helpText:
-      "Ist die kurze Einleitung unter dem Projekttitel. Sie wird ausserdem auf Homepage-Karten, Featured Projects und im Next-Project-Block verwendet."
+      "This is the short introduction under the project title. It is also used on homepage cards, Featured Projects, and the next-project block."
   },
   fullDescription: {
     label: "Full Description",
     helpText:
-      "Bildet den Narrative-Abschnitt auf der Projektdetailseite und wird auch im Homepage-Featured-Bereich ausgespielt."
+      "Forms the narrative section on the project detail page and is also surfaced in the homepage featured area."
   },
   behindTheScenes: {
     label: "Behind The Scenes",
     helpText:
-      "Erscheint als eigener Hintergrund-/Production-Block auf der Projektdetailseite."
+      "Appears as its own background or production block on the project detail page."
   },
   coverImage: {
     label: "Cover Image",
     helpText:
-      "Ist das Top-Hauptvisual der Projektdetailseite, dient als Video-Poster und ist die Bildquelle fuer Karten auf der Start- und Work-Seite."
+      "This is the top hero visual on the project detail page, serves as the video poster, and is the image source for cards on the home and work pages."
   },
   gallery: {
     label: "Gallery",
     helpText:
-      "Die Reihenfolge steuert die Detailseite: Bild 1 wird als grosses Projektbild unter dem Narrative gezeigt, Bild 2+ erscheinen darunter als weitere Stills. Captions bleiben mit dem jeweiligen Bild verknuepft."
+      "The order controls the detail page layout: image 1 is shown as the large project visual below the narrative, while images 2+ appear below as supporting stills. Captions stay linked to their respective image."
   },
   video: {
     label: "Video",
     helpText:
-      "Wenn gesetzt, ersetzt das Video das statische Hauptbild auf der Projektdetailseite. Das Cover bleibt als Poster erhalten."
+      "When set, the video replaces the static main image on the project detail page. The cover image remains as the poster."
   },
   createdAt: {
     label: "Created At",
     helpText:
-      "Steuert die Sortierung im Admin und das Datum fuer strukturierte Video-Daten auf der Live-Seite."
+      "Controls sorting in the admin and the date used for structured video data on the live site."
   },
   featured: {
     label: "Featured",
     helpText:
-      "Featured-Projekte erscheinen im Featured-Bereich der Homepage."
+      "Featured projects appear in the homepage featured section."
   },
   published: {
     label: "Published",
     helpText:
-      "Nur veroeffentlichte Projekte sind auf der oeffentlichen Website sichtbar und unter /work/<slug> erreichbar."
+      "Only published projects are visible on the public website and reachable under /work/<slug>."
   }
 };
 

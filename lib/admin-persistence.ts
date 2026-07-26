@@ -10,6 +10,7 @@ import {
   parseValuesText
 } from "@/lib/admin-utils";
 import { normalizeProjectGallery } from "@/lib/project-images";
+import { projectBusinesses } from "@/lib/project-business";
 import { SITE_SETTINGS_ID } from "@/lib/supabase";
 import type { Project, TeamMember } from "@/lib/types";
 
@@ -29,11 +30,15 @@ export function restoreProjectDraft(value: unknown): ProjectFormState | null {
   }
 
   const draft = value as Partial<ProjectFormState>;
+  const business = draft.business?.trim();
 
   return {
     ...createEmptyProject(),
     ...draft,
-    business: draft.business?.trim() || createEmptyProject().business
+    business:
+      business && projectBusinesses.includes(business as (typeof projectBusinesses)[number])
+        ? business
+        : createEmptyProject().business
   };
 }
 

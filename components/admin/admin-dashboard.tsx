@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import dynamic from "next/dynamic";
 import {
   AlertTriangle,
   CheckCircle2,
@@ -20,15 +21,59 @@ import { isSupabaseConfigured, SUPABASE_BUCKET } from "@/lib/supabase";
 import { useAdminData } from "@/hooks/use-admin-data";
 import { AdminConfirmModal } from "@/components/admin/admin-confirm-modal";
 import { ProjectSidebar } from "@/components/admin/project-sidebar";
-import { ProjectEditor } from "@/components/admin/project-editor";
-import {
-  type PreviewEditableField,
-  type PreviewToggleField,
-  LivePreview
+import type {
+  PreviewEditableField,
+  PreviewToggleField
 } from "@/components/admin/live-preview";
-import { SiteSettingsForm } from "@/components/admin/site-settings-form";
 import { slugify } from "@/lib/admin-utils";
 import type { AdminProjectFieldKey } from "@/lib/admin-types";
+
+function AdminModuleLoading({ label }: { label: string }) {
+  return (
+    <div
+      className="panel-2xl admin-theme-surface min-h-64 animate-pulse p-6"
+      role="status"
+      aria-live="polite"
+    >
+      <span className="text-xs uppercase tracking-eyebrow text-muted">
+        Loading {label}…
+      </span>
+    </div>
+  );
+}
+
+const ProjectEditor = dynamic(
+  () =>
+    import("@/components/admin/project-editor").then(
+      (module) => module.ProjectEditor
+    ),
+  {
+    ssr: false,
+    loading: () => <AdminModuleLoading label="project editor" />
+  }
+);
+
+const LivePreview = dynamic(
+  () =>
+    import("@/components/admin/live-preview").then(
+      (module) => module.LivePreview
+    ),
+  {
+    ssr: false,
+    loading: () => <AdminModuleLoading label="live preview" />
+  }
+);
+
+const SiteSettingsForm = dynamic(
+  () =>
+    import("@/components/admin/site-settings-form").then(
+      (module) => module.SiteSettingsForm
+    ),
+  {
+    ssr: false,
+    loading: () => <AdminModuleLoading label="site settings" />
+  }
+);
 
 export function AdminDashboard() {
   const data = useAdminData();
@@ -222,7 +267,7 @@ export function AdminDashboard() {
               <button
                 type="button"
                 onClick={() => setActiveTab("projects")}
-                className={`inline-flex items-center gap-2 rounded-full px-4 py-2 text-xs uppercase tracking-eyebrow transition-colors ${
+                className={`inline-flex min-h-11 items-center gap-2 rounded-full px-4 py-2 text-xs uppercase tracking-eyebrow transition-colors ${
                   activeTab === "projects"
                     ? "bg-foreground text-background"
                     : "text-muted hover:text-foreground"
@@ -237,7 +282,7 @@ export function AdminDashboard() {
               <button
                 type="button"
                 onClick={() => setActiveTab("settings")}
-                className={`inline-flex items-center gap-2 rounded-full px-4 py-2 text-xs uppercase tracking-eyebrow transition-colors ${
+                className={`inline-flex min-h-11 items-center gap-2 rounded-full px-4 py-2 text-xs uppercase tracking-eyebrow transition-colors ${
                   activeTab === "settings"
                     ? "bg-foreground text-background"
                     : "text-muted hover:text-foreground"
@@ -330,9 +375,13 @@ export function AdminDashboard() {
                 authenticated Supabase session. Sign in first before editing any
                 project fields.
               </p>
-              <div className="mt-5 grid items-end gap-3 sm:grid-cols-[1fr_1fr_auto]">
+              <form
+                onSubmit={handleSignIn}
+                className="mt-5 grid items-end gap-3 sm:grid-cols-[1fr_1fr_auto]"
+              >
                 <input
                   type="email"
+                  autoComplete="username"
                   value={authFormState.email}
                   onChange={(e) => updateAuthFormField("email", e.target.value)}
                   className="input-field text-sm"
@@ -340,6 +389,7 @@ export function AdminDashboard() {
                 />
                 <input
                   type="password"
+                  autoComplete="current-password"
                   value={authFormState.password}
                   onChange={(e) =>
                     updateAuthFormField("password", e.target.value)
@@ -348,15 +398,14 @@ export function AdminDashboard() {
                   placeholder="Password"
                 />
                 <button
-                  type="button"
-                  onClick={handleSignIn}
+                  type="submit"
                   disabled={working}
                   className="control-pill border-foreground bg-foreground text-background disabled:opacity-70"
                 >
                   <LogIn className="h-4 w-4" />
                   Sign In
                 </button>
-              </div>
+              </form>
             </div>
           </div>
         </div>

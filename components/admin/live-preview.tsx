@@ -456,8 +456,8 @@ export function LivePreview({
               placeholder="Project title"
               onCommit={onUpdateField}
               wrapperClassName="-mx-2 -my-2 px-2 py-2"
-              displayClassName="font-[family:var(--font-display)] text-3xl uppercase leading-[0.9] text-foreground"
-              inputClassName="font-[family:var(--font-display)] text-2xl uppercase tracking-tight"
+              displayClassName="font-[family-name:var(--font-display)] text-3xl uppercase leading-[0.9] text-foreground"
+              inputClassName="font-[family-name:var(--font-display)] text-2xl uppercase tracking-tight"
             />
           </PreviewFieldShell>
 

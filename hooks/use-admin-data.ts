@@ -7,9 +7,9 @@ import {
   useRef,
   useState
 } from "react";
-import type { Session } from "@supabase/supabase-js";
 import { useAdminDraft } from "@/hooks/use-admin-draft";
 import { useAdminMedia } from "@/hooks/use-admin-media";
+import { useAdminSession } from "@/hooks/use-admin-session";
 import { useForm } from "@/hooks/use-form";
 import {
   buildLocalProject,
@@ -55,6 +55,7 @@ import {
 type UploadProgress = { current: number; total: number; filename: string };
 
 const DRAFT_PROJECT_KEY = "draft:new-project";
+const EMPTY_AUTH_FORM = { email: "", password: "" };
 const DEFAULT_STATUS_MESSAGE =
   "Two starter templates are always available. Editing one and saving creates a new project.";
 
@@ -75,7 +76,7 @@ export function useAdminData() {
   const siteSettingsForm = useForm<SiteSettingsFormState>(
     toSiteSettingsFormState(defaultSiteSettings)
   );
-  const authForm = useForm({ email: "", password: "" });
+  const authForm = useForm(EMPTY_AUTH_FORM);
 
   const [activeTab, setActiveTab] = useState<AdminTab>("projects");
   const [projects, setProjects] = useState<AdminProjectListItem[]>([]);
@@ -581,76 +582,29 @@ export function useAdminData() {
     setSavedSiteSettingsSnapshot(serializeSiteSettingsFormState(state));
   }, [supabase, replaceSiteSettingsForm]);
 
-  const authorizeSession = useCallback(
-    async (session: Session | null) => {
-      if (!supabase || !session?.user.email) {
-        setSessionEmail(null);
-        setProjects([]);
-        hasAppliedInitialProject.current = false;
-        return false;
-      }
+  const resetSessionWorkspace = useCallback(() => {
+    setProjects([]);
+    hasAppliedInitialProject.current = false;
+    applyProject(defaultTemplate);
+  }, [applyProject, defaultTemplate]);
 
-      const { data: isAdmin, error } = await supabase.rpc("is_admin");
+  const handleSignInSuccess = useCallback(() => {
+    clearDraft();
+  }, [clearDraft]);
 
-      if (error || isAdmin !== true) {
-        await supabase.auth.signOut();
-        setSessionEmail(null);
-        setProjects([]);
-        hasAppliedInitialProject.current = false;
-        applyProject(defaultTemplate);
-        showStatus(
-          "This Supabase account is not authorized for the admin workspace."
-        );
-        return false;
-      }
-
-      setSessionEmail(session.user.email);
-      await loadProjects();
-      return true;
-    },
-    [applyProject, defaultTemplate, loadProjects, showStatus, supabase]
-  );
-
-  useEffect(() => {
-    if (!supabase) return;
-    const supabaseClient = supabase;
-    let active = true;
-
-    async function bootstrap() {
-      await loadSiteSettings();
-      const {
-        data: { session }
-      } = await supabaseClient.auth.getSession();
-      if (!active) return;
-      await authorizeSession(session);
-    }
-
-    void bootstrap();
-
-    const {
-      data: { subscription }
-    } = supabaseClient.auth.onAuthStateChange((_event, session) => {
-      if (session?.user.email) {
-        void authorizeSession(session);
-      } else {
-        setProjects([]);
-        hasAppliedInitialProject.current = false;
-        void loadSiteSettings();
-        applyProject(defaultTemplate);
-      }
-    });
-
-    return () => {
-      active = false;
-      subscription.unsubscribe();
-    };
-  }, [
-    authorizeSession,
-    loadSiteSettings,
-    applyProject,
+  const { handleSignIn, handleSignOut } = useAdminSession({
     supabase,
-    defaultTemplate
-  ]);
+    credentials: authFormState,
+    setSessionEmail,
+    setWorking,
+    onBeforeAuth: clearSaveReport,
+    onAuthorized: loadProjects,
+    onBootstrap: loadSiteSettings,
+    onSessionEnded: resetSessionWorkspace,
+    onSignInSuccess: handleSignInSuccess,
+    resetCredentials: resetAuthForm,
+    showStatus
+  });
 
   const handleSaveRef = useRef<(() => void) | null>(null);
   useEffect(() => {
@@ -663,6 +617,29 @@ export function useAdminData() {
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
   }, []);
+
+  // Best-effort: the public site still catches up within the 5-minute
+  // fallback window (see app/layout.tsx) if this call fails for any reason,
+  // so a failure here must never block or fail the save itself.
+  async function triggerPublicRevalidate() {
+    if (!supabase) return;
+
+    try {
+      const {
+        data: { session }
+      } = await supabase.auth.getSession();
+      const accessToken = session?.access_token;
+
+      if (!accessToken) return;
+
+      await fetch("/api/admin/revalidate", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${accessToken}` }
+      });
+    } catch {
+      // Ignored — see comment above.
+    }
+  }
 
   async function uploadFile(file: File, folder: string): Promise<string> {
     if (!supabase) throw new Error("Supabase is not configured.");
@@ -786,6 +763,7 @@ export function useAdminData() {
             ? "New project created from template and saved to Supabase."
             : "Project saved to Supabase."
         );
+        void triggerPublicRevalidate();
         nextReport = buildRemoteProjectSaveReport({
           isTemplateSource,
           coverFile,
@@ -886,6 +864,7 @@ export function useAdminData() {
           .delete()
           .eq("id", formState.id);
         if (error) throw error;
+        void triggerPublicRevalidate();
       }
 
       const next = projects.filter((p) => p.id !== formState.id);
@@ -1012,6 +991,7 @@ export function useAdminData() {
       setSavedSiteSettingsSnapshot(serializeSiteSettingsFormState(savedState));
       clearSiteSettingsMedia();
       setStatusMessage("Global site settings saved to Supabase.");
+      void triggerPublicRevalidate();
       setSaveReport({
         title: "Site settings saved",
         items: [
@@ -1067,41 +1047,6 @@ export function useAdminData() {
     } finally {
       setWorking(false);
     }
-  }
-
-  async function handleSignIn() {
-    if (!supabase) return;
-    setSaveReport(null);
-    setWorking(true);
-    try {
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email: authFormState.email,
-        password: authFormState.password
-      });
-      if (error) throw error;
-      const authorized = await authorizeSession(data.session);
-      if (!authorized) return;
-      showStatus("Signed in. Project syncing is now enabled.");
-      clearDraft();
-      resetAuthForm();
-    } catch (err) {
-      showStatus(err instanceof Error ? err.message : "Sign-in failed.");
-    } finally {
-      setWorking(false);
-    }
-  }
-
-  async function handleSignOut() {
-    if (!supabase) return;
-    setSaveReport(null);
-    await supabase.auth.signOut();
-    setSessionEmail(null);
-    setProjects([]);
-    hasAppliedInitialProject.current = false;
-    applyProject(defaultTemplate);
-    showStatus(
-      "Signed out. Templates remain available for new project drafts."
-    );
   }
 
   return {

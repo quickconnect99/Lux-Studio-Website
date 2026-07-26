@@ -38,8 +38,8 @@ export function SiteSettingsWorkPreview({
       />
       <section className="px-6 pb-12 sm:px-10">
         <p className="rounded-2xl border border-line bg-panel-secondary px-5 py-4 text-xs text-muted">
-          Die Projektliste dieser Seite wird im Bereich Projects gepflegt. In
-          diesem Work-Tab sind nur die Seitentexte editierbar.
+          The project list for this page is managed in the Projects area. Only
+          the page copy is editable in this Work tab.
         </p>
       </section>
     </>
