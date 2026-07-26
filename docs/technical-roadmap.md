@@ -58,7 +58,8 @@ Freigabe-Gate:
 
 ## Phase 1 — Korrektheit und Zugriffsschutz
 
-Status: `Erledigt`, Produktionsschema bleibt ein `Gate`
+Status: Repository und Produktionsschema `Erledigt`, Live-Workflow-Test bleibt
+ein `Gate`
 
 Priorität: hoch
 
@@ -79,11 +80,17 @@ Akzeptanzkriterien:
 - `/admin` ist im Produktions-Build ohne explizite Aktivierung nicht
   erreichbar.
 
+Deployment-Stand:
+
+- Alle sieben versionierten Migrationen wurden am 26. Juli 2026 auf das
+  verknüpfte Projekt „Lux Studio Website“ angewendet.
+- Rate-Limit-Tabelle, RLS, RPC-Berechtigungen, Indizes, Projekt-Default und
+  globale Kontaktadresse wurden anschließend read-only verifiziert.
+
 Freigabe-Gate:
 
-- Änderungen in `supabase/schema.sql` müssen vor dem Livegang auf das
-  Produktionsprojekt angewendet und dort mit einem Nicht-Admin-Konto geprüft
-  werden.
+- Der vollständige Admin-Workflow muss vor dem Livegang zusätzlich mit einem
+  echten Nicht-Admin-Konto im Browser geprüft werden.
 
 ## Phase 2 — Toolchain und automatisierte Qualität
 
@@ -201,8 +208,8 @@ Build-Report:
 
 ## Phase 5 — Produktionshärtung und Beobachtbarkeit
 
-Status: im Repository `Erledigt`, Produktionsmigration und externer
-Monitoring-Anbieter sind `Gates`
+Status: Repository und Produktionsmigration `Erledigt`, externer
+Monitoring-Anbieter bleibt ein `Gate`
 
 Priorität: mittel
 
@@ -222,6 +229,16 @@ Akzeptanzkriterien:
 - Logs enthalten keine E-Mail-Adresse, keinen Nachrichtentext und keine
   Zugangsdaten.
 - Kritische Fehler sind anhand von Event-Name und Request-ID korrelierbar.
+
+Produktionsnachweis:
+
+- `20260726000100_inquiry_rate_limit_and_defaults.sql` und
+  `20260726000200_update_global_contact_email.sql` sind remote registriert.
+- Ein transaktionaler Smoke-Test lieferte für zwei erlaubte und einen
+  blockierten Versuch `[true, true, false]`; der Test wurde vollständig
+  zurückgerollt.
+- `anon` und `authenticated` besitzen kein Execute-Recht auf den RPC,
+  `service_role` besitzt es.
 
 Freigabe-Gate:
 
@@ -276,8 +293,7 @@ Freigabe-Gate:
 
 1. Bereinigtes `main` koordiniert mit `--force-with-lease` auf GitHub
    veröffentlichen und bestehende Klone danach neu aufsetzen.
-2. Supabase-Schema einschließlich persistentem Rate-Limit im
-   Produktionsprojekt anwenden und mit einem Nicht-Admin-Konto prüfen.
+2. Admin-Workflow im Produktionsprojekt mit einem Nicht-Admin-Konto prüfen.
 3. Monitoring-Anbieter, Datenregion und Secret-Verwaltung freigeben.
 4. Next.js 16 in einem eigenen Branch migrieren, die Production-Advisories
    erneut bewerten und den vollständigen Preview-Deploy abnehmen.
