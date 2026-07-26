@@ -7,13 +7,42 @@ import {
   isMissingLegalValue,
   legalProfile
 } from "@/lib/legal";
-import { getSiteSettings } from "@/lib/supabase";
+import {
+  buildSharingMetadata,
+  resolveSharingImage
+} from "@/lib/sharing-metadata";
+import { getPublishedProjects, getSiteSettings } from "@/lib/supabase";
 
-export const metadata: Metadata = {
-  title: "Legal Notice",
-  description:
-    "Company, contact, and media ownership details for this website."
-};
+const pageTitle = "Legal Notice";
+const pageDescription =
+  "Company, contact, and media ownership details for this website.";
+
+export async function generateMetadata(): Promise<Metadata> {
+  const [projects, settings] = await Promise.all([
+    getPublishedProjects(),
+    getSiteSettings()
+  ]);
+  const image = resolveSharingImage({
+    preferredImages: settings.selectedFrames,
+    projects,
+    settings
+  });
+
+  return {
+    title: pageTitle,
+    description: pageDescription,
+    alternates: {
+      canonical: "/impressum"
+    },
+    ...buildSharingMetadata({
+      title: `${pageTitle} | ${settings.brand.name}`,
+      description: pageDescription,
+      image,
+      imageAlt: `${settings.brand.name} featured still`,
+      siteName: settings.brand.name
+    })
+  };
+}
 
 function DetailRow({
   label,

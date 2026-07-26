@@ -2,6 +2,7 @@ import type { NavigationVisibility, SiteSettings } from "@/lib/types";
 
 export const BRAND_NAME = "Lux Studio";
 export const BRAND_MARK = "L/S";
+export const DEFAULT_PROJECT_IMAGE = "/images/demo-car-01.jpg";
 
 const fallbackSiteUrl = "http://localhost:3000";
 
@@ -51,8 +52,7 @@ export const defaultSiteSettings: SiteSettings = {
   seo: {
     title: `${BRAND_NAME} | Automotive Films & Campaign Stills`,
     description:
-      "Lux Studio produces films and photography for car launches, dealer campaigns, and events.",
-    ogImage: "/images/demo-car-01.jpg"
+      "Lux Studio produces films and photography for car launches, dealer campaigns, and events."
   },
   hero: {
     eyebrow: "Automotive film & photography studio",
@@ -66,10 +66,6 @@ export const defaultSiteSettings: SiteSettings = {
       "The studio was built around a simple idea: strong subjects deserve careful pacing, clean framing, and images that hold attention without shouting for it.",
     positioning:
       "We work as an extension of your marketing team: one shoot, cut down into a hero film, stills, and social content that all look like they belong together.",
-    teamImages: [
-      "/images/demo-car-02.jpg",
-      "/images/demo-car-03.jpg"
-    ],
     teamMembers: [
       {
         name: "Nico Hagelberger",
@@ -88,6 +84,7 @@ export const defaultSiteSettings: SiteSettings = {
         image: "/images/demo-car-03.jpg"
       }
     ],
+    teamGallery: ["/images/demo-car-02.jpg", "/images/demo-car-03.jpg"],
     values: [
       {
         title: "Precision",
@@ -158,12 +155,6 @@ export const defaultSiteSettings: SiteSettings = {
       heroSecondaryCta: "Start An Inquiry",
       videoHeadlineLead: "Built",
       videoHeadlineTrail: "To Be Seen",
-      brandEyebrow: "Brand statement",
-      brandHeadlineLead: "Shot",
-      brandHeadlineTrail: "To Sell",
-      servicesEyebrow: "Services snapshot",
-      servicesHeadlineLead: "Built",
-      servicesHeadlineTrail: "For Campaigns",
       ctaEyebrow: "Next Project",
       ctaHeadlineLead: "Ready",
       ctaHeadlineTrail: "To Launch",

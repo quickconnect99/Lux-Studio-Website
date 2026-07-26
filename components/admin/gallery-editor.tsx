@@ -36,6 +36,8 @@ type GalleryEditorProps = {
   onFileRemove: (index: number) => void;
   introText?: string;
   captionPlaceholder?: (index: number) => string;
+  showCaptions?: boolean;
+  itemLabel?: string;
   getFrameRole?: (index: number) => {
     label: string;
     description: string;
@@ -50,6 +52,8 @@ type SortableItemProps = {
   roleLabel: string;
   roleDescription: string;
   captionPlaceholder: string;
+  showCaption: boolean;
+  itemLabel: string;
   onRemove: () => void;
   onImageChange: (value: string) => void;
   onCaptionChange: (value: string) => void;
@@ -61,6 +65,8 @@ function SortableItem({
   roleLabel,
   roleDescription,
   captionPlaceholder,
+  showCaption,
+  itemLabel,
   onRemove,
   onImageChange,
   onCaptionChange
@@ -115,7 +121,7 @@ function SortableItem({
       <div className="relative h-16 w-16 overflow-hidden rounded-[0.875rem] border border-line bg-panel-dark">
         <Image
           src={item.image}
-          alt={`Frame ${displayIndex + 1}`}
+          alt={`${itemLabel} ${displayIndex + 1}`}
           fill
           sizes="64px"
           className="object-cover"
@@ -129,9 +135,9 @@ function SortableItem({
       <div className="space-y-2">
         <div className="flex flex-wrap items-center gap-2">
           <p className="text-[0.58rem] uppercase tracking-[0.28em] text-muted">
-            Frame {String(displayIndex + 1).padStart(2, "0")}
+            {itemLabel} {String(displayIndex + 1).padStart(2, "0")}
           </p>
-          <span className="rounded-full border border-accent/30 bg-accent/10 px-2 py-1 text-[0.55rem] uppercase tracking-[0.24em] text-accent">
+          <span className="border-accent/30 bg-accent/10 rounded-full border px-2 py-1 text-[0.55rem] uppercase tracking-[0.24em] text-accent">
             {roleLabel}
           </span>
         </div>
@@ -153,16 +159,18 @@ function SortableItem({
             }
           }}
           className="input-field text-xs"
-          aria-label={`Image path for frame ${displayIndex + 1}`}
+          aria-label={`Image path for ${itemLabel.toLowerCase()} ${displayIndex + 1}`}
           placeholder="https://… or /images/…"
         />
-        <textarea
-          value={item.caption}
-          onChange={(e) => onCaptionChange(e.target.value)}
-          className="textarea-field min-h-[4rem] text-xs"
-          aria-label={`Caption for frame ${displayIndex + 1}`}
-          placeholder={captionPlaceholder}
-        />
+        {showCaption ? (
+          <textarea
+            value={item.caption}
+            onChange={(e) => onCaptionChange(e.target.value)}
+            className="textarea-field min-h-[4rem] text-xs"
+            aria-label={`Caption for ${itemLabel.toLowerCase()} ${displayIndex + 1}`}
+            placeholder={captionPlaceholder}
+          />
+        ) : null}
       </div>
 
       {/* Remove */}
@@ -170,7 +178,7 @@ function SortableItem({
         type="button"
         onClick={onRemove}
         className="flex h-11 w-11 items-center justify-center rounded-xl text-muted transition-colors hover:bg-panel hover:text-error"
-        aria-label={`Remove frame ${displayIndex + 1}`}
+        aria-label={`Remove ${itemLabel.toLowerCase()} ${displayIndex + 1}`}
       >
         <X className="h-4 w-4" />
       </button>
@@ -229,6 +237,8 @@ export function GalleryEditor({
   onFileRemove,
   introText = "Gallery order controls the live page: frame 01 becomes the large project image below the narrative, frame 02+ appear lower on the page.",
   captionPlaceholder = (index) => `Caption for frame ${index + 1}...`,
+  showCaptions = true,
+  itemLabel = "Frame",
   getFrameRole = getGalleryFrameRole
 }: GalleryEditorProps) {
   // ── Local state — initialized from props, owns drag order ───────────────
@@ -317,9 +327,7 @@ export function GalleryEditor({
   // ── Render ───────────────────────────────────────────────────────────────
   return (
     <div className="space-y-2">
-      <p className="text-[0.72rem] leading-5 text-muted">
-        {introText}
-      </p>
+      <p className="text-[0.72rem] leading-5 text-muted">{introText}</p>
 
       {/* Sortable image list */}
       {items.length > 0 ? (
@@ -331,7 +339,7 @@ export function GalleryEditor({
         >
           <SortableContext items={ids} strategy={verticalListSortingStrategy}>
             <div className="space-y-2">
-              {items.map((item, displayIndex) => (
+              {items.map((item, displayIndex) =>
                 (() => {
                   const role = getFrameRole(displayIndex);
 
@@ -343,6 +351,8 @@ export function GalleryEditor({
                       roleLabel={role.label}
                       roleDescription={role.description}
                       captionPlaceholder={captionPlaceholder(displayIndex)}
+                      showCaption={showCaptions}
+                      itemLabel={itemLabel}
                       onRemove={() => handleRemove(item.id)}
                       onImageChange={(value) =>
                         handleImageChange(item.id, value)
@@ -351,7 +361,7 @@ export function GalleryEditor({
                     />
                   );
                 })()
-              ))}
+              )}
             </div>
           </SortableContext>
         </DndContext>
@@ -360,7 +370,7 @@ export function GalleryEditor({
       {/* Pending upload files */}
       {pendingFiles.length > 0 ? (
         <div className="space-y-1.5">
-          {pendingFiles.map((file, i) => (
+          {pendingFiles.map((file, i) =>
             (() => {
               const frameIndex = items.length + i;
               const role = getFrameRole(frameIndex);
@@ -368,10 +378,10 @@ export function GalleryEditor({
               return (
                 <div
                   key={`${file.name}-${i}`}
-                  className="flex items-center justify-between gap-3 rounded-[1.25rem] border border-dashed border-accent/40 bg-accent/5 px-4 py-2.5"
+                  className="border-accent/40 bg-accent/5 flex items-center justify-between gap-3 rounded-[1.25rem] border border-dashed px-4 py-2.5"
                 >
                   <div className="flex min-w-0 items-start gap-3">
-                    <div className="relative h-12 w-12 shrink-0 overflow-hidden rounded-[0.75rem] border border-accent/30 bg-panel-dark">
+                    <div className="border-accent/30 relative h-12 w-12 shrink-0 overflow-hidden rounded-[0.75rem] border bg-panel-dark">
                       <PendingThumbnail file={file} />
                       <span className="absolute bottom-0.5 right-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-black/70 text-[0.48rem] font-medium text-white">
                         {frameIndex + 1}
@@ -386,7 +396,7 @@ export function GalleryEditor({
                           Queued
                         </span>
                       </div>
-                      <p className="text-[0.62rem] uppercase tracking-[0.24em] text-accent/85">
+                      <p className="text-accent/85 text-[0.62rem] uppercase tracking-[0.24em]">
                         {role.label}
                       </p>
                     </div>
@@ -402,7 +412,7 @@ export function GalleryEditor({
                 </div>
               );
             })()
-          ))}
+          )}
         </div>
       ) : null}
 

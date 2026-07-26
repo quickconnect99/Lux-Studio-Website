@@ -7,6 +7,10 @@ import { SiteHeader } from "@/components/layout/site-header";
 import { MotionProvider } from "@/components/ui/motion-provider";
 import { ThemeProvider } from "@/components/ui/theme-provider";
 import { adaptSiteSettingsToPublishedProjects } from "@/lib/public-portfolio";
+import {
+  buildSharingMetadata,
+  resolveSharingImage
+} from "@/lib/sharing-metadata";
 import { siteConfig } from "@/lib/site-config";
 import { getPublishedProjects, getSiteSettings } from "@/lib/supabase";
 import { DEFAULT_THEME, themeIds } from "@/lib/themes";
@@ -22,6 +26,12 @@ export async function generateMetadata(): Promise<Metadata> {
     getPublishedProjects()
   ]);
   const settings = adaptSiteSettingsToPublishedProjects(rawSettings, projects);
+  const sharingImage = resolveSharingImage({
+    preferredImages: settings.selectedFrames,
+    projects,
+    settings
+  });
+
   return {
     metadataBase: new URL(siteConfig.siteUrl),
     title: {
@@ -32,24 +42,13 @@ export async function generateMetadata(): Promise<Metadata> {
     alternates: {
       canonical: "/"
     },
-    openGraph: {
+    ...buildSharingMetadata({
       title: settings.seo.title,
       description: settings.seo.description,
-      type: "website",
       siteName: settings.brand.name,
-      images: [
-        {
-          url: settings.seo.ogImage,
-          alt: `${settings.brand.name} hero still`
-        }
-      ]
-    },
-    twitter: {
-      card: "summary_large_image",
-      title: settings.seo.title,
-      description: settings.seo.description,
-      images: [settings.seo.ogImage]
-    }
+      image: sharingImage,
+      imageAlt: `${settings.brand.name} featured still`
+    })
   };
 }
 

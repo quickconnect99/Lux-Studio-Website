@@ -6,7 +6,10 @@ import { startTransition, useMemo, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
 import { ArrowUpRight } from "lucide-react";
-import { projectBusinessToParam } from "@/lib/project-business";
+import {
+  getProjectPrimaryMetaLabel,
+  projectBusinessToParam
+} from "@/lib/project-business";
 import type { Project, ProjectBusiness } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
@@ -44,7 +47,8 @@ export function ProjectGrid({
     return (
       availableBusinesses.find(
         (business) =>
-          normalizeFilterValue(business) === normalizeFilterValue(initialBusiness)
+          normalizeFilterValue(business) ===
+          normalizeFilterValue(initialBusiness)
       ) ?? null
     );
   }, [availableBusinesses, initialBusiness]);
@@ -177,7 +181,7 @@ export function ProjectGrid({
           <p className="text-xs uppercase tracking-eyebrow text-muted">
             No selected work here yet
           </p>
-          <h2 className="font-[family-name:var(--font-display)] mt-4 text-4xl uppercase leading-none text-foreground">
+          <h2 className="mt-4 font-[family-name:var(--font-display)] text-4xl uppercase leading-none text-foreground">
             More
             <span className="block pl-8 text-accent sm:pl-12">Coming Soon</span>
           </h2>
@@ -236,7 +240,7 @@ export function ProjectGrid({
                         </span>
                         <span>{project.year}</span>
                       </div>
-                      <h3 className="font-[family-name:var(--font-display)] mt-3 text-[2rem] uppercase leading-none sm:mt-4 sm:text-3xl">
+                      <h3 className="mt-3 font-[family-name:var(--font-display)] text-[2rem] uppercase leading-none sm:mt-4 sm:text-3xl">
                         {project.title}
                       </h3>
                       <p className="mt-2 line-clamp-2 max-w-sm text-sm leading-6 text-white/80 sm:mt-3 sm:line-clamp-none sm:leading-7">
@@ -245,7 +249,15 @@ export function ProjectGrid({
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-4 border-t border-line p-4 sm:grid-cols-[1.1fr_1fr_auto] sm:p-5">
+                  <div className="grid grid-cols-2 gap-4 border-t border-line p-4 sm:grid-cols-[1.1fr_1fr_1fr_auto] sm:p-5">
+                    <div>
+                      <p className="text-[0.58rem] uppercase tracking-[0.22em] text-muted">
+                        {getProjectPrimaryMetaLabel(project.business)}
+                      </p>
+                      <p className="mt-2 text-[0.72rem] font-medium uppercase tracking-[0.12em] text-foreground">
+                        {project.carModel || project.category}
+                      </p>
+                    </div>
                     <div>
                       <p className="text-[0.58rem] uppercase tracking-[0.22em] text-muted">
                         Category

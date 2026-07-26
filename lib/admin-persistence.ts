@@ -36,7 +36,8 @@ export function restoreProjectDraft(value: unknown): ProjectFormState | null {
     ...createEmptyProject(),
     ...draft,
     business:
-      business && projectBusinesses.includes(business as (typeof projectBusinesses)[number])
+      business &&
+      projectBusinesses.includes(business as (typeof projectBusinesses)[number])
         ? business
         : createEmptyProject().business
   };
@@ -159,7 +160,6 @@ export function buildSiteSettingsDatabasePayload(
     social_links: parseSocialLinksText(formState.socialLinksText),
     seo_title: formState.seoTitle,
     seo_description: formState.seoDescription,
-    seo_og_image: formState.seoOgImage,
     hero_eyebrow: formState.heroEyebrow,
     hero_headline_lead: formState.heroHeadlineLead,
     hero_headline_trail: formState.heroHeadlineTrail,
@@ -167,7 +167,7 @@ export function buildSiteSettingsDatabasePayload(
     hero_video_url: formState.heroVideoUrl,
     about_founder_note: formState.aboutFounderNote,
     about_positioning: formState.aboutPositioning,
-    about_team_images: teamMembers.map((member) => member.image),
+    about_team_images: parseMultilineInput(formState.aboutTeamGalleryText),
     about_team_members: teamMembers,
     about_values: parseValuesText(formState.aboutValuesText),
     services: parseServicesText(formState.servicesText),

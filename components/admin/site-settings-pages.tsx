@@ -13,9 +13,7 @@ import {
 } from "lucide-react";
 import Image from "next/image";
 import { updateCopySection } from "@/components/admin/site-settings-copy";
-import {
-  type SiteSettingsEditorProps as Props
-} from "@/components/admin/site-settings-editor-types";
+import { type SiteSettingsEditorProps as Props } from "@/components/admin/site-settings-editor-types";
 import { GalleryEditor } from "@/components/admin/gallery-editor";
 import { InlineText } from "@/components/admin/site-settings-inline-text";
 import { SiteSettingsPageHeader } from "@/components/admin/site-settings-page-header";
@@ -61,7 +59,7 @@ export function HomePreview({
               onChange={(value) => updateField("heroEyebrow", value)}
               className="w-fit px-2 py-1 text-[0.68rem] uppercase tracking-eyebrow text-muted"
             />
-            <div className="font-[family-name:var(--font-display)] space-y-1 text-[clamp(3rem,7vw,6.5rem)] uppercase leading-[0.88] tracking-[-0.04em]">
+            <div className="space-y-1 font-[family-name:var(--font-display)] text-[clamp(3rem,7vw,6.5rem)] uppercase leading-[0.88] tracking-[-0.04em]">
               <InlineText
                 value={formState.heroHeadlineLead}
                 placeholder="Headline"
@@ -118,7 +116,7 @@ export function HomePreview({
               <video
                 key={formState.heroVideoUrl}
                 src={formState.heroVideoUrl}
-                poster={formState.seoOgImage}
+                poster={selectedFrames[0]}
                 autoPlay
                 muted
                 loop
@@ -204,66 +202,66 @@ export function HomePreview({
       </section>
 
       <section className="px-6 py-10 sm:px-10">
-          <div className="dark-panel rounded-[2rem] p-7 text-white">
+        <div className="dark-panel rounded-[2rem] p-7 text-white">
+          <InlineText
+            value={formState.copy.home.ctaEyebrow}
+            placeholder="CTA label"
+            ariaLabel="CTA label"
+            onChange={(value) =>
+              updateCopySection(formState, updateField, "home", {
+                ctaEyebrow: value
+              })
+            }
+            className="w-fit px-2 py-1 text-[0.7rem] uppercase tracking-eyebrow text-white/70"
+          />
+          <div className="mt-5 font-[family-name:var(--font-display)] text-4xl uppercase leading-none">
             <InlineText
-              value={formState.copy.home.ctaEyebrow}
-              placeholder="CTA label"
-              ariaLabel="CTA label"
+              value={formState.copy.home.ctaHeadlineLead}
+              placeholder="CTA headline"
+              ariaLabel="CTA headline lead"
               onChange={(value) =>
                 updateCopySection(formState, updateField, "home", {
-                  ctaEyebrow: value
+                  ctaHeadlineLead: value
                 })
               }
-              className="w-fit px-2 py-1 text-[0.7rem] uppercase tracking-eyebrow text-white/70"
-            />
-            <div className="font-[family-name:var(--font-display)] mt-5 text-4xl uppercase leading-none">
-              <InlineText
-                value={formState.copy.home.ctaHeadlineLead}
-                placeholder="CTA headline"
-                ariaLabel="CTA headline lead"
-                onChange={(value) =>
-                  updateCopySection(formState, updateField, "home", {
-                    ctaHeadlineLead: value
-                  })
-                }
-                className="px-2 text-white"
-              />
-              <InlineText
-                value={formState.copy.home.ctaHeadlineTrail}
-                placeholder="CTA headline accent"
-                ariaLabel="CTA headline trail"
-                onChange={(value) =>
-                  updateCopySection(formState, updateField, "home", {
-                    ctaHeadlineTrail: value
-                  })
-                }
-                className="ml-8 mt-1 px-2 text-accent"
-              />
-            </div>
-            <InlineText
-              value={formState.copy.home.ctaCopy}
-              placeholder="CTA description"
-              ariaLabel="CTA description"
-              multiline
-              onChange={(value) =>
-                updateCopySection(formState, updateField, "home", {
-                  ctaCopy: value
-                })
-              }
-              className="mt-5 p-2 text-sm leading-7 text-white/75"
+              className="px-2 text-white"
             />
             <InlineText
-              value={formState.copy.home.ctaButton}
-              placeholder="CTA button"
-              ariaLabel="CTA button"
+              value={formState.copy.home.ctaHeadlineTrail}
+              placeholder="CTA headline accent"
+              ariaLabel="CTA headline trail"
               onChange={(value) =>
                 updateCopySection(formState, updateField, "home", {
-                  ctaButton: value
+                  ctaHeadlineTrail: value
                 })
               }
-              className="action-button mt-5 w-auto cursor-text"
+              className="ml-8 mt-1 px-2 text-accent"
             />
           </div>
+          <InlineText
+            value={formState.copy.home.ctaCopy}
+            placeholder="CTA description"
+            ariaLabel="CTA description"
+            multiline
+            onChange={(value) =>
+              updateCopySection(formState, updateField, "home", {
+                ctaCopy: value
+              })
+            }
+            className="mt-5 p-2 text-sm leading-7 text-white/75"
+          />
+          <InlineText
+            value={formState.copy.home.ctaButton}
+            placeholder="CTA button"
+            ariaLabel="CTA button"
+            onChange={(value) =>
+              updateCopySection(formState, updateField, "home", {
+                ctaButton: value
+              })
+            }
+            className="action-button mt-5 w-auto cursor-text"
+          />
+        </div>
       </section>
     </>
   );
@@ -378,7 +376,7 @@ export function ServicesPreview({
               placeholder="00"
               ariaLabel={`Service ${index + 1} number`}
               onChange={(value) => updateService(index, "number", value)}
-              className="font-[family-name:var(--font-mono)] w-fit p-2 text-sm text-accent"
+              className="w-fit p-2 font-[family-name:var(--font-mono)] text-sm text-accent"
             />
             <div className="space-y-3">
               <InlineText
@@ -386,7 +384,7 @@ export function ServicesPreview({
                 placeholder="Service title"
                 ariaLabel={`Service ${index + 1} title`}
                 onChange={(value) => updateService(index, "title", value)}
-                className="font-[family-name:var(--font-display)] p-2 text-3xl uppercase leading-none"
+                className="p-2 font-[family-name:var(--font-display)] text-3xl uppercase leading-none"
                 inputClassName="text-xl uppercase"
               />
               <InlineText
@@ -468,17 +466,28 @@ function TeamMemberPortrait({
 export function AboutPreview({
   formState,
   updateField,
+  aboutTeamGalleryFiles = [],
   aboutTeamMemberImageFiles = [],
+  addAboutTeamGalleryFiles,
+  removeAboutTeamGalleryFile,
   setAboutTeamMemberImageFile
 }: Pick<
   Props,
   | "formState"
   | "updateField"
+  | "aboutTeamGalleryFiles"
   | "aboutTeamMemberImageFiles"
+  | "addAboutTeamGalleryFiles"
+  | "removeAboutTeamGalleryFile"
   | "setAboutTeamMemberImageFile"
 >) {
   const values = parseValuesText(formState.aboutValuesText);
   const teamMembers = formState.aboutTeamMembers;
+  const teamGallery = parseMultilineInput(formState.aboutTeamGalleryText);
+
+  function updateTeamGallery(images: string[]) {
+    updateField("aboutTeamGalleryText", images.join("\n"));
+  }
 
   function updateValue(index: number, key: "title" | "copy", value: string) {
     const next = [...values];
@@ -494,10 +503,6 @@ export function AboutPreview({
     const next = [...teamMembers];
     next[index] = { ...next[index], [key]: value };
     updateField("aboutTeamMembers", next);
-    updateField(
-      "aboutTeamImagesText",
-      next.map((member) => member.image).filter(Boolean).join("\n")
-    );
   }
 
   function addTeamMember() {
@@ -516,10 +521,6 @@ export function AboutPreview({
   function removeTeamMember(index: number) {
     const next = teamMembers.filter((_, memberIndex) => memberIndex !== index);
     updateField("aboutTeamMembers", next);
-    updateField(
-      "aboutTeamImagesText",
-      next.map((member) => member.image).filter(Boolean).join("\n")
-    );
   }
 
   function moveTeamMember(index: number, direction: -1 | 1) {
@@ -626,7 +627,7 @@ export function AboutPreview({
             </div>
           ))}
         </div>
-        <div className="mt-5 panel-2xl p-7">
+        <div className="panel-2xl mt-5 p-7">
           <div className="flex flex-wrap items-start justify-between gap-4">
             <div>
               <p className="text-xs uppercase tracking-eyebrow text-muted">
@@ -637,7 +638,11 @@ export function AboutPreview({
                 can add as many members as needed.
               </p>
             </div>
-            <button type="button" onClick={addTeamMember} className="control-pill">
+            <button
+              type="button"
+              onClick={addTeamMember}
+              className="control-pill"
+            >
               <Plus className="h-3.5 w-3.5" />
               Add member
             </button>
@@ -663,7 +668,7 @@ export function AboutPreview({
                       />
                     </div>
                     {queued ? (
-                      <p className="rounded-xl border border-accent/30 bg-accent/10 px-3 py-2 text-[0.62rem] leading-5 text-accent">
+                      <p className="border-accent/30 bg-accent/10 rounded-xl border px-3 py-2 text-[0.62rem] leading-5 text-accent">
                         Queued: {queued.file.name}
                       </p>
                     ) : null}
@@ -795,6 +800,33 @@ export function AboutPreview({
                 Add first team member
               </button>
             ) : null}
+          </div>
+        </div>
+
+        <div className="panel-2xl mt-5 p-7">
+          <p className="text-xs uppercase tracking-eyebrow text-muted">
+            Team Gallery
+          </p>
+          <p className="mt-2 max-w-2xl text-xs leading-5 text-muted">
+            These photos appear as a separate gallery below the team members on
+            the About page. Profile portraits remain managed per member above.
+          </p>
+          <div className="mt-5">
+            <GalleryEditor
+              images={teamGallery}
+              captions={[]}
+              pendingFiles={aboutTeamGalleryFiles}
+              onImagesChange={updateTeamGallery}
+              onFilesAdd={addAboutTeamGalleryFiles ?? (() => undefined)}
+              onFileRemove={removeAboutTeamGalleryFile ?? (() => undefined)}
+              introText="Drag photos to control their order in the public team gallery."
+              showCaptions={false}
+              itemLabel="Photo"
+              getFrameRole={() => ({
+                label: "Team gallery",
+                description: "Shown in the gallery below the team profiles."
+              })}
+            />
           </div>
         </div>
       </section>

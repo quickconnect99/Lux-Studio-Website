@@ -100,7 +100,7 @@ export function FeaturedProjects({ projects }: FeaturedProjectsProps) {
                     />
                     <div className="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/65 via-black/5 to-transparent p-4 text-white sm:p-6">
                       <div className="flex items-center justify-between gap-4 text-[0.65rem] uppercase tracking-meta text-white/75">
-                        <span>Selected campaign</span>
+                        <span>{project.carModel || project.category}</span>
                         <span>{project.location}</span>
                       </div>
                     </div>

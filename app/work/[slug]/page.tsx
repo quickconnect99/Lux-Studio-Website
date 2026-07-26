@@ -10,7 +10,15 @@ import { LinkButton } from "@/components/ui/link-button";
 import { Reveal } from "@/components/ui/reveal";
 import { RevealList } from "@/components/ui/reveal-list";
 import { normalizeProjectGallery } from "@/lib/project-images";
-import { parseProjectBusinessParam, projectBusinessToParam } from "@/lib/project-business";
+import {
+  getProjectPrimaryMetaLabel,
+  parseProjectBusinessParam,
+  projectBusinessToParam
+} from "@/lib/project-business";
+import {
+  buildSharingMetadata,
+  resolveSharingImage
+} from "@/lib/sharing-metadata";
 import {
   getProjectBySlug,
   getPublishedProjects,
@@ -37,31 +45,24 @@ export async function generateMetadata({
   }
 
   const title = `${project.title} | ${settings.brand.name}`;
+  const sharingImage = resolveSharingImage({
+    preferredImages: [project.coverImage, ...project.galleryImages]
+  });
 
   return {
-    title,
+    title: project.title,
     description: project.shortDescription,
     alternates: {
       canonical: `/work/${project.slug}`
     },
-    openGraph: {
+    ...buildSharingMetadata({
       title,
       description: project.shortDescription,
       type: "article",
       siteName: settings.brand.name,
-      images: [
-        {
-          url: project.coverImage,
-          alt: `${project.title} cover still`
-        }
-      ]
-    },
-    twitter: {
-      card: "summary_large_image",
-      title,
-      description: project.shortDescription,
-      images: [project.coverImage]
-    }
+      image: sharingImage,
+      imageAlt: `${project.title} first project still`
+    })
   };
 }
 
@@ -119,6 +120,8 @@ export default async function ProjectPage({
     }));
 
   const videoUrl = project.videoUrl || project.uploadedVideo;
+  const primarySubject = project.carModel.trim() || project.category;
+  const behindTheScenes = project.behindTheScenes?.trim();
   const breadcrumbSchema = {
     "@context": "https://schema.org",
     "@type": "BreadcrumbList",
@@ -175,7 +178,7 @@ export default async function ProjectPage({
             <p className="eyebrow">
               {project.business} / {project.category}
             </p>
-            <h1 className="font-[family-name:var(--font-display)] break-words text-[2.8rem] uppercase leading-[0.9] tracking-[-0.05em] text-foreground sm:text-7xl">
+            <h1 className="break-words font-[family-name:var(--font-display)] text-[2.8rem] uppercase leading-[0.9] tracking-[-0.05em] text-foreground sm:text-7xl">
               {project.title.split(" ")[0]}
               <span className="block pl-5 text-accent sm:pl-14">
                 {project.title.split(" ").slice(1).join(" ")}
@@ -184,12 +187,17 @@ export default async function ProjectPage({
             <MetadataGrid
               items={[
                 {
+                  label: getProjectPrimaryMetaLabel(project.business),
+                  value: primarySubject
+                },
+                {
                   label: "Category",
                   value: project.category
                 },
                 { label: "Location", value: project.location },
                 { label: "Year", value: String(project.year) }
               ]}
+              className="sm:!grid-cols-2 xl:!grid-cols-4"
               valueClassName="mt-2 text-sm uppercase tracking-meta text-foreground"
             />
           </Reveal>
@@ -209,11 +217,29 @@ export default async function ProjectPage({
         </div>
       </section>
 
+      {behindTheScenes ? (
+        <section className="section-shell section-space-tight pt-0">
+          <Reveal>
+            <div className="panel-2xl grid gap-6 p-5 sm:p-8 lg:grid-cols-[0.72fr_1.28fr] lg:gap-12 lg:p-10">
+              <div className="space-y-3">
+                <p className="eyebrow">Production Notes</p>
+                <h2 className="font-[family-name:var(--font-display)] text-4xl uppercase leading-[0.92] sm:text-5xl">
+                  Behind
+                  <span className="block pl-6 text-accent sm:pl-10">
+                    The Scenes
+                  </span>
+                </h2>
+              </div>
+              <p className="max-w-3xl whitespace-pre-wrap text-base leading-8 text-muted sm:text-lg">
+                {behindTheScenes}
+              </p>
+            </div>
+          </Reveal>
+        </section>
+      ) : null}
+
       <section className="section-shell section-space-tight pt-0">
-        <ProjectImageCarousel
-          images={carouselImages}
-          title={project.title}
-        />
+        <ProjectImageCarousel images={carouselImages} title={project.title} />
       </section>
 
       <section className="section-shell section-space-tight pt-0">

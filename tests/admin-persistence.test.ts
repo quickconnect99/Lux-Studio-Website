@@ -88,6 +88,14 @@ test("serializes site settings and file limits", () => {
   const formState = toSiteSettingsFormState(defaultSiteSettings);
   formState.socialLinksText = "Instagram | https://instagram.com/lux";
   formState.aboutValuesText = "Precision | Measured decisions";
+  formState.aboutTeamGalleryText =
+    "/images/team-gallery-01.jpg\n/images/team-gallery-02.jpg";
+  formState.aboutTeamMembers = formState.aboutTeamMembers.map(
+    (member, index) =>
+      index === 0
+        ? { ...member, image: "/images/team-portrait-01.jpg" }
+        : member
+  );
 
   const payload = buildSiteSettingsDatabasePayload(formState);
 
@@ -98,10 +106,17 @@ test("serializes site settings and file limits", () => {
   assert.deepEqual(payload.about_values, [
     { title: "Precision", copy: "Measured decisions" }
   ]);
-  assert.deepEqual(
-    getOversizedFiles([{ size: 10 }, { size: 11 }], 10),
-    [{ size: 11 }]
+  assert.deepEqual(payload.about_team_images, [
+    "/images/team-gallery-01.jpg",
+    "/images/team-gallery-02.jpg"
+  ]);
+  assert.equal(
+    payload.about_team_members[0]?.image,
+    "/images/team-portrait-01.jpg"
   );
+  assert.deepEqual(getOversizedFiles([{ size: 10 }, { size: 11 }], 10), [
+    { size: 11 }
+  ]);
 });
 
 test("builds remote and local save reports from queued media", () => {

@@ -77,10 +77,13 @@ export function SiteSettingsPreview({
   working,
   siteHeroVideoFile,
   selectedFrameFiles,
+  aboutTeamGalleryFiles,
   aboutTeamMemberImageFiles,
   setSiteHeroVideoFile,
   addSelectedFrameFiles,
   removeSelectedFrameFile,
+  addAboutTeamGalleryFiles,
+  removeAboutTeamGalleryFile,
   setAboutTeamMemberImageFile,
   handleFileSelection
 }: SiteSettingsEditorProps) {
@@ -164,7 +167,10 @@ export function SiteSettingsPreview({
                 <SiteSettingsAboutPreview
                   formState={formState}
                   updateField={updateField}
+                  aboutTeamGalleryFiles={aboutTeamGalleryFiles}
                   aboutTeamMemberImageFiles={aboutTeamMemberImageFiles}
+                  addAboutTeamGalleryFiles={addAboutTeamGalleryFiles}
+                  removeAboutTeamGalleryFile={removeAboutTeamGalleryFile}
                   setAboutTeamMemberImageFile={setAboutTeamMemberImageFile}
                 />
               ) : null}

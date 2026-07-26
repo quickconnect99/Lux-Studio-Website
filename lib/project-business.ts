@@ -38,7 +38,7 @@ export function projectBusinessToParam(business: ProjectBusiness): string {
 }
 
 export function getProjectPrimaryMetaLabel(_business: ProjectBusiness): string {
-  return "Category";
+  return "Primary Subject";
 }
 
 export function getProjectPrimaryMetaPlaceholder(

@@ -1,17 +1,48 @@
 import type { Metadata } from "next";
-import Image from "next/image";
 import { HorizontalStillStrip } from "@/components/sections/horizontal-still-strip";
 import { PageHeader } from "@/components/sections/page-header";
 import { TeamTabs } from "@/components/sections/team-tabs";
 import { Reveal } from "@/components/ui/reveal";
-import { dedupeImageUrls } from "@/lib/project-images";
 import { adaptSiteSettingsToPublishedProjects } from "@/lib/public-portfolio";
+import {
+  buildSharingMetadata,
+  resolveSharingImage
+} from "@/lib/sharing-metadata";
 import { getPublishedProjects, getSiteSettings } from "@/lib/supabase";
 
-export const metadata: Metadata = {
-  title: "About",
-  description: "Founder note and studio approach behind Lux Studio."
-};
+const pageTitle = "About";
+const pageDescription = "Founder note and studio approach behind Lux Studio.";
+
+export async function generateMetadata(): Promise<Metadata> {
+  const [projects, settings] = await Promise.all([
+    getPublishedProjects(),
+    getSiteSettings()
+  ]);
+  const image = resolveSharingImage({
+    preferredImages: [
+      ...settings.about.teamGallery,
+      ...projects.flatMap((project) => project.galleryImages),
+      ...settings.about.teamMembers.map((member) => member.image)
+    ],
+    projects,
+    settings
+  });
+
+  return {
+    title: pageTitle,
+    description: pageDescription,
+    alternates: {
+      canonical: "/about"
+    },
+    ...buildSharingMetadata({
+      title: `${pageTitle} | ${settings.brand.name}`,
+      description: pageDescription,
+      image,
+      imageAlt: `${settings.brand.name} studio still`,
+      siteName: settings.brand.name
+    })
+  };
+}
 
 export default async function AboutPage() {
   const [projects, settings] = await Promise.all([
@@ -23,13 +54,6 @@ export default async function AboutPage() {
     settings,
     projects
   );
-  const stills = dedupeImageUrls(
-    projects.flatMap((project) => project.galleryImages)
-  ).slice(0, 6);
-  const founderImages = [
-    stills[0] ?? "/images/demo-car-02.jpg",
-    stills[1] ?? "/images/demo-car-03.jpg"
-  ];
   const teamMembers = publicSettings.about.teamMembers;
 
   const { about } = publicSettings;
@@ -41,40 +65,49 @@ export default async function AboutPage() {
         lead={publicSettings.copy.about.headlineLead}
         trail={publicSettings.copy.about.headlineTrail}
         copy={about.positioning}
+        copyLabel={publicSettings.copy.about.positioningLabel}
       />
 
       <section className="section-shell pb-12">
-        <div className="grid gap-6 lg:grid-cols-2">
-          {founderImages.map((image, index) => (
-            <Reveal
-              key={image}
-              delay={index * 0.08}
-              direction={index === 0 ? "left" : "right"}
-              className="overflow-hidden rounded-[1.5rem] border border-line bg-panel-secondary sm:rounded-[2rem]"
-            >
-              <div className="relative aspect-[4/5]">
-                <Image
-                  src={image}
-                  alt={`Lux Studio founder visual ${index + 1}`}
-                  fill
-                  sizes="(min-width: 1024px) 50vw, 100vw"
-                  className="object-cover"
-                />
-              </div>
-            </Reveal>
-          ))}
-        </div>
-
-        <div className="mt-6 max-w-3xl">
+        <Reveal className="max-w-3xl space-y-3">
+          <p className="eyebrow">{publicSettings.copy.about.founderLabel}</p>
           <p className="text-base leading-8 text-muted sm:text-lg">
             {about.founderNote}
           </p>
-        </div>
+        </Reveal>
       </section>
+
+      {about.values.length > 0 ? (
+        <section className="section-shell section-space-tight pt-0">
+          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+            {about.values.map((value, index) => (
+              <Reveal
+                key={`${value.title}-${index}`}
+                delay={index * 0.06}
+                className="rounded-[1.5rem] border border-line bg-panel-secondary p-6 sm:rounded-[2rem] sm:p-8"
+              >
+                <p className="text-xs uppercase tracking-eyebrow text-accent">
+                  {value.title}
+                </p>
+                <p className="mt-4 text-base leading-8 text-muted">
+                  {value.copy}
+                </p>
+              </Reveal>
+            ))}
+          </div>
+        </section>
+      ) : null}
 
       <TeamTabs members={teamMembers} />
 
-      <HorizontalStillStrip images={stills} />
+      <HorizontalStillStrip
+        images={about.teamGallery}
+        eyebrow="Team Gallery"
+        lead="People"
+        trail="At Work"
+        ariaLabel="Team photo gallery. Use the left and right arrow keys to scroll through the images."
+        imageAltPrefix="Team photo"
+      />
     </>
   );
 }

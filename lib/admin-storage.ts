@@ -4,6 +4,7 @@ import { SUPABASE_BUCKET } from "@/lib/supabase";
 
 export type AdminStorageFolder =
   | "about-team"
+  | "about-team-gallery"
   | "covers"
   | "gallery"
   | "selected-frames"
@@ -33,9 +34,7 @@ export async function uploadAdminFile(
 // Public pages also have a five-minute revalidation fallback. An unavailable
 // revalidation endpoint must therefore never turn a successful CMS mutation
 // into a failed save.
-export async function revalidateAdminPublicContent(
-  supabase: SupabaseClient
-) {
+export async function revalidateAdminPublicContent(supabase: SupabaseClient) {
   try {
     const {
       data: { session }

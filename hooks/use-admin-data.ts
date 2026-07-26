@@ -85,6 +85,7 @@ export function useAdminData() {
     videoFile,
     siteHeroVideoFile,
     selectedFrameFiles,
+    aboutTeamGalleryFiles,
     aboutTeamMemberImageFiles,
     coverPreviewUrl,
     setCoverFile,
@@ -94,6 +95,8 @@ export function useAdminData() {
     removeGalleryFile,
     addSelectedFrameFiles,
     removeSelectedFrameFile,
+    addAboutTeamGalleryFiles,
+    removeAboutTeamGalleryFile,
     setAboutTeamMemberImageFile,
     handleFileSelection,
     clearMedia,
@@ -159,6 +162,7 @@ export function useAdminData() {
     sessionEmail,
     siteHeroVideoFile,
     selectedFrameFiles,
+    aboutTeamGalleryFiles,
     aboutTeamMemberImageFiles,
     clearSiteSettingsMedia,
     setSaveReport,
@@ -277,9 +281,7 @@ export function useAdminData() {
 
       if (supabase && sessionEmail) {
         const totalFiles =
-          (coverFile ? 1 : 0) +
-          (videoFile ? 1 : 0) +
-          galleryFiles.length;
+          (coverFile ? 1 : 0) + (videoFile ? 1 : 0) + galleryFiles.length;
         let uploadedCount = 0;
 
         if (coverFile) {
@@ -288,11 +290,7 @@ export function useAdminData() {
             total: totalFiles,
             filename: coverFile.name
           });
-          coverImage = await uploadAdminFile(
-            supabase,
-            coverFile,
-            "covers"
-          );
+          coverImage = await uploadAdminFile(supabase, coverFile, "covers");
         }
 
         if (videoFile) {
@@ -301,11 +299,7 @@ export function useAdminData() {
             total: totalFiles,
             filename: videoFile.name
           });
-          uploadedVideo = await uploadAdminFile(
-            supabase,
-            videoFile,
-            "videos"
-          );
+          uploadedVideo = await uploadAdminFile(supabase, videoFile, "videos");
         }
 
         if (galleryFiles.length > 0) {
@@ -316,9 +310,7 @@ export function useAdminData() {
               total: totalFiles,
               filename: file.name
             });
-            uploaded.push(
-              await uploadAdminFile(supabase, file, "gallery")
-            );
+            uploaded.push(await uploadAdminFile(supabase, file, "gallery"));
           }
           galleryImages = [...galleryImages, ...uploaded];
         }
@@ -400,10 +392,7 @@ export function useAdminData() {
     } catch (error) {
       setUploadProgress(null);
       showStatus(
-        toAdminOperationError(
-          error,
-          "The project could not be saved."
-        ).message
+        toAdminOperationError(error, "The project could not be saved.").message
       );
     } finally {
       setWorking(false);
@@ -513,10 +502,13 @@ export function useAdminData() {
     setVideoFile,
     siteHeroVideoFile,
     selectedFrameFiles,
+    aboutTeamGalleryFiles,
     aboutTeamMemberImageFiles,
     setSiteHeroVideoFile,
     addSelectedFrameFiles,
     removeSelectedFrameFile,
+    addAboutTeamGalleryFiles,
+    removeAboutTeamGalleryFile,
     setAboutTeamMemberImageFile,
     formState,
     isTemplateProject,

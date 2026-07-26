@@ -9,13 +9,42 @@ import {
   isMissingLegalValue,
   legalProfile
 } from "@/lib/legal";
-import { getSiteSettings } from "@/lib/supabase";
+import {
+  buildSharingMetadata,
+  resolveSharingImage
+} from "@/lib/sharing-metadata";
+import { getPublishedProjects, getSiteSettings } from "@/lib/supabase";
 
-export const metadata: Metadata = {
-  title: "Privacy Policy",
-  description:
-    "Information about personal data processing, project inquiries, and third-party video embeds."
-};
+const pageTitle = "Privacy Policy";
+const pageDescription =
+  "Information about personal data processing, project inquiries, and third-party video embeds.";
+
+export async function generateMetadata(): Promise<Metadata> {
+  const [projects, settings] = await Promise.all([
+    getPublishedProjects(),
+    getSiteSettings()
+  ]);
+  const image = resolveSharingImage({
+    preferredImages: settings.selectedFrames,
+    projects,
+    settings
+  });
+
+  return {
+    title: pageTitle,
+    description: pageDescription,
+    alternates: {
+      canonical: "/datenschutz"
+    },
+    ...buildSharingMetadata({
+      title: `${pageTitle} | ${settings.brand.name}`,
+      description: pageDescription,
+      image,
+      imageAlt: `${settings.brand.name} featured still`,
+      siteName: settings.brand.name
+    })
+  };
+}
 
 function PrivacyBlock({
   title,

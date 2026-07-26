@@ -1,11 +1,6 @@
 "use client";
 
-import {
-  type ChangeEvent,
-  useCallback,
-  useEffect,
-  useState
-} from "react";
+import { type ChangeEvent, useCallback, useEffect, useState } from "react";
 import {
   MAX_IMAGE_BYTES,
   MAX_VIDEO_BYTES,
@@ -22,9 +17,13 @@ export function useAdminMedia({
   const [coverFile, setCoverFileState] = useState<File | null>(null);
   const [galleryFiles, setGalleryFiles] = useState<File[]>([]);
   const [videoFile, setVideoFileState] = useState<File | null>(null);
-  const [siteHeroVideoFile, setSiteHeroVideoFileState] =
-    useState<File | null>(null);
+  const [siteHeroVideoFile, setSiteHeroVideoFileState] = useState<File | null>(
+    null
+  );
   const [selectedFrameFiles, setSelectedFrameFiles] = useState<File[]>([]);
+  const [aboutTeamGalleryFiles, setAboutTeamGalleryFiles] = useState<File[]>(
+    []
+  );
   const [aboutTeamMemberImageFiles, setAboutTeamMemberImageFiles] = useState<
     Array<{ index: number; file: File }>
   >([]);
@@ -72,12 +71,14 @@ export function useAdminMedia({
     setVideoFileState(null);
     setSiteHeroVideoFileState(null);
     setSelectedFrameFiles([]);
+    setAboutTeamGalleryFiles([]);
     setAboutTeamMemberImageFiles([]);
   }, []);
 
   const clearSiteSettingsMedia = useCallback(() => {
     setSiteHeroVideoFileState(null);
     setSelectedFrameFiles([]);
+    setAboutTeamGalleryFiles([]);
     setAboutTeamMemberImageFiles([]);
   }, []);
 
@@ -129,6 +130,33 @@ export function useAdminMedia({
     (index: number) => {
       onChange();
       setSelectedFrameFiles((current) =>
+        current.filter((_, fileIndex) => fileIndex !== index)
+      );
+    },
+    [onChange]
+  );
+
+  const addAboutTeamGalleryFiles = useCallback(
+    (newFiles: File[]) => {
+      const oversized = getOversizedFiles(newFiles, MAX_IMAGE_BYTES);
+
+      if (oversized.length > 0) {
+        onError(
+          `Files too large: ${oversized.map((file) => file.name).join(", ")}. Maximum 25 MB per image.`
+        );
+        return;
+      }
+
+      onChange();
+      setAboutTeamGalleryFiles((current) => [...current, ...newFiles]);
+    },
+    [onChange, onError]
+  );
+
+  const removeAboutTeamGalleryFile = useCallback(
+    (index: number) => {
+      onChange();
+      setAboutTeamGalleryFiles((current) =>
         current.filter((_, fileIndex) => fileIndex !== index)
       );
     },
@@ -187,6 +215,7 @@ export function useAdminMedia({
     videoFile,
     siteHeroVideoFile,
     selectedFrameFiles,
+    aboutTeamGalleryFiles,
     aboutTeamMemberImageFiles,
     coverPreviewUrl,
     setCoverFile,
@@ -196,6 +225,8 @@ export function useAdminMedia({
     removeGalleryFile,
     addSelectedFrameFiles,
     removeSelectedFrameFile,
+    addAboutTeamGalleryFiles,
+    removeAboutTeamGalleryFile,
     setAboutTeamMemberImageFile,
     handleFileSelection,
     clearMedia,

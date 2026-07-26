@@ -11,6 +11,7 @@ import { cn } from "@/lib/utils";
 
 type SelectedFramesProps = {
   frames: FrameItem[];
+  label: string;
 };
 
 const fallbackFrameImages = [
@@ -20,7 +21,7 @@ const fallbackFrameImages = [
   "/images/demo-car-05.jpg"
 ];
 
-export function SelectedFrames({ frames }: SelectedFramesProps) {
+export function SelectedFrames({ frames, label }: SelectedFramesProps) {
   const frameItems = frames.slice(0, 8);
   const frameImages = frameItems.map((frame) => frame.image);
   const shouldReduceMotion = useReducedMotion();
@@ -277,7 +278,7 @@ export function SelectedFrames({ frames }: SelectedFramesProps) {
       <section className="section-shell section-space-tight pt-0">
         <div className="grid gap-6 border-b border-line pb-8 lg:grid-cols-[0.78fr_1.22fr] lg:items-end">
           <Reveal className="space-y-5">
-            <p className="eyebrow">Large still imagery</p>
+            <p className="eyebrow">{label}</p>
             <h2 className="font-[family-name:var(--font-display)] text-4xl uppercase leading-none sm:text-6xl">
               Shot
               <span className="block pl-8 text-accent sm:pl-12">

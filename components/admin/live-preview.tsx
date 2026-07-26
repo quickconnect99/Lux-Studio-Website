@@ -29,7 +29,8 @@ export type PreviewEditableField =
   | "coverImage"
   | "videoUrl"
   | "uploadedVideo"
-  | "createdAt";
+  | "createdAt"
+  | "galleryCaption";
 
 export type PreviewToggleField = "published" | "featured";
 
@@ -499,14 +500,30 @@ export function LivePreview({
             </div>
           </PreviewFieldShell>
 
-          <div className="grid gap-3 sm:grid-cols-3">
+          <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+            <PreviewFieldShell
+              fieldKey="carModel"
+              activeField={activeField}
+              onActiveFieldChange={onActiveFieldChange}
+              className="metadata-card"
+            >
+              <p className="metadata-label">{primaryMetaLabel}</p>
+              <EditablePreviewField
+                fieldKey="carModel"
+                value={formState.carModel}
+                placeholder="TBD"
+                onCommit={onUpdateField}
+                wrapperClassName="-mx-2 mt-1 px-2 py-1"
+                displayClassName="block text-xs uppercase tracking-wide text-foreground"
+              />
+            </PreviewFieldShell>
             <PreviewFieldShell
               fieldKey="category"
               activeField={activeField}
               onActiveFieldChange={onActiveFieldChange}
               className="metadata-card"
             >
-              <p className="metadata-label">{primaryMetaLabel}</p>
+              <p className="metadata-label">Category</p>
               <EditablePreviewField
                 fieldKey="category"
                 value={formState.category}
@@ -723,7 +740,7 @@ export function LivePreview({
                           <p className="text-[0.58rem] uppercase tracking-[0.28em] text-muted">
                             Frame {String(index + 1).padStart(2, "0")}
                           </p>
-                          <span className="rounded-full border border-accent/30 bg-accent/10 px-2 py-1 text-[0.55rem] uppercase tracking-[0.24em] text-accent">
+                          <span className="border-accent/30 bg-accent/10 rounded-full border px-2 py-1 text-[0.55rem] uppercase tracking-[0.24em] text-accent">
                             {role.label}
                           </span>
                         </div>
@@ -753,7 +770,7 @@ export function LivePreview({
                           Caption
                         </p>
                         <EditablePreviewField
-                          fieldKey="behindTheScenes"
+                          fieldKey="galleryCaption"
                           value={captionRawLines[index] ?? ""}
                           placeholder="Add a caption for this frame."
                           kind="textarea"

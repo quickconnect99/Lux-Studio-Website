@@ -4,13 +4,38 @@ import { PageHeader } from "@/components/sections/page-header";
 import { RevealList } from "@/components/ui/reveal-list";
 import { serviceIcons } from "@/lib/content";
 import { adaptSiteSettingsToPublishedProjects } from "@/lib/public-portfolio";
+import {
+  buildSharingMetadata,
+  resolveSharingImage
+} from "@/lib/sharing-metadata";
 import { getPublishedProjects, getSiteSettings } from "@/lib/supabase";
 
-export const metadata: Metadata = {
-  title: "Services",
-  description:
-    "Commercial shoots, social content, event coverage, and brand campaigns."
-};
+const pageTitle = "Services";
+const pageDescription =
+  "Commercial shoots, social content, event coverage, and brand campaigns.";
+
+export async function generateMetadata(): Promise<Metadata> {
+  const [projects, settings] = await Promise.all([
+    getPublishedProjects(),
+    getSiteSettings()
+  ]);
+  const image = resolveSharingImage({ projects, settings });
+
+  return {
+    title: pageTitle,
+    description: pageDescription,
+    alternates: {
+      canonical: "/services"
+    },
+    ...buildSharingMetadata({
+      title: `${pageTitle} | ${settings.brand.name}`,
+      description: pageDescription,
+      image,
+      imageAlt: `${settings.brand.name} production still`,
+      siteName: settings.brand.name
+    })
+  };
+}
 
 export default async function ServicesPage() {
   const [rawSettings, projects] = await Promise.all([

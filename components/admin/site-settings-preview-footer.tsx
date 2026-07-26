@@ -3,16 +3,20 @@
 import { updateCopySection } from "@/components/admin/site-settings-copy";
 import type { SiteSettingsFieldsProps } from "@/components/admin/site-settings-editor-types";
 import { InlineText } from "@/components/admin/site-settings-inline-text";
-import {
-  formatSocialLinksText,
-  parseSocialLinksText
-} from "@/lib/admin-utils";
+import { formatSocialLinksText, parseSocialLinksText } from "@/lib/admin-utils";
 
 export function SiteSettingsPreviewFooter({
   formState,
   updateField
 }: SiteSettingsFieldsProps) {
   const social = parseSocialLinksText(formState.socialLinksText);
+  const navigation = [
+    { label: "Home", visible: formState.navigationHome },
+    { label: "Work", visible: formState.navigationWork },
+    { label: "Services", visible: formState.navigationServices },
+    { label: "About", visible: formState.navigationAbout },
+    { label: "Contact", visible: formState.navigationContact }
+  ].filter((item) => item.visible);
 
   function updateSocialLabel(index: number, value: string) {
     const next = [...social];
@@ -58,11 +62,13 @@ export function SiteSettingsPreviewFooter({
             className="w-fit px-1 py-0.5 text-[0.62rem] uppercase tracking-eyebrow text-muted"
           />
           <div className="mt-4 space-y-2 text-xs uppercase tracking-meta">
-            <p>Home</p>
-            <p>Work</p>
-            <p>Services</p>
-            <p>About</p>
-            <p>Contact</p>
+            {navigation.length > 0 ? (
+              navigation.map((item) => <p key={item.label}>{item.label}</p>)
+            ) : (
+              <p className="normal-case tracking-normal text-muted">
+                No navigation links visible
+              </p>
+            )}
           </div>
         </div>
         <div>

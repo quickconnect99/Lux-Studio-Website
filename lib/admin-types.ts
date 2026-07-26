@@ -63,7 +63,6 @@ export type SiteSettingsFormState = {
   // SEO
   seoTitle: string;
   seoDescription: string;
-  seoOgImage: string;
   // Hero
   heroEyebrow: string;
   heroHeadlineLead: string;
@@ -73,8 +72,8 @@ export type SiteSettingsFormState = {
   // About
   aboutFounderNote: string;
   aboutPositioning: string;
-  aboutTeamImagesText: string;
   aboutTeamMembers: TeamMember[];
+  aboutTeamGalleryText: string;
   aboutValuesText: string; // one per line: "Title | Copy"
   // Services
   servicesText: string; // one per line: "01 | Title | Description | deliverable1, deliverable2"

@@ -1,7 +1,6 @@
 alter table public.site_settings
   add column if not exists seo_title text,
   add column if not exists seo_description text,
-  add column if not exists seo_og_image text,
   add column if not exists hero_eyebrow text,
   add column if not exists hero_headline_lead text,
   add column if not exists hero_headline_trail text,

@@ -4,12 +4,42 @@ import { PageHeader } from "@/components/sections/page-header";
 import { ContactInfo } from "@/components/ui/contact-info";
 import { SocialLinks } from "@/components/ui/social-links";
 import { adaptSiteSettingsToPublishedProjects } from "@/lib/public-portfolio";
+import {
+  buildSharingMetadata,
+  resolveSharingImage
+} from "@/lib/sharing-metadata";
 import { getPublishedProjects, getSiteSettings } from "@/lib/supabase";
 
-export const metadata: Metadata = {
-  title: "Contact",
-  description: "Contact Lux Studio for films, stills, launches, and campaign work."
-};
+const pageTitle = "Contact";
+const pageDescription =
+  "Contact Lux Studio for films, stills, launches, and campaign work.";
+
+export async function generateMetadata(): Promise<Metadata> {
+  const [projects, settings] = await Promise.all([
+    getPublishedProjects(),
+    getSiteSettings()
+  ]);
+  const image = resolveSharingImage({
+    preferredImages: settings.selectedFrames,
+    projects,
+    settings
+  });
+
+  return {
+    title: pageTitle,
+    description: pageDescription,
+    alternates: {
+      canonical: "/contact"
+    },
+    ...buildSharingMetadata({
+      title: `${pageTitle} | ${settings.brand.name}`,
+      description: pageDescription,
+      image,
+      imageAlt: `${settings.brand.name} featured still`,
+      siteName: settings.brand.name
+    })
+  };
+}
 
 export default async function ContactPage() {
   const [rawSettings, projects] = await Promise.all([

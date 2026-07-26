@@ -19,10 +19,7 @@ import {
   toSiteSettingsFormState
 } from "@/lib/admin-utils";
 import { defaultSiteSettings } from "@/lib/site-config";
-import {
-  SITE_SETTINGS_ID,
-  normalizeSiteSettingsRecord
-} from "@/lib/supabase";
+import { SITE_SETTINGS_ID, normalizeSiteSettingsRecord } from "@/lib/supabase";
 
 type TeamImageFile = {
   index: number;
@@ -34,6 +31,7 @@ type UseAdminSiteSettingsOptions = {
   sessionEmail: string | null;
   siteHeroVideoFile: File | null;
   selectedFrameFiles: File[];
+  aboutTeamGalleryFiles: File[];
   aboutTeamMemberImageFiles: TeamImageFile[];
   clearSiteSettingsMedia(): void;
   setSaveReport(report: AdminSaveReport | null): void;
@@ -57,6 +55,7 @@ export function useAdminSiteSettings({
   sessionEmail,
   siteHeroVideoFile,
   selectedFrameFiles,
+  aboutTeamGalleryFiles,
   aboutTeamMemberImageFiles,
   clearSiteSettingsMedia,
   setSaveReport,
@@ -68,9 +67,7 @@ export function useAdminSiteSettings({
     toSiteSettingsFormState(defaultSiteSettings)
   );
   const [savedSnapshot, setSavedSnapshot] = useState(() =>
-    serializeSiteSettingsFormState(
-      toSiteSettingsFormState(defaultSiteSettings)
-    )
+    serializeSiteSettingsFormState(toSiteSettingsFormState(defaultSiteSettings))
   );
 
   const {
@@ -83,6 +80,7 @@ export function useAdminSiteSettings({
     serializeSiteSettingsFormState(formState) !== savedSnapshot ||
     Boolean(siteHeroVideoFile) ||
     selectedFrameFiles.length > 0 ||
+    aboutTeamGalleryFiles.length > 0 ||
     aboutTeamMemberImageFiles.length > 0;
 
   const updateField = useCallback(
@@ -148,13 +146,15 @@ export function useAdminSiteSettings({
         }
 
         let heroVideoUrl = formState.heroVideoUrl;
-        let selectedFrames = parseMultilineInput(
-          formState.selectedFramesText
+        let selectedFrames = parseMultilineInput(formState.selectedFramesText);
+        let aboutTeamGallery = parseMultilineInput(
+          formState.aboutTeamGalleryText
         );
         const aboutTeamMembers = [...formState.aboutTeamMembers];
         const totalFiles =
           (siteHeroVideoFile ? 1 : 0) +
           selectedFrameFiles.length +
+          aboutTeamGalleryFiles.length +
           aboutTeamMemberImageFiles.length;
         let uploadedCount = 0;
 
@@ -188,6 +188,23 @@ export function useAdminSiteSettings({
           selectedFrames = [...selectedFrames, ...uploadedFrames];
         }
 
+        if (aboutTeamGalleryFiles.length > 0) {
+          const uploadedTeamGallery: string[] = [];
+
+          for (const file of aboutTeamGalleryFiles) {
+            setUploadProgress({
+              current: ++uploadedCount,
+              total: totalFiles,
+              filename: file.name
+            });
+            uploadedTeamGallery.push(
+              await uploadAdminFile(supabase, file, "about-team-gallery")
+            );
+          }
+
+          aboutTeamGallery = [...aboutTeamGallery, ...uploadedTeamGallery];
+        }
+
         if (aboutTeamMemberImageFiles.length > 0) {
           for (const item of aboutTeamMemberImageFiles) {
             setUploadProgress({
@@ -197,11 +214,7 @@ export function useAdminSiteSettings({
             });
             aboutTeamMembers[item.index] = {
               ...aboutTeamMembers[item.index],
-              image: await uploadAdminFile(
-                supabase,
-                item.file,
-                "about-team"
-              )
+              image: await uploadAdminFile(supabase, item.file, "about-team")
             };
           }
         }
@@ -212,10 +225,7 @@ export function useAdminSiteSettings({
           ...formState,
           heroVideoUrl,
           selectedFramesText: selectedFrames.join("\n"),
-          aboutTeamImagesText: aboutTeamMembers
-            .map((member) => member.image)
-            .filter(Boolean)
-            .join("\n"),
+          aboutTeamGalleryText: aboutTeamGallery.join("\n"),
           aboutTeamMembers
         };
         const payload = buildSiteSettingsDatabasePayload(nextFormState);
@@ -285,22 +295,33 @@ export function useAdminSiteSettings({
                     tone: "success" as const
                   }
                 ]
+              : []),
+            ...(aboutTeamGalleryFiles.length > 0
+              ? [
+                  {
+                    id: "about-team-gallery",
+                    label: `${aboutTeamGalleryFiles.length} team gallery image${
+                      aboutTeamGalleryFiles.length === 1 ? "" : "s"
+                    } uploaded`,
+                    detail: "About team gallery",
+                    tone: "success" as const
+                  }
+                ]
               : [])
           ]
         });
       } catch (error) {
         setUploadProgress(null);
         showStatus(
-          toAdminOperationError(
-            error,
-            "The site settings could not be saved."
-          ).message
+          toAdminOperationError(error, "The site settings could not be saved.")
+            .message
         );
       } finally {
         setWorking(false);
       }
     },
     [
+      aboutTeamGalleryFiles,
       aboutTeamMemberImageFiles,
       clearSiteSettingsMedia,
       formState,

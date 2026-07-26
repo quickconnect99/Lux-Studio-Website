@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Menu, X } from "lucide-react";
@@ -14,8 +13,6 @@ import { ThemeSwitcher } from "@/components/ui/theme-switcher";
 type SiteHeaderProps = {
   settings: SiteSettings;
 };
-
-const brandLogoSrc = "/images/brand/lux-studio-logo.svg";
 
 export function SiteHeader({ settings }: SiteHeaderProps) {
   const pathname = usePathname();
@@ -76,7 +73,10 @@ export function SiteHeader({ settings }: SiteHeaderProps) {
       <div className="backdrop-blur-xl">
         <div className="section-shell flex min-h-[4.5rem] items-center justify-between gap-4 py-2.5 sm:min-h-[5.5rem] sm:gap-6 sm:py-4">
           {/* Brand / logo lockup */}
-          <Link href="/" className="group flex min-w-0 items-center gap-3 sm:gap-4">
+          <Link
+            href="/"
+            className="group flex min-w-0 items-center gap-3 sm:gap-4"
+          >
             <div
               className={cn(
                 "relative flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-[1rem]",
@@ -84,14 +84,12 @@ export function SiteHeader({ settings }: SiteHeaderProps) {
                 "transition-transform duration-300 ease-out group-hover:scale-105"
               )}
             >
-              <Image
-                src={brandLogoSrc}
-                alt={`${settings.brand.name} logo`}
-                fill
-                priority
-                sizes="(max-width: 640px) 44px, 64px"
-                className="object-contain p-1.5"
-              />
+              <span
+                aria-hidden="true"
+                className="max-w-full truncate px-1 text-xs font-semibold uppercase tracking-ui text-foreground sm:text-sm"
+              >
+                {settings.brand.mark || "L/S"}
+              </span>
             </div>
             <div className="min-w-0">
               <p className="truncate text-[0.68rem] uppercase tracking-ui text-muted transition-colors duration-200 group-hover:text-foreground sm:text-xs">
@@ -193,44 +191,44 @@ export function SiteHeader({ settings }: SiteHeaderProps) {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -8 }}
             transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
-            className="fixed inset-x-0 bottom-0 top-[4.5rem] overflow-y-auto border-t border-line bg-background/95 shadow-card backdrop-blur-2xl sm:top-[5.5rem] lg:hidden"
+            className="bg-background/95 fixed inset-x-0 bottom-0 top-[4.5rem] overflow-y-auto border-t border-line shadow-card backdrop-blur-2xl sm:top-[5.5rem] lg:hidden"
           >
             <div className="section-shell flex min-h-full flex-col py-5">
               <p className="eyebrow mb-5">Navigation</p>
               <div className="flex flex-col gap-2">
-              {navigation.map((item, index) => {
-                const active =
-                  item.href === "/"
-                    ? pathname === item.href
-                    : pathname === item.href ||
-                      pathname.startsWith(`${item.href}/`);
+                {navigation.map((item, index) => {
+                  const active =
+                    item.href === "/"
+                      ? pathname === item.href
+                      : pathname === item.href ||
+                        pathname.startsWith(`${item.href}/`);
 
-                return (
-                  <Link
-                    key={item.href}
-                    href={item.href}
-                    className={cn(
-                      "flex min-h-16 items-center justify-between rounded-[1.25rem] border px-5 py-4",
-                      "font-[family-name:var(--font-display)] text-2xl font-medium uppercase leading-none tracking-[0.04em]",
-                      "transition-colors duration-150",
-                      active
-                        ? "border-foreground bg-foreground text-background"
-                        : "border-line bg-panel text-foreground hover:border-accent"
-                    )}
-                    onClick={() => setOpen(false)}
-                  >
-                    <span>{item.label}</span>
-                    <span
+                  return (
+                    <Link
+                      key={item.href}
+                      href={item.href}
                       className={cn(
-                        "font-[family-name:var(--font-mono)] text-[0.68rem]",
-                        active ? "text-accent" : "text-muted"
+                        "flex min-h-16 items-center justify-between rounded-[1.25rem] border px-5 py-4",
+                        "font-[family-name:var(--font-display)] text-2xl font-medium uppercase leading-none tracking-[0.04em]",
+                        "transition-colors duration-150",
+                        active
+                          ? "border-foreground bg-foreground text-background"
+                          : "border-line bg-panel text-foreground hover:border-accent"
                       )}
+                      onClick={() => setOpen(false)}
                     >
-                      0{index + 1}
-                    </span>
-                  </Link>
-                );
-              })}
+                      <span>{item.label}</span>
+                      <span
+                        className={cn(
+                          "font-[family-name:var(--font-mono)] text-[0.68rem]",
+                          active ? "text-accent" : "text-muted"
+                        )}
+                      >
+                        0{index + 1}
+                      </span>
+                    </Link>
+                  );
+                })}
               </div>
               <div className="mt-auto border-t border-line pt-6">
                 <p className="max-w-sm text-sm leading-7 text-muted">

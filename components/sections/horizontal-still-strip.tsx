@@ -17,6 +17,8 @@ type HorizontalStillStripProps = {
   eyebrow?: string;
   lead?: string;
   trail?: string;
+  ariaLabel?: string;
+  imageAltPrefix?: string;
 };
 
 const KEYBOARD_SCROLL_DISTANCE = 240;
@@ -35,7 +37,9 @@ export function HorizontalStillStrip({
   direction = "left",
   eyebrow,
   lead = "Selected",
-  trail = "Frames"
+  trail = "Frames",
+  ariaLabel = "Selected frames. Use the left and right arrow keys to scroll through the image strip.",
+  imageAltPrefix = "Selected still"
 }: HorizontalStillStripProps) {
   const [paused, setPaused] = useState(false);
   const [inView, setInView] = useState(false);
@@ -133,7 +137,7 @@ export function HorizontalStillStrip({
       <div
         ref={trackRef}
         role="region"
-        aria-label="Selected frames. Use the left and right arrow keys to scroll through the image strip."
+        aria-label={ariaLabel}
         aria-keyshortcuts="ArrowLeft ArrowRight Home End"
         tabIndex={0}
         className="no-scrollbar focus-visible:ring-accent/60 overflow-x-auto focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-background"
@@ -172,8 +176,8 @@ export function HorizontalStillStrip({
                 index >= frameItems.length
                   ? undefined
                   : frame.href
-                    ? `Open selected still ${(index % frameItems.length) + 1}`
-                    : `Selected still ${(index % frameItems.length) + 1}`
+                    ? `Open ${imageAltPrefix.toLowerCase()} ${(index % frameItems.length) + 1}`
+                    : `${imageAltPrefix} ${(index % frameItems.length) + 1}`
               }
               tabIndex={frame.href && index < frameItems.length ? 0 : -1}
               className="film-frame relative h-[220px] w-[320px] shrink-0 overflow-hidden rounded-[1.75rem] sm:h-[260px] sm:w-[440px]"
@@ -186,7 +190,7 @@ export function HorizontalStillStrip({
                 alt={
                   index >= frameItems.length
                     ? ""
-                    : `Selected still ${(index % frameItems.length) + 1}`
+                    : `${imageAltPrefix} ${(index % frameItems.length) + 1}`
                 }
                 fill
                 sizes="(min-width: 640px) 440px, 320px"

@@ -106,10 +106,13 @@ export function AdminDashboard() {
     setVideoFile,
     siteHeroVideoFile,
     selectedFrameFiles,
+    aboutTeamGalleryFiles,
     aboutTeamMemberImageFiles,
     setSiteHeroVideoFile,
     addSelectedFrameFiles,
     removeSelectedFrameFile,
+    addAboutTeamGalleryFiles,
+    removeAboutTeamGalleryFile,
     setAboutTeamMemberImageFile,
     formState,
     isTemplateProject,
@@ -172,7 +175,6 @@ export function AdminDashboard() {
         break;
       case "category":
         updateField("category", value);
-        updateField("carModel", value);
         break;
       case "slug":
         updateField("slug", slugify(value));
@@ -457,9 +459,7 @@ export function AdminDashboard() {
                   </div>
                 </div>
               ) : (
-                <p className="text-sm leading-7 text-muted">
-                  {statusMessage}
-                </p>
+                <p className="text-sm leading-7 text-muted">{statusMessage}</p>
               )}
             </div>
           </div>
@@ -476,9 +476,9 @@ export function AdminDashboard() {
                 </div>
               ) : (
                 <p className="mt-4 text-sm leading-7 text-muted">
-                  Add `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`,
-                  and `NEXT_PUBLIC_SUPABASE_STORAGE_BUCKET` to enable live CMS
-                  mode.
+                  Add `NEXT_PUBLIC_SUPABASE_URL`,
+                  `NEXT_PUBLIC_SUPABASE_ANON_KEY`, and
+                  `NEXT_PUBLIC_SUPABASE_STORAGE_BUCKET` to enable live CMS mode.
                 </p>
               )}
             </div>
@@ -563,10 +563,13 @@ export function AdminDashboard() {
           working={working}
           siteHeroVideoFile={siteHeroVideoFile}
           selectedFrameFiles={selectedFrameFiles}
+          aboutTeamGalleryFiles={aboutTeamGalleryFiles}
           aboutTeamMemberImageFiles={aboutTeamMemberImageFiles}
           setSiteHeroVideoFile={setSiteHeroVideoFile}
           addSelectedFrameFiles={addSelectedFrameFiles}
           removeSelectedFrameFile={removeSelectedFrameFile}
+          addAboutTeamGalleryFiles={addAboutTeamGalleryFiles}
+          removeAboutTeamGalleryFile={removeAboutTeamGalleryFile}
           setAboutTeamMemberImageFile={setAboutTeamMemberImageFile}
           handleFileSelection={handleFileSelection}
         />

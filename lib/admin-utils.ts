@@ -13,6 +13,7 @@ import type {
   SiteSettingsFormState
 } from "@/lib/admin-types";
 import { projectBusinesses } from "@/lib/project-business";
+import { DEFAULT_PROJECT_IMAGE } from "@/lib/site-config";
 
 export const DRAFT_STORAGE_KEY = "admin-project-draft";
 
@@ -174,7 +175,7 @@ export function createProjectTemplate(
           carModel: "Brand Film",
           location: "City",
           year: currentYear,
-          coverImage: "/images/demo-car-01.jpg",
+          coverImage: DEFAULT_PROJECT_IMAGE,
           galleryImages: ["/images/demo-car-02.jpg"],
           galleryCaptions: [
             "Starter gallery frame for the automotive template. Replace with the first supporting still."
@@ -307,7 +308,6 @@ export function toSiteSettingsFormState(
     socialLinksText: formatSocialLinksText(settings.social),
     seoTitle: settings.seo.title,
     seoDescription: settings.seo.description,
-    seoOgImage: settings.seo.ogImage,
     heroEyebrow: settings.hero.eyebrow,
     heroHeadlineLead: settings.hero.headlineLead,
     heroHeadlineTrail: settings.hero.headlineTrail,
@@ -315,11 +315,8 @@ export function toSiteSettingsFormState(
     heroVideoUrl: settings.hero.videoUrl,
     aboutFounderNote: settings.about.founderNote,
     aboutPositioning: settings.about.positioning,
-    aboutTeamImagesText: settings.about.teamMembers
-      .map((member) => member.image)
-      .filter(Boolean)
-      .join("\n"),
     aboutTeamMembers: settings.about.teamMembers,
+    aboutTeamGalleryText: settings.about.teamGallery.join("\n"),
     aboutValuesText: formatValuesText(settings.about.values),
     servicesText: formatServicesText(settings.services),
     selectedFramesText: settings.selectedFrames.join("\n"),

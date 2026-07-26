@@ -59,12 +59,6 @@ export type SiteCopy = {
     heroSecondaryCta: string;
     videoHeadlineLead: string;
     videoHeadlineTrail: string;
-    brandEyebrow: string;
-    brandHeadlineLead: string;
-    brandHeadlineTrail: string;
-    servicesEyebrow: string;
-    servicesHeadlineLead: string;
-    servicesHeadlineTrail: string;
     ctaEyebrow: string;
     ctaHeadlineLead: string;
     ctaHeadlineTrail: string;
@@ -123,7 +117,6 @@ export type SiteSettings = {
   seo: {
     title: string;
     description: string;
-    ogImage: string;
   };
   hero: {
     eyebrow: string;
@@ -136,8 +129,8 @@ export type SiteSettings = {
     founderNote: string;
     positioning: string;
     values: Array<{ title: string; copy: string }>;
-    teamImages: string[];
     teamMembers: TeamMember[];
+    teamGallery: string[];
   };
   services: Service[];
   selectedFrames: string[];

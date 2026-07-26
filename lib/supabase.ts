@@ -6,7 +6,7 @@ import {
   normalizePublicMediaUrl
 } from "@/lib/media-url";
 import { normalizeProjectBusiness } from "@/lib/project-business";
-import { defaultSiteSettings } from "@/lib/site-config";
+import { DEFAULT_PROJECT_IMAGE, defaultSiteSettings } from "@/lib/site-config";
 import type {
   NavigationVisibility,
   Project,
@@ -116,7 +116,6 @@ type SupabaseSiteSettingsRow = {
   social_links: SocialLink[] | null;
   seo_title: string | null;
   seo_description: string | null;
-  seo_og_image: string | null;
   hero_eyebrow: string | null;
   hero_headline_lead: string | null;
   hero_headline_trail: string | null;
@@ -182,7 +181,9 @@ function normalizeServices(services: Service[] | null | undefined) {
       : defaultSiteSettings.services;
 
   return source
-    .filter((service) => service.title.trim().toLowerCase() !== "motion direction")
+    .filter(
+      (service) => service.title.trim().toLowerCase() !== "motion direction"
+    )
     .map((service, index) => ({
       ...service,
       number: String(index + 1).padStart(2, "0")
@@ -235,7 +236,7 @@ export function normalizeProjectRecord(record: SupabaseProjectRow): Project {
     year: record.year,
     coverImage: normalizePublicMediaUrl(
       record.cover_image,
-      defaultSiteSettings.seo.ogImage
+      DEFAULT_PROJECT_IMAGE
     ),
     galleryImages: filterPublicMediaUrls(record.gallery_images),
     galleryCaptions: record.gallery_captions ?? [],
@@ -267,11 +268,7 @@ export function normalizeSiteSettingsRecord(
     seo: {
       title: record.seo_title?.trim() || defaultSiteSettings.seo.title,
       description:
-        record.seo_description?.trim() || defaultSiteSettings.seo.description,
-      ogImage: normalizePublicMediaUrl(
-        record.seo_og_image,
-        defaultSiteSettings.seo.ogImage
-      )
+        record.seo_description?.trim() || defaultSiteSettings.seo.description
     },
     hero: {
       eyebrow: record.hero_eyebrow?.trim() || defaultSiteSettings.hero.eyebrow,
@@ -294,11 +291,11 @@ export function normalizeSiteSettingsRecord(
       positioning:
         record.about_positioning?.trim() ||
         defaultSiteSettings.about.positioning,
-      teamImages: filterPublicMediaUrls(record.about_team_images),
       teamMembers: normalizeTeamMembers(
         record.about_team_members,
         record.about_team_images
       ),
+      teamGallery: filterPublicMediaUrls(record.about_team_images),
       values:
         Array.isArray(record.about_values) && record.about_values.length > 0
           ? record.about_values

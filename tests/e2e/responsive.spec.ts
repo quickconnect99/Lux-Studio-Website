@@ -206,6 +206,88 @@ test("selected-frame navigation uses full-height 15-percent overlays", async ({
   await expect(imageLayers).toHaveCount(1, { timeout: 2_000 });
 });
 
+test("lightbox uses a large frame and full-height rectangular navigation", async ({
+  page
+}, testInfo) => {
+  test.skip(testInfo.project.name !== "desktop-1440");
+  await page.goto("/", { waitUntil: "networkidle" });
+
+  const selectedFrame = page.locator('[data-selected-frame="center"]');
+  await selectedFrame.scrollIntoViewIfNeeded();
+  const selectedFrameBounds = await selectedFrame.boundingBox();
+
+  await page.locator('[data-selected-frame-control="open"]').click();
+
+  const dialog = page.getByRole("dialog", { name: "Image lightbox" });
+  const lightboxFrame = dialog.locator("[data-lightbox-frame]");
+  const previous = dialog.locator('[data-lightbox-control="previous"]');
+  const next = dialog.locator('[data-lightbox-control="next"]');
+
+  await expect(dialog).toBeVisible();
+  await expect(lightboxFrame).toBeVisible();
+  await expect(previous).toBeVisible();
+  await expect(next).toBeVisible();
+
+  const dimensions = await lightboxFrame.evaluate((element) => {
+    const frameRect = element.getBoundingClientRect();
+    const previousRect = element
+      .querySelector<HTMLElement>('[data-lightbox-control="previous"]')
+      ?.getBoundingClientRect();
+    const nextRect = element
+      .querySelector<HTMLElement>('[data-lightbox-control="next"]')
+      ?.getBoundingClientRect();
+
+    return {
+      frameWidth: frameRect.width,
+      frameHeight: frameRect.height,
+      previousWidth: previousRect?.width ?? 0,
+      previousHeight: previousRect?.height ?? 0,
+      nextWidth: nextRect?.width ?? 0,
+      nextHeight: nextRect?.height ?? 0,
+      viewportWidth: window.innerWidth
+    };
+  });
+
+  expect(dimensions.frameWidth / dimensions.viewportWidth).toBeGreaterThan(0.9);
+  expect(dimensions.frameWidth).toBeGreaterThan(
+    (selectedFrameBounds?.width ?? 0) * 1.5
+  );
+  expect(dimensions.previousHeight).toBeCloseTo(dimensions.frameHeight, 0);
+  expect(dimensions.nextHeight).toBeCloseTo(dimensions.frameHeight, 0);
+  expect(dimensions.previousHeight).toBeGreaterThan(
+    dimensions.previousWidth * 3
+  );
+  expect(dimensions.nextHeight).toBeGreaterThan(dimensions.nextWidth * 3);
+});
+
+test("project sharing metadata uses the first project image", async ({
+  page
+}, testInfo) => {
+  test.skip(testInfo.project.name !== "desktop-1440");
+  await page.goto("/work/midnight-aeroline", { waitUntil: "networkidle" });
+
+  const projectPoster = await page
+    .locator("video[poster]")
+    .getAttribute("poster");
+  const openGraphImage = await page
+    .locator('meta[property="og:image"]')
+    .getAttribute("content");
+  const twitterImage = await page
+    .locator('meta[name="twitter:image"]')
+    .getAttribute("content");
+
+  expect(projectPoster).toBeTruthy();
+  expect(openGraphImage).toBeTruthy();
+  expect(twitterImage).toBe(openGraphImage);
+  expect(new URL(openGraphImage!).pathname).toBe(
+    new URL(projectPoster!, page.url()).pathname
+  );
+  await expect(page.locator('meta[property="og:type"]')).toHaveAttribute(
+    "content",
+    "article"
+  );
+});
+
 test("home hero atmosphere and copy follow the active theme", async ({
   page
 }, testInfo) => {
@@ -243,6 +325,31 @@ test("home hero atmosphere and copy follow the active theme", async ({
   expect(themeStyles.dark.atmosphere).not.toContain(
     "rgba(255, 255, 255, 0.86)"
   );
+});
+
+test("about places the team gallery below the team profiles", async ({
+  page
+}, testInfo) => {
+  test.skip(testInfo.project.name !== "desktop-1440");
+  await page.goto("/about", { waitUntil: "networkidle" });
+
+  await expect(
+    page.locator('img[alt^="Lux Studio founder visual"]')
+  ).toHaveCount(0);
+
+  const profilesHeading = page.getByRole("heading", {
+    name: /People\s+Behind The Work/i
+  });
+  const galleryHeading = page.getByRole("heading", {
+    name: /People\s+At Work/i
+  });
+
+  await expect(profilesHeading).toBeVisible();
+  await expect(galleryHeading).toBeVisible();
+
+  const profilesBox = await profilesHeading.boundingBox();
+  const galleryBox = await galleryHeading.boundingBox();
+  expect(galleryBox?.y ?? 0).toBeGreaterThan(profilesBox?.y ?? 0);
 });
 
 test("admin field help remains inside the mobile viewport", async ({
@@ -290,6 +397,14 @@ test("admin switches to the lazy-loaded settings workspace", async ({
   await expect(settingsForm).toBeVisible();
   await expect(
     settingsForm.getByText("Live site editor", { exact: true })
+  ).toBeVisible();
+
+  await settingsForm.getByRole("button", { name: "04 About" }).click();
+  await expect(
+    settingsForm.getByText("Team Gallery", { exact: true })
+  ).toBeVisible();
+  await expect(
+    settingsForm.getByRole("button", { name: "Upload Files" })
   ).toBeVisible();
 
   await page.getByRole("button", { name: /^Projects/ }).click();

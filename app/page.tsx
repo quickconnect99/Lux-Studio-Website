@@ -55,7 +55,10 @@ export default async function HomePage() {
     <>
       <HomeHero hero={publicSettings.hero} copy={publicSettings.copy.home} />
 
-      <SelectedFrames frames={galleryFrames.slice(0, 8)} />
+      <SelectedFrames
+        frames={galleryFrames.slice(0, 8)}
+        label={publicSettings.copy.home.selectedWorkLabel}
+      />
 
       <HorizontalStillStrip
         frames={galleryFrames.slice(0, 6)}

@@ -2,15 +2,38 @@ import type { Metadata } from "next";
 import { PageHeader } from "@/components/sections/page-header";
 import { ProjectGrid } from "@/components/sections/project-grid";
 import { parseProjectBusinessParam } from "@/lib/project-business";
+import {
+  buildSharingMetadata,
+  resolveSharingImage
+} from "@/lib/sharing-metadata";
 import { getPublishedProjects, getSiteSettings } from "@/lib/supabase";
 
-export const metadata: Metadata = {
-  title: "Work",
-  description: "Selected films, stills, and campaign work by Lux Studio.",
-  alternates: {
-    canonical: "/work"
-  }
-};
+const pageTitle = "Work";
+const pageDescription =
+  "Selected films, stills, and campaign work by Lux Studio.";
+
+export async function generateMetadata(): Promise<Metadata> {
+  const [projects, settings] = await Promise.all([
+    getPublishedProjects(),
+    getSiteSettings()
+  ]);
+  const image = resolveSharingImage({ projects, settings });
+
+  return {
+    title: pageTitle,
+    description: pageDescription,
+    alternates: {
+      canonical: "/work"
+    },
+    ...buildSharingMetadata({
+      title: `${pageTitle} | ${settings.brand.name}`,
+      description: pageDescription,
+      image,
+      imageAlt: `${settings.brand.name} selected project`,
+      siteName: settings.brand.name
+    })
+  };
+}
 
 type WorkPageProps = {
   searchParams?: Promise<{ business?: string | string[] }>;
@@ -32,9 +55,7 @@ export default async function WorkPage({ searchParams }: WorkPageProps) {
       )?.business
     : null;
   const initialBusiness =
-    requestedBusiness && matchingBusiness
-      ? matchingBusiness
-      : null;
+    requestedBusiness && matchingBusiness ? matchingBusiness : null;
   const copy = initialBusiness
     ? `Selected ${initialBusiness.toLowerCase()} work.`
     : settings.copy.work.copy;

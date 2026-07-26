@@ -133,7 +133,7 @@ function FieldHelpTooltip({ fieldKey }: { fieldKey: AdminProjectFieldKey }) {
                   : undefined
               }
               className={cn(
-                "pointer-events-none fixed z-[100] rounded-[1rem] border border-line bg-background/95 px-3 py-2 text-[0.7rem] normal-case tracking-normal text-muted shadow-card backdrop-blur-xl",
+                "bg-background/95 pointer-events-none fixed z-[100] rounded-[1rem] border border-line px-3 py-2 text-[0.7rem] normal-case tracking-normal text-muted shadow-card backdrop-blur-xl",
                 position ? "opacity-100" : "opacity-0"
               )}
             >
@@ -271,14 +271,15 @@ export function ProjectEditor({
   activeField,
   onActiveFieldChange
 }: Props) {
-  const dateValue = formState.createdAt ? formState.createdAt.split("T")[0] : "";
+  const dateValue = formState.createdAt
+    ? formState.createdAt.split("T")[0]
+    : "";
 
   function handleDateChange(dateStr: string) {
     if (!dateStr) return;
-    const timePart =
-      formState.createdAt.includes("T")
-        ? formState.createdAt.split("T")[1]
-        : "12:00:00.000Z";
+    const timePart = formState.createdAt.includes("T")
+      ? formState.createdAt.split("T")[1]
+      : "12:00:00.000Z";
     updateField("createdAt", `${dateStr}T${timePart}`);
   }
 
@@ -333,7 +334,11 @@ export function ProjectEditor({
               onClick={duplicateProject}
               disabled={working}
               className="control-pill"
-              title={isTemplate ? "Create a copy from this template" : "Duplicate this project"}
+              title={
+                isTemplate
+                  ? "Create a copy from this template"
+                  : "Duplicate this project"
+              }
             >
               <Copy className="h-4 w-4" />
               {isTemplate ? "Start Copy" : "Duplicate"}
@@ -343,7 +348,7 @@ export function ProjectEditor({
                 type="button"
                 onClick={handleDeleteClick}
                 disabled={working}
-                className="control-pill text-error hover:border-error/40"
+                className="control-pill hover:border-error/40 text-error"
               >
                 <Trash2 className="h-4 w-4" />
                 Delete
@@ -370,7 +375,7 @@ export function ProjectEditor({
           </div>
         </div>
         {isTemplate ? (
-          <p className="mt-4 rounded-[1rem] border border-accent/20 bg-accent/5 px-4 py-3 text-xs leading-6 text-muted">
+          <p className="border-accent/20 bg-accent/5 mt-4 rounded-[1rem] border px-4 py-3 text-xs leading-6 text-muted">
             This is a permanent starter template. Saving creates a new project
             from your current edits and leaves the template untouched.
           </p>
@@ -427,7 +432,9 @@ export function ProjectEditor({
               ) : null}
               {slugValidation.status === "available" &&
               slugValidation.slug === formState.slug ? (
-                <p className="text-xs leading-6 text-success">Slug is available.</p>
+                <p className="text-xs leading-6 text-success">
+                  Slug is available.
+                </p>
               ) : null}
               {slugValidation.status === "conflict" &&
               slugValidation.message ? (
@@ -491,10 +498,7 @@ export function ProjectEditor({
               <input
                 list="project-category-options"
                 value={formState.category}
-                onChange={(e) => {
-                  updateField("category", e.target.value);
-                  updateField("carModel", e.target.value);
-                }}
+                onChange={(e) => updateField("category", e.target.value)}
                 className="input-field"
                 placeholder="Campaign type, format, product, or occasion"
               />
@@ -505,6 +509,21 @@ export function ProjectEditor({
                   </option>
                 ))}
               </datalist>
+            </label>
+          </EditorFieldShell>
+          <EditorFieldShell
+            fieldKey="carModel"
+            activeField={activeField}
+            onActiveFieldChange={onActiveFieldChange}
+          >
+            <label className="space-y-2 text-sm text-muted">
+              <FieldLabel fieldKey="carModel" />
+              <input
+                value={formState.carModel}
+                onChange={(e) => updateField("carModel", e.target.value)}
+                className="input-field"
+                placeholder="Vehicle, venue, property, or featured subject"
+              />
             </label>
           </EditorFieldShell>
           <EditorFieldShell
@@ -746,7 +765,9 @@ export function ProjectEditor({
               />
               <button
                 type="button"
-                onClick={() => updateField("createdAt", new Date().toISOString())}
+                onClick={() =>
+                  updateField("createdAt", new Date().toISOString())
+                }
                 className="control-pill text-xs"
               >
                 Today
@@ -831,7 +852,7 @@ export function ProjectEditor({
                 type="button"
                 onClick={handleDeleteClick}
                 disabled={working}
-                className="control-pill text-error hover:border-error/40"
+                className="control-pill hover:border-error/40 text-error"
               >
                 <Trash2 className="h-4 w-4" />
                 Delete
