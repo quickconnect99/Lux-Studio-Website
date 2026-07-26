@@ -74,9 +74,7 @@ test("mobile navigation traps focus and closes with Escape", async ({
   test.skip(testInfo.project.name !== "mobile-320");
   await page.goto("/", { waitUntil: "networkidle" });
 
-  const trigger = page.locator(
-    'button[aria-controls="mobile-navigation"]'
-  );
+  const trigger = page.locator('button[aria-controls="mobile-navigation"]');
   await trigger.click();
 
   const dialog = page.getByRole("dialog");
@@ -147,6 +145,55 @@ test("theme menu supports roving keyboard focus", async ({
   await page.keyboard.press("Escape");
   await expect(menu).toBeHidden();
   await expect(trigger).toBeFocused();
+});
+
+test("selected-frame navigation uses full-height 15-percent overlays", async ({
+  page
+}, testInfo) => {
+  test.skip(!testInfo.project.name.startsWith("mobile-"));
+  await page.goto("/", { waitUntil: "networkidle" });
+
+  const frame = page.locator('[data-selected-frame="center"]');
+  const previous = page.locator('[data-selected-frame-control="previous"]');
+  const next = page.locator('[data-selected-frame-control="next"]');
+
+  await frame.scrollIntoViewIfNeeded();
+  await expect(frame).toBeVisible();
+  await expect(previous).toBeVisible();
+  await expect(next).toBeVisible();
+  await expect(page.getByRole("button", { name: "Hide Reel" })).toHaveCount(0);
+
+  const dimensions = await frame.evaluate((element) => {
+    const frameRect = element.getBoundingClientRect();
+    const previousRect = element
+      .querySelector<HTMLElement>('[data-selected-frame-control="previous"]')
+      ?.getBoundingClientRect();
+    const nextRect = element
+      .querySelector<HTMLElement>('[data-selected-frame-control="next"]')
+      ?.getBoundingClientRect();
+
+    return {
+      frameWidth: frameRect.width,
+      frameHeight: frameRect.height,
+      previousWidth: previousRect?.width ?? 0,
+      previousHeight: previousRect?.height ?? 0,
+      nextWidth: nextRect?.width ?? 0,
+      nextHeight: nextRect?.height ?? 0
+    };
+  });
+
+  expect(dimensions.previousHeight).toBeCloseTo(dimensions.frameHeight, 0);
+  expect(dimensions.nextHeight).toBeCloseTo(dimensions.frameHeight, 0);
+  expect(dimensions.previousWidth / dimensions.frameWidth).toBeCloseTo(0.15, 2);
+  expect(dimensions.nextWidth / dimensions.frameWidth).toBeCloseTo(0.15, 2);
+
+  const openControl = page.locator('[data-selected-frame-control="open"]');
+  const initialLabel = await openControl.getAttribute("aria-label");
+  await next.click();
+  await expect(openControl).not.toHaveAttribute(
+    "aria-label",
+    initialLabel ?? ""
+  );
 });
 
 test("admin field help remains inside the mobile viewport", async ({

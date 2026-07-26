@@ -64,43 +64,28 @@ export function SelectedFrames({ frames }: SelectedFramesProps) {
     setFocusedIndex(nextIndex);
   }
 
-  function renderFrameButton({
+  function renderSideFrameButton({
     index,
     position
   }: {
     index: number;
-    position: "left" | "center" | "right";
+    position: "left" | "right";
   }) {
     const frame = frameItems[index];
-    const isCenter = position === "center";
 
     return (
       <button
         key={`${position}-${frame.image}-${index}`}
         type="button"
         aria-label={
-          isCenter
-            ? frame.href
-              ? `Open still link ${index + 1}`
-              : `Expand still ${index + 1}`
-            : position === "left"
-              ? "Show previous still"
-              : "Show next still"
+          position === "left"
+            ? "Select previous still preview"
+            : "Select next still preview"
         }
-        onClick={() => {
-          if (isCenter) {
-            openFrame(index);
-            return;
-          }
-
-          setFocusedIndex(index);
-        }}
+        onClick={() => setFocusedIndex(index)}
         className={cn(
-          "group absolute focus-visible:outline-none",
+          "group absolute top-[30%] z-10 w-[78vw] opacity-90 focus-visible:outline-none sm:w-[46%]",
           "transition-all duration-500 ease-out",
-          isCenter
-            ? "left-1/2 top-[8%] z-30 w-[78vw] -translate-x-1/2 sm:top-[10%] sm:w-[48%]"
-            : "top-[30%] z-10 w-[78vw] opacity-90 sm:w-[46%]",
           position === "left" && "-left-[47vw] sm:left-0 lg:left-0",
           position === "right" && "-right-[47vw] sm:right-0 lg:right-0"
         )}
@@ -109,44 +94,89 @@ export function SelectedFrames({ frames }: SelectedFramesProps) {
           <div className="aspect-[4/3]" />
           <FallbackImage
             src={frame.image}
-            fallbackSrc={fallbackFrameImages[index % fallbackFrameImages.length]}
+            fallbackSrc={
+              fallbackFrameImages[index % fallbackFrameImages.length]
+            }
             alt={`Automotive still ${index + 1}`}
             fill
             sizes="(min-width: 1280px) 660px, (min-width: 640px) 48vw, 78vw"
             unoptimized
-            className={cn(
-              "object-cover transition-transform duration-700",
-              isCenter ? "group-hover:scale-[1.03]" : "scale-[1.01]"
-            )}
+            className="scale-[1.01] object-cover transition-transform duration-700"
           />
-          <div
-            className={cn(
-              "absolute inset-0 flex items-center justify-center",
-              "transition-colors duration-300",
-              isCenter
-                ? "bg-black/0 group-hover:bg-black/30"
-                : "bg-black/20 group-hover:bg-black/10"
-            )}
-          >
-            <div
-              className={cn(
-                "flex h-12 w-12 items-center justify-center rounded-full",
-                "border border-white/30 bg-white/10 backdrop-blur",
-                "transition-opacity duration-300",
-                isCenter ? "opacity-0 group-hover:opacity-100" : "opacity-80"
-              )}
-            >
-              {isCenter ? (
-                <Expand className="h-5 w-5 text-white" />
-              ) : position === "left" ? (
-                <ChevronLeft className="h-5 w-5 text-white" />
-              ) : (
-                <ChevronRight className="h-5 w-5 text-white" />
-              )}
-            </div>
-          </div>
+          <div className="absolute inset-0 bg-black/20 transition-colors duration-300 group-hover:bg-black/10" />
         </div>
       </button>
+    );
+  }
+
+  function renderCenterFrame(index: number) {
+    const frame = frameItems[index];
+    const openLabel = frame.href
+      ? `Open still link ${index + 1}`
+      : `Expand still ${index + 1}`;
+
+    return (
+      <div
+        key={`center-${frame.image}-${index}`}
+        className="group/frame absolute left-1/2 top-[8%] z-30 w-[78vw] -translate-x-1/2 sm:top-[10%] sm:w-[48%]"
+      >
+        <div
+          data-selected-frame="center"
+          className="film-frame relative overflow-hidden rounded-[2rem]"
+        >
+          <div className="aspect-[4/3]" />
+          <FallbackImage
+            src={frame.image}
+            fallbackSrc={
+              fallbackFrameImages[index % fallbackFrameImages.length]
+            }
+            alt={`Automotive still ${index + 1}`}
+            fill
+            sizes="(min-width: 1280px) 660px, (min-width: 640px) 48vw, 78vw"
+            unoptimized
+            className="object-cover transition-transform duration-700 group-hover/frame:scale-[1.03]"
+          />
+
+          <button
+            type="button"
+            aria-label={openLabel}
+            data-selected-frame-control="open"
+            onClick={() => openFrame(index)}
+            className="group/expand absolute inset-y-0 left-[15%] right-[15%] z-20 flex items-center justify-center bg-black/0 transition-colors duration-300 hover:bg-black/25 focus-visible:bg-black/25 active:!scale-100"
+          >
+            <span className="flex h-12 w-12 items-center justify-center rounded-full border border-white/30 bg-white/10 opacity-0 backdrop-blur transition-opacity duration-300 group-hover/expand:opacity-100 group-focus-visible/expand:opacity-100">
+              <Expand className="h-5 w-5 text-white" />
+            </span>
+          </button>
+
+          {frameItems.length > 1 ? (
+            <>
+              <button
+                type="button"
+                aria-label="Show previous still"
+                data-selected-frame-control="previous"
+                onClick={showPreviousFrame}
+                className="group/navigation absolute -inset-y-px left-0 z-30 flex w-[15%] items-center justify-center bg-gradient-to-r from-black/40 via-black/10 to-transparent text-white transition-colors duration-300 hover:from-black/65 focus-visible:from-black/65 active:!scale-100"
+              >
+                <span className="flex h-11 w-11 items-center justify-center rounded-full border border-white/30 bg-black/20 backdrop-blur transition-colors duration-300 group-hover/navigation:bg-black/45">
+                  <ChevronLeft className="h-5 w-5" />
+                </span>
+              </button>
+              <button
+                type="button"
+                aria-label="Show next still"
+                data-selected-frame-control="next"
+                onClick={showNextFrame}
+                className="group/navigation absolute -inset-y-px right-0 z-30 flex w-[15%] items-center justify-center bg-gradient-to-l from-black/40 via-black/10 to-transparent text-white transition-colors duration-300 hover:from-black/65 focus-visible:from-black/65 active:!scale-100"
+              >
+                <span className="flex h-11 w-11 items-center justify-center rounded-full border border-white/30 bg-black/20 backdrop-blur transition-colors duration-300 group-hover/navigation:bg-black/45">
+                  <ChevronRight className="h-5 w-5" />
+                </span>
+              </button>
+            </>
+          ) : null}
+        </div>
+      </div>
     );
   }
 
@@ -163,39 +193,25 @@ export function SelectedFrames({ frames }: SelectedFramesProps) {
               </span>
             </h2>
           </Reveal>
-
         </div>
 
         <Reveal variant="default" className="pt-8">
           <div className="relative mx-auto h-[92vw] min-h-[380px] max-w-[1360px] overflow-hidden pb-10 pt-4 sm:h-[51vw] sm:min-h-[440px] lg:max-h-[690px]">
             {frameItems.length > 1
-              ? renderFrameButton({ index: previousIndex, position: "left" })
+              ? renderSideFrameButton({
+                  index: previousIndex,
+                  position: "left"
+                })
               : null}
-            {renderFrameButton({ index: focusedIndex, position: "center" })}
+            {renderCenterFrame(focusedIndex)}
             {frameItems.length > 1
-              ? renderFrameButton({ index: nextIndex, position: "right" })
+              ? renderSideFrameButton({ index: nextIndex, position: "right" })
               : null}
             {frameItems.length > 1 ? (
-              <div className="absolute bottom-0 left-1/2 z-40 flex -translate-x-1/2 items-center gap-3">
-                <button
-                  type="button"
-                  aria-label="Show previous still"
-                  onClick={showPreviousFrame}
-                  className="control-pill h-11 w-11 px-0"
-                >
-                  <ChevronLeft className="h-4 w-4" />
-                </button>
+              <div className="absolute bottom-0 left-1/2 z-40 -translate-x-1/2">
                 <span className="rounded-full border border-line bg-panel px-4 py-2 text-xs uppercase tracking-ui text-muted">
                   {focusedIndex + 1} / {frameItems.length}
                 </span>
-                <button
-                  type="button"
-                  aria-label="Show next still"
-                  onClick={showNextFrame}
-                  className="control-pill h-11 w-11 px-0"
-                >
-                  <ChevronRight className="h-4 w-4" />
-                </button>
               </div>
             ) : null}
           </div>

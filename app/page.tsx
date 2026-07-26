@@ -53,17 +53,13 @@ export default async function HomePage() {
 
   return (
     <>
-      <HomeHero
-        hero={publicSettings.hero}
-        copy={publicSettings.copy.home}
-      />
+      <HomeHero hero={publicSettings.hero} copy={publicSettings.copy.home} />
 
       <SelectedFrames frames={galleryFrames.slice(0, 8)} />
 
       <HorizontalStillStrip
         frames={galleryFrames.slice(0, 6)}
         direction="right"
-        collapsible
         eyebrow="Motion reference"
         lead="Frames"
         trail="In Motion"
@@ -96,7 +92,11 @@ export default async function HomePage() {
                   {publicSettings.copy.home.ctaButton}
                 </LinkButton>
                 {isPublicAdminEnabled ? (
-                  <LinkButton href="/admin" variant="secondary" className="w-full sm:w-auto">
+                  <LinkButton
+                    href="/admin"
+                    variant="secondary"
+                    className="w-full sm:w-auto"
+                  >
                     Open Admin
                   </LinkButton>
                 ) : null}

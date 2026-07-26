@@ -6,7 +6,6 @@ import {
   useRef,
   useState
 } from "react";
-import { Eye, EyeOff } from "lucide-react";
 import { FallbackImage } from "@/components/ui/fallback-image";
 import type { FrameItem } from "@/lib/project-images";
 import { cn } from "@/lib/utils";
@@ -15,7 +14,6 @@ type HorizontalStillStripProps = {
   frames?: FrameItem[];
   images?: string[];
   direction?: "left" | "right";
-  collapsible?: boolean;
   eyebrow?: string;
   lead?: string;
   trail?: string;
@@ -35,14 +33,12 @@ export function HorizontalStillStrip({
   frames,
   images = [],
   direction = "left",
-  collapsible = false,
   eyebrow,
   lead = "Selected",
   trail = "Frames"
 }: HorizontalStillStripProps) {
   const [paused, setPaused] = useState(false);
   const [inView, setInView] = useState(false);
-  const [visible, setVisible] = useState(true);
   const sectionRef = useRef<HTMLElement>(null);
   const trackRef = useRef<HTMLDivElement>(null);
   const dragOrigin = useRef<number | null>(null);
@@ -66,7 +62,7 @@ export function HorizontalStillStrip({
   const loop = [...frameItems, ...frameItems];
 
   function startDrag(clientX: number) {
-    dragOrigin.current   = clientX;
+    dragOrigin.current = clientX;
     scrollOrigin.current = trackRef.current?.scrollLeft ?? 0;
     setPaused(true);
   }
@@ -124,7 +120,7 @@ export function HorizontalStillStrip({
 
   return (
     <section ref={sectionRef} className="section-space-medium overflow-hidden">
-      <div className="section-shell mb-8 flex flex-wrap items-end justify-between gap-4">
+      <div className="section-shell mb-8">
         <div>
           {eyebrow ? <p className="eyebrow mb-4">{eyebrow}</p> : null}
           <h2 className="font-[family-name:var(--font-display)] text-4xl uppercase leading-none sm:text-5xl">
@@ -132,92 +128,75 @@ export function HorizontalStillStrip({
             <span className="block pl-10 text-accent">{trail}</span>
           </h2>
         </div>
-        {collapsible ? (
-          <button
-            type="button"
-            onClick={() => setVisible((current) => !current)}
-            className="control-pill"
-            aria-expanded={visible}
-          >
-            {visible ? (
-              <EyeOff className="h-4 w-4" />
-            ) : (
-              <Eye className="h-4 w-4" />
-            )}
-            {visible ? "Hide Reel" : "Show Reel"}
-          </button>
-        ) : null}
       </div>
 
-      {visible ? (
+      <div
+        ref={trackRef}
+        role="region"
+        aria-label="Selected frames. Use the left and right arrow keys to scroll through the image strip."
+        aria-keyshortcuts="ArrowLeft ArrowRight Home End"
+        tabIndex={0}
+        className="no-scrollbar focus-visible:ring-accent/60 overflow-x-auto focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+        onFocus={() => setPaused(true)}
+        onBlur={endDrag}
+        onKeyDown={handleKeyDown}
+        onMouseEnter={() => setPaused(true)}
+        onMouseLeave={() => {
+          endDrag();
+        }}
+        onMouseDown={(e) => startDrag(e.clientX)}
+        onMouseMove={(e) => moveDrag(e.clientX)}
+        onMouseUp={endDrag}
+        onTouchStart={(e) => startDrag(e.touches[0].clientX)}
+        onTouchMove={(e) => moveDrag(e.touches[0].clientX)}
+        onTouchEnd={endDrag}
+      >
         <div
-          ref={trackRef}
-          role="region"
-          aria-label="Selected frames. Use the left and right arrow keys to scroll through the image strip."
-          aria-keyshortcuts="ArrowLeft ArrowRight Home End"
-          tabIndex={0}
-          className="no-scrollbar overflow-x-auto focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60 focus-visible:ring-offset-2 focus-visible:ring-offset-background"
-          onFocus={() => setPaused(true)}
-          onBlur={endDrag}
-          onKeyDown={handleKeyDown}
-          onMouseEnter={() => setPaused(true)}
-          onMouseLeave={() => {
-            endDrag();
+          className={cn(
+            "marquee-track flex min-w-max gap-6 px-5 sm:px-8 lg:px-10",
+            direction === "right" && "marquee-track-reverse"
+          )}
+          style={{
+            animationPlayState: paused || !inView ? "paused" : "running",
+            cursor: paused ? "grabbing" : "grab"
           }}
-          onMouseDown={(e) => startDrag(e.clientX)}
-          onMouseMove={(e) => moveDrag(e.clientX)}
-          onMouseUp={endDrag}
-          onTouchStart={(e) => startDrag(e.touches[0].clientX)}
-          onTouchMove={(e) => moveDrag(e.touches[0].clientX)}
-          onTouchEnd={endDrag}
         >
-          <div
-            className={cn(
-              "marquee-track flex min-w-max gap-6 px-5 sm:px-8 lg:px-10",
-              direction === "right" && "marquee-track-reverse"
-            )}
-            style={{
-              animationPlayState: paused || !inView ? "paused" : "running",
-              cursor: paused ? "grabbing" : "grab"
-            }}
-          >
-            {loop.map((frame, index) => (
-              <a
-                key={`${frame.image}-${index}`}
-                href={frame.href}
-                target={frame.href ? "_blank" : undefined}
-                rel={frame.href ? "noreferrer" : undefined}
-                aria-hidden={index >= frameItems.length}
-                aria-label={
-                  index >= frameItems.length
-                    ? undefined
-                    : frame.href
-                      ? `Open selected still ${(index % frameItems.length) + 1}`
-                      : `Selected still ${(index % frameItems.length) + 1}`
+          {loop.map((frame, index) => (
+            <a
+              key={`${frame.image}-${index}`}
+              href={frame.href}
+              target={frame.href ? "_blank" : undefined}
+              rel={frame.href ? "noreferrer" : undefined}
+              aria-hidden={index >= frameItems.length}
+              aria-label={
+                index >= frameItems.length
+                  ? undefined
+                  : frame.href
+                    ? `Open selected still ${(index % frameItems.length) + 1}`
+                    : `Selected still ${(index % frameItems.length) + 1}`
+              }
+              tabIndex={frame.href && index < frameItems.length ? 0 : -1}
+              className="film-frame relative h-[220px] w-[320px] shrink-0 overflow-hidden rounded-[1.75rem] sm:h-[260px] sm:w-[440px]"
+            >
+              <FallbackImage
+                src={frame.image}
+                fallbackSrc={
+                  fallbackStripImages[index % fallbackStripImages.length]
                 }
-                tabIndex={frame.href && index < frameItems.length ? 0 : -1}
-                className="film-frame relative h-[220px] w-[320px] shrink-0 overflow-hidden rounded-[1.75rem] sm:h-[260px] sm:w-[440px]"
-              >
-                <FallbackImage
-                  src={frame.image}
-                  fallbackSrc={
-                    fallbackStripImages[index % fallbackStripImages.length]
-                  }
-                  alt={
-                    index >= frameItems.length
-                      ? ""
-                      : `Selected still ${(index % frameItems.length) + 1}`
-                  }
-                  fill
-                  sizes="(min-width: 640px) 440px, 320px"
-                  unoptimized
-                  className="object-cover"
-                />
-              </a>
-            ))}
-          </div>
+                alt={
+                  index >= frameItems.length
+                    ? ""
+                    : `Selected still ${(index % frameItems.length) + 1}`
+                }
+                fill
+                sizes="(min-width: 640px) 440px, 320px"
+                unoptimized
+                className="object-cover"
+              />
+            </a>
+          ))}
         </div>
-      ) : null}
+      </div>
     </section>
   );
 }
