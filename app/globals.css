@@ -490,7 +490,7 @@ select:focus-visible {
   color: #1e493d;
 }
 
-/* Vintage Dark - warm noir with terracotta and racing green */
+/* Vintage Noir - warm noir with terracotta and racing green */
 [data-theme="vintage"] {
   --background:      #17120f;
   --foreground:      #f3e7d7;
@@ -520,7 +520,7 @@ select:focus-visible {
   color: #17120f;
 }
 
-/* Vintage dark theme - green noir with terracotta highlights */
+/* Vintage Dark - green noir with terracotta highlights */
 [data-theme="gpt-vintage"] {
   --background:      #101917;
   --foreground:      #f2e9db;

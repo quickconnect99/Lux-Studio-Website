@@ -26,8 +26,8 @@ export interface Theme {
 export const themes: Theme[] = [
   { id: "cream",           label: "Cream",     bg: "#f4f1ea", accent: "#9eff4f", accentContrast: "#1b232b", dark: false },
   { id: "vintage-light",   label: "Vintage Light", bg: "#f3eadb", accent: "#EC824D", secondaryAccent: "#1E493D", accentContrast: "#f7efe2", dark: false },
-  { id: "vintage",         label: "Vintage Dark",  bg: "#17120f", accent: "#EC824D", secondaryAccent: "#1E493D", accentContrast: "#17120f", dark: true },
-  { id: "gpt-vintage",     label: "GPT Vintage",   bg: "#14211d", accent: "#EC824D", secondaryAccent: "#1E493D", accentContrast: "#1E493D", dark: true },
+  { id: "vintage",         label: "Vintage Noir",  bg: "#17120f", accent: "#EC824D", secondaryAccent: "#1E493D", accentContrast: "#17120f", dark: true },
+  { id: "gpt-vintage",     label: "Vintage Dark",  bg: "#14211d", accent: "#EC824D", secondaryAccent: "#1E493D", accentContrast: "#1E493D", dark: true },
   { id: "obsidian",        label: "Obsidian",  bg: "#0c0f12", accent: "#9eff4f", accentContrast: "#0c0f12", dark: true },
   { id: "carbon",          label: "Carbon",    bg: "#141518", accent: "#ff3b3b", accentContrast: "#0c0f12", dark: true },
   { id: "arctic",          label: "Arctic",    bg: "#f8f9fb", accent: "#2563eb", accentContrast: "#f8f9fb", dark: false },
