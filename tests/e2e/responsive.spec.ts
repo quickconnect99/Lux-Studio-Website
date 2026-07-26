@@ -196,6 +196,45 @@ test("selected-frame navigation uses full-height 15-percent overlays", async ({
   );
 });
 
+test("home hero atmosphere and copy follow the active theme", async ({
+  page
+}, testInfo) => {
+  test.skip(testInfo.project.name !== "desktop-1440");
+  await page.goto("/", { waitUntil: "networkidle" });
+
+  const themeStyles = await page.evaluate(() => {
+    const atmosphere = document.querySelector<HTMLElement>(
+      "[data-home-hero-atmosphere]"
+    );
+    const copy = document.querySelector<HTMLElement>("[data-home-hero-copy] p");
+
+    function getThemeStyles(theme: "vintage-light" | "gpt-vintage") {
+      document.documentElement.setAttribute("data-theme", theme);
+
+      return {
+        atmosphere:
+          atmosphere === null
+            ? ""
+            : window.getComputedStyle(atmosphere).backgroundImage,
+        copyColor: copy === null ? "" : window.getComputedStyle(copy).color
+      };
+    }
+
+    return {
+      light: getThemeStyles("vintage-light"),
+      dark: getThemeStyles("gpt-vintage")
+    };
+  });
+
+  expect(themeStyles.light.atmosphere).not.toBe("");
+  expect(themeStyles.dark.atmosphere).not.toBe("");
+  expect(themeStyles.dark.atmosphere).not.toBe(themeStyles.light.atmosphere);
+  expect(themeStyles.dark.copyColor).not.toBe(themeStyles.light.copyColor);
+  expect(themeStyles.dark.atmosphere).not.toContain(
+    "rgba(255, 255, 255, 0.86)"
+  );
+});
+
 test("admin field help remains inside the mobile viewport", async ({
   page
 }, testInfo) => {

@@ -14,10 +14,7 @@ type HomeHeroProps = {
   copy: SiteSettings["copy"]["home"];
 };
 
-export function HomeHero({
-  hero,
-  copy
-}: HomeHeroProps) {
+export function HomeHero({ hero, copy }: HomeHeroProps) {
   const shouldReduceMotion = useReducedMotion();
   const videoRef = useRef<HTMLVideoElement>(null);
   const [isPlaying, setIsPlaying] = useState(false);
@@ -82,14 +79,22 @@ export function HomeHero({
 
   return (
     <section className="section-shell relative overflow-hidden pb-8 pt-7 sm:pb-14 sm:pt-16">
-      <div className="absolute inset-x-0 top-8 -z-10 h-[500px] rounded-[3rem] bg-hero-radial blur-3xl" />
+      <div
+        data-home-hero-atmosphere
+        className="absolute inset-x-0 top-8 -z-10 h-[500px] rounded-[3rem] bg-hero-radial blur-3xl"
+      />
       <div className="grid gap-7 sm:gap-10 lg:items-center xl:grid-cols-[0.95fr_1.05fr]">
         <motion.div
           initial={{ opacity: 0, y: 28 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
           onAnimationComplete={() => setHeroRevealed(true)}
-          className={heroRevealed ? "group-reveal space-y-6 sm:space-y-8" : "space-y-6 sm:space-y-8"}
+          data-home-hero-copy
+          className={
+            heroRevealed
+              ? "group-reveal space-y-6 sm:space-y-8"
+              : "space-y-6 sm:space-y-8"
+          }
         >
           <p className="eyebrow">{hero.eyebrow}</p>
           <SplitHeadline
@@ -98,8 +103,14 @@ export function HomeHero({
             copy={hero.copy}
           />
           <div className="grid gap-3 sm:flex sm:flex-wrap sm:gap-4">
-            <LinkButton href="/work" className="w-full sm:w-auto">{copy.heroPrimaryCta}</LinkButton>
-            <LinkButton href="/contact" variant="secondary" className="w-full sm:w-auto">
+            <LinkButton href="/work" className="w-full sm:w-auto">
+              {copy.heroPrimaryCta}
+            </LinkButton>
+            <LinkButton
+              href="/contact"
+              variant="secondary"
+              className="w-full sm:w-auto"
+            >
               {copy.heroSecondaryCta}
             </LinkButton>
           </div>
@@ -163,7 +174,9 @@ export function HomeHero({
                     type="button"
                     onClick={toggleMute}
                     aria-pressed={!isMuted}
-                    aria-label={isMuted ? "Unmute showreel video" : "Mute showreel video"}
+                    aria-label={
+                      isMuted ? "Unmute showreel video" : "Mute showreel video"
+                    }
                     className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-white/20 bg-white/10 text-white/85 backdrop-blur"
                   >
                     {isMuted ? (
