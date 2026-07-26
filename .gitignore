@@ -21,6 +21,9 @@ dist
 coverage
 .eslintcache
 .test-dist
+playwright-report
+test-results
+.playwright
 
 # TypeScript
 *.tsbuildinfo

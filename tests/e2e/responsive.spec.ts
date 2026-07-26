@@ -1,0 +1,182 @@
+import { expect, test, type Page } from "@playwright/test";
+
+const routes = [
+  "/",
+  "/work",
+  "/services",
+  "/about",
+  "/contact",
+  "/impressum",
+  "/datenschutz",
+  "/work/midnight-aeroline",
+  "/admin"
+] as const;
+
+function collectBrowserErrors(page: Page) {
+  const errors: string[] = [];
+
+  page.on("pageerror", (error) => errors.push(error.message));
+  page.on("console", (message) => {
+    if (message.type() === "error") {
+      errors.push(message.text());
+    }
+  });
+
+  return errors;
+}
+
+for (const route of routes) {
+  test(`${route} remains inside the viewport`, async ({ page }) => {
+    const errors = collectBrowserErrors(page);
+    const response = await page.goto(route, { waitUntil: "networkidle" });
+
+    expect(response?.ok(), `${route} should return a successful response`).toBe(
+      true
+    );
+    await expect(page.locator("h1")).toHaveCount(1);
+
+    await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
+    await page.waitForTimeout(250);
+
+    const diagnostics = await page.evaluate(() => ({
+      horizontalOverflow:
+        document.documentElement.scrollWidth -
+        document.documentElement.clientWidth,
+      brokenImages: Array.from(document.images)
+        .filter((image) => image.complete && image.naturalWidth === 0)
+        .map((image) => image.currentSrc || image.src)
+    }));
+
+    expect(diagnostics.horizontalOverflow).toBeLessThanOrEqual(0);
+    expect(diagnostics.brokenImages).toEqual([]);
+    expect(errors).toEqual([]);
+  });
+}
+
+test("reduced motion hydrates without hiding content", async ({
+  page
+}, testInfo) => {
+  test.skip(testInfo.project.name !== "mobile-320");
+  const errors = collectBrowserErrors(page);
+
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.goto("/", { waitUntil: "networkidle" });
+  await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
+
+  await expect(page.locator("main")).toBeVisible();
+  await expect(page.locator("h1")).toBeVisible();
+  expect(errors).toEqual([]);
+});
+
+test("mobile navigation traps focus and closes with Escape", async ({
+  page
+}, testInfo) => {
+  test.skip(testInfo.project.name !== "mobile-320");
+  await page.goto("/", { waitUntil: "networkidle" });
+
+  const trigger = page.locator(
+    'button[aria-controls="mobile-navigation"]'
+  );
+  await trigger.click();
+
+  const dialog = page.getByRole("dialog");
+  await expect(dialog).toBeVisible();
+  await expect(trigger).toHaveAttribute("aria-expanded", "true");
+
+  const bounds = await dialog.evaluate((element) => {
+    const rect = element.getBoundingClientRect();
+    return {
+      left: rect.left,
+      top: rect.top,
+      right: rect.right,
+      bottom: rect.bottom,
+      viewportWidth: window.innerWidth,
+      viewportHeight: window.innerHeight
+    };
+  });
+
+  expect(bounds.left).toBeGreaterThanOrEqual(0);
+  expect(bounds.top).toBeGreaterThanOrEqual(0);
+  expect(bounds.right).toBeLessThanOrEqual(bounds.viewportWidth);
+  expect(bounds.bottom).toBeLessThanOrEqual(bounds.viewportHeight);
+
+  await page.keyboard.press("Escape");
+  await expect(dialog).toBeHidden();
+  await expect(trigger).toBeFocused();
+});
+
+test("theme menu supports roving keyboard focus", async ({
+  page
+}, testInfo) => {
+  test.skip(testInfo.project.name !== "mobile-320");
+  await page.goto("/", { waitUntil: "networkidle" });
+
+  const trigger = page.getByRole("button", { name: /Choose theme/ });
+  await trigger.click();
+
+  const menu = page.getByRole("menu", { name: "Theme" });
+  await expect(menu).toBeVisible();
+  const focusedBefore = await page.evaluate(
+    () => document.activeElement?.textContent?.trim() ?? ""
+  );
+
+  await page.keyboard.press("ArrowDown");
+  const focusedAfter = await page.evaluate(
+    () => document.activeElement?.textContent?.trim() ?? ""
+  );
+
+  expect(focusedAfter).not.toBe(focusedBefore);
+
+  const bounds = await menu.evaluate((element) => {
+    const rect = element.getBoundingClientRect();
+    return {
+      left: rect.left,
+      top: rect.top,
+      right: rect.right,
+      bottom: rect.bottom,
+      viewportWidth: window.innerWidth,
+      viewportHeight: window.innerHeight
+    };
+  });
+
+  expect(bounds.left).toBeGreaterThanOrEqual(0);
+  expect(bounds.top).toBeGreaterThanOrEqual(0);
+  expect(bounds.right).toBeLessThanOrEqual(bounds.viewportWidth);
+  expect(bounds.bottom).toBeLessThanOrEqual(bounds.viewportHeight);
+
+  await page.keyboard.press("Escape");
+  await expect(menu).toBeHidden();
+  await expect(trigger).toBeFocused();
+});
+
+test("admin field help remains inside the mobile viewport", async ({
+  page
+}, testInfo) => {
+  test.skip(testInfo.project.name !== "mobile-320");
+  await page.goto("/admin", { waitUntil: "networkidle" });
+
+  const help = page
+    .getByRole("button", { name: /Where is .* shown\?/ })
+    .first();
+  await help.scrollIntoViewIfNeeded();
+  await help.focus();
+
+  const tooltip = page.getByRole("tooltip");
+  await expect(tooltip).toBeVisible();
+  const bounds = await tooltip.evaluate((element) => {
+    const rect = element.getBoundingClientRect();
+    return {
+      left: rect.left,
+      top: rect.top,
+      right: rect.right,
+      bottom: rect.bottom,
+      viewportWidth: window.innerWidth,
+      viewportHeight: window.innerHeight
+    };
+  });
+
+  expect(bounds.left).toBeGreaterThanOrEqual(0);
+  expect(bounds.top).toBeGreaterThanOrEqual(0);
+  expect(bounds.right).toBeLessThanOrEqual(bounds.viewportWidth);
+  expect(bounds.bottom).toBeLessThanOrEqual(bounds.viewportHeight);
+});
