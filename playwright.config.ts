@@ -9,10 +9,7 @@ export default defineConfig({
   forbidOnly: Boolean(process.env.CI),
   retries: process.env.CI ? 1 : 0,
   workers: process.env.CI ? 2 : 2,
-  reporter: [
-    [process.env.CI ? "line" : "list"],
-    ["html", { open: "never" }]
-  ],
+  reporter: [[process.env.CI ? "line" : "list"], ["html", { open: "never" }]],
   timeout: 30_000,
   expect: {
     timeout: 5_000
@@ -44,6 +41,9 @@ export default defineConfig({
   ],
   webServer: {
     command: `npm run dev -- --hostname 127.0.0.1 --port ${port}`,
+    env: {
+      NEXT_DIST_DIR: ".next-playwright"
+    },
     url: baseURL,
     reuseExistingServer: !process.env.CI,
     timeout: 120_000

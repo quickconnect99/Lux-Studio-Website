@@ -35,6 +35,7 @@ const securityHeaders = [
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  distDir: process.env.NEXT_DIST_DIR?.trim() || ".next",
   async headers() {
     return [{ source: "/(.*)", headers: securityHeaders }];
   },
