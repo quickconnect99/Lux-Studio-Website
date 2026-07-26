@@ -8,10 +8,12 @@ import {
   validateInquiry
 } from "@/lib/inquiry";
 import { sendInquiryEmail } from "@/lib/email";
+import { consumeInquiryRateLimit } from "@/lib/inquiry-rate-limit";
+import { pruneRateLimitStore } from "@/lib/rate-limit";
 import {
-  consumeRateLimitAttempt,
-  pruneRateLimitStore
-} from "@/lib/rate-limit";
+  getRequestId,
+  logServerEvent
+} from "@/lib/server-observability";
 import { createAdminSupabaseClient, isServiceRoleConfigured } from "@/lib/supabase-admin";
 
 export const dynamic = "force-dynamic";
@@ -40,18 +42,13 @@ function getClientKey(headers: Headers) {
 }
 
 let pruneCallCount = 0;
+let lastRateLimitFallbackLogAt = 0;
 
-function isRateLimited(key: string) {
+function prepareLocalRateLimitStore() {
   pruneCallCount += 1;
   if (pruneCallCount % 50 === 0) {
     pruneRateLimitStore(rateLimitStore, INQUIRY_RATE_LIMIT_WINDOW_MS);
   }
-
-  return !consumeRateLimitAttempt(rateLimitStore, {
-    key,
-    maxAttempts: INQUIRY_RATE_LIMIT_MAX_REQUESTS,
-    windowMs: INQUIRY_RATE_LIMIT_WINDOW_MS
-  });
 }
 
 function isAllowedOrigin(request: Request) {
@@ -77,15 +74,39 @@ function isAllowedOrigin(request: Request) {
 }
 
 export async function POST(request: Request) {
+  const requestId = getRequestId(request.headers);
+
+  function json(
+    body: Record<string, unknown>,
+    init?: { status?: number }
+  ) {
+    return NextResponse.json(body, {
+      ...init,
+      headers: {
+        "x-request-id": requestId
+      }
+    });
+  }
+
   if (!isAllowedOrigin(request)) {
-    return NextResponse.json(
+    logServerEvent({
+      level: "warn",
+      event: "inquiry.origin_rejected",
+      requestId
+    });
+    return json(
       { message: "The inquiry could not be submitted from this origin." },
       { status: 403 }
     );
   }
 
   if (!isServiceRoleConfigured()) {
-    return NextResponse.json(
+    logServerEvent({
+      level: "error",
+      event: "inquiry.service_role_missing",
+      requestId
+    });
+    return json(
       {
         message:
           "Inquiry endpoint is not configured. Add SUPABASE_SERVICE_ROLE_KEY on the server."
@@ -94,9 +115,48 @@ export async function POST(request: Request) {
     );
   }
 
+  const supabase = createAdminSupabaseClient();
+
+  if (!supabase) {
+    logServerEvent({
+      level: "error",
+      event: "inquiry.admin_client_unavailable",
+      requestId
+    });
+    return json(
+      { message: "Supabase admin client could not be created." },
+      { status: 503 }
+    );
+  }
+
   const clientKey = getClientKey(request.headers);
-  if (isRateLimited(clientKey)) {
-    return NextResponse.json(
+  prepareLocalRateLimitStore();
+  const rateLimit = await consumeInquiryRateLimit({
+    key: clientKey,
+    maxAttempts: INQUIRY_RATE_LIMIT_MAX_REQUESTS,
+    windowMs: INQUIRY_RATE_LIMIT_WINDOW_MS,
+    localStore: rateLimitStore,
+    persistentConsume: (parameters) =>
+      supabase.rpc("consume_inquiry_rate_limit", parameters)
+  });
+
+  if (
+    rateLimit.fallbackReason &&
+    Date.now() - lastRateLimitFallbackLogAt > 5 * 60_000
+  ) {
+    lastRateLimitFallbackLogAt = Date.now();
+    logServerEvent({
+      level: "warn",
+      event: "inquiry.rate_limit_fallback",
+      requestId,
+      context: {
+        fallbackReason: rateLimit.fallbackReason
+      }
+    });
+  }
+
+  if (!rateLimit.allowed) {
+    return json(
       { message: "Too many inquiries from this browser. Please try again later." },
       { status: 429 }
     );
@@ -107,7 +167,7 @@ export async function POST(request: Request) {
   try {
     payload = await request.json();
   } catch {
-    return NextResponse.json(
+    return json(
       { message: "The inquiry payload could not be parsed." },
       { status: 400 }
     );
@@ -129,7 +189,7 @@ export async function POST(request: Request) {
   const errors = validateInquiry(inquiry);
 
   if (Object.keys(errors).length > 0) {
-    return NextResponse.json(
+    return json(
       {
         message: "Please review the highlighted fields before sending the inquiry.",
         errors
@@ -147,16 +207,7 @@ export async function POST(request: Request) {
   });
 
   if (protectionIssue) {
-    return NextResponse.json({ message: protectionIssue }, { status: 400 });
-  }
-
-  const supabase = createAdminSupabaseClient();
-
-  if (!supabase) {
-    return NextResponse.json(
-      { message: "Supabase admin client could not be created." },
-      { status: 503 }
-    );
+    return json({ message: protectionIssue }, { status: 400 });
   }
 
   const { error } = await supabase.from("inquiries").insert({
@@ -168,8 +219,13 @@ export async function POST(request: Request) {
   });
 
   if (error) {
-    console.error("[inquiries] Failed to save inquiry", error);
-    return NextResponse.json(
+    logServerEvent({
+      level: "error",
+      event: "inquiry.database_insert_failed",
+      requestId,
+      error
+    });
+    return json(
       { message: "The inquiry could not be saved." },
       { status: 500 }
     );
@@ -178,15 +234,25 @@ export async function POST(request: Request) {
   try {
     const email = await sendInquiryEmail(inquiry);
     if (email.skipped) {
-      console.warn(
-        "[inquiries] Email notification skipped. Set RESEND_API_KEY and INQUIRY_EMAIL_TO to enable mail."
-      );
+      logServerEvent({
+        level: "warn",
+        event: "inquiry.email_skipped",
+        requestId,
+        context: {
+          reason: "email-provider-not-configured"
+        }
+      });
     }
   } catch (emailError) {
-    console.error("[inquiries] Failed to send inquiry email", emailError);
+    logServerEvent({
+      level: "error",
+      event: "inquiry.email_failed",
+      requestId,
+      error: emailError
+    });
   }
 
-  return NextResponse.json({
+  return json({
     message: "Inquiry received - we'll be in touch within 24-48 hours."
   });
 }

@@ -7,6 +7,8 @@
 - in Auth mindestens einen Admin-User anlegen
 - UUID des Admin-Users in `public.admin_users` eintragen
 - `site_settings` mit echten Brand-/Kontaktdaten fuellen
+- pruefen, dass `public.consume_inquiry_rate_limit(...)` existiert und nur
+  `service_role` darauf zugreifen kann
 
 ## 2. Vercel
 
@@ -44,6 +46,9 @@ Zusatzchecks im Browser:
 - Bild-Upload im Admin funktioniert
 - neue Bilder werden auf den Projektseiten korrekt gerendert
 - Kontaktformular speichert eine Anfrage
+- API-Antworten enthalten einen `x-request-id`-Header
+- Function-Logs enthalten nach der Migration kein
+  `inquiry.rate_limit_fallback`
 
 ## 5. Sicherheitsnachlauf
 

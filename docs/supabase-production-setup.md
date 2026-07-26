@@ -45,6 +45,17 @@ Der Vorteil:
 - einfache Bot-Bremse vor dem Datenbank-Write
 - einfachere spaetere Erweiterung fuer Turnstile / Mailversand / Webhooks
 
+Das aktuelle Schema legt ausserdem `public.inquiry_rate_limits` und die
+Service-Role-Funktion `public.consume_inquiry_rate_limit(...)` an. Die Route
+speichert dort nur einen SHA-256-Hash aus Client-Merkmalen, niemals die rohe
+IP-Adresse oder den User-Agent.
+
+Solange diese Migration in einem bestehenden Projekt noch nicht angewendet
+wurde, verwendet die Route automatisch das lokale In-Memory-Limit. Dieser
+Fallback verhindert einen Ausfall, schuetzt aber nicht instanzuebergreifend.
+Im Server-Log erscheint dann hoechstens einmal in fuenf Minuten das
+strukturierte Event `inquiry.rate_limit_fallback`.
+
 ## Wenn du das alte Schema schon einmal ausgefuehrt hast
 
 Falls in deinem bestehenden Projekt noch die alte offene Insert-Policy fuer
@@ -55,6 +66,11 @@ drop policy if exists "Anyone can create inquiries" on public.inquiries;
 ```
 
 Die Route `/api/inquiries` schreibt danach ueber die Service-Role in die Tabelle.
+
+Fuehre danach die aktuelle `supabase/schema.sql` vollstaendig aus, damit auch
+Tabelle, Indexe und RPC fuer das persistente Rate-Limit angelegt werden. Die
+RPC ist nur fuer `service_role` freigegeben; `anon` und `authenticated` haben
+keinen direkten Zugriff auf die Rate-Limit-Tabelle.
 
 ## Empfohlene Vercel-Umgebungsvariablen
 
@@ -84,3 +100,7 @@ Datenbank- oder Storage-Zugriff aus.
 3. Ein Bild im Admin hochladen
 4. Projektseite oeffnen und Bilddarstellung pruefen
 5. `sitemap.xml` und `robots.txt` auf der Live-Domain pruefen
+6. In den Function-Logs pruefen, dass kein
+   `inquiry.rate_limit_fallback` mehr erscheint
+7. Bei API-Fehlern den `x-request-id`-Response-Header dem passenden
+   strukturierten Log-Eintrag zuordnen
