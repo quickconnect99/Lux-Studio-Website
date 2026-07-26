@@ -53,10 +53,10 @@ test("removes hospitality references when no project is published", () => {
 
   assert.equal(serialized.includes("hospitality"), false);
   assert.equal(serialized.includes("hotel"), false);
-  assert.equal(settings.seo.title, "Lux Studio | Premium Automotive Campaigns");
+  assert.equal(settings.seo.title, "Lux Studio | Automotive Films & Campaign Stills");
   assert.equal(
     settings.hero.copy,
-    "A boutique studio creating cinematic campaign films, launch content, and premium still systems for automotive brands and premium products that want atmosphere to feel designed."
+    "We shoot launch films and stills for car brands and dealerships, built to hold up on a billboard, a product page, or a 15-second cut."
   );
 });
 

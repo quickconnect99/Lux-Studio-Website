@@ -175,7 +175,7 @@ export default async function ProjectPage({
             <p className="eyebrow">
               {project.business} / {project.category}
             </p>
-            <h1 className="font-[family:var(--font-display)] break-words text-[2.8rem] uppercase leading-[0.9] tracking-[-0.05em] text-foreground sm:text-7xl">
+            <h1 className="font-[family-name:var(--font-display)] break-words text-[2.8rem] uppercase leading-[0.9] tracking-[-0.05em] text-foreground sm:text-7xl">
               {project.title.split(" ")[0]}
               <span className="block pl-5 text-accent sm:pl-14">
                 {project.title.split(" ").slice(1).join(" ")}
@@ -297,7 +297,7 @@ export default async function ProjectPage({
               <p className="eyebrow text-white/70 before:bg-accent">
                 Next project
               </p>
-              <h2 className="font-[family:var(--font-display)] text-4xl uppercase leading-none sm:text-5xl">
+              <h2 className="font-[family-name:var(--font-display)] text-4xl uppercase leading-none sm:text-5xl">
                 {nextProject.title}
               </h2>
               <p className="max-w-xl text-sm leading-7 text-white/80">

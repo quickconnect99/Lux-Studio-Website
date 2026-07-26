@@ -17,6 +17,7 @@ const config: Config = {
         accent:        "var(--accent)",
         "accent-contrast": "var(--accent-contrast)",
         "accent-soft": "var(--accent-soft)",
+        "accent-text": "var(--accent-text)",
         "accent-blue": "var(--accent-blue)",
         panel:         "var(--panel)",
         "panel-secondary": "var(--panel-secondary)",

@@ -46,7 +46,7 @@ export const services: Service[] = [
 
 export const projects: Project[] = [
   {
-    business: "Car",
+    business: "Automotive",
     title: "Midnight Aeroline",
     slug: "midnight-aeroline",
     shortDescription:
@@ -74,7 +74,7 @@ export const projects: Project[] = [
       "Low-profile rigging, reflective traffic control, and practical sodium light were used to avoid a synthetic studio sheen."
   },
   {
-    business: "Car",
+    business: "Automotive",
     title: "Alpine Vector",
     slug: "alpine-vector",
     shortDescription:
@@ -104,7 +104,7 @@ export const projects: Project[] = [
       "The production ran on a split-unit schedule to capture first light roads, overcast bodywork, and clean wheel detail without heavy composite work."
   },
   {
-    business: "Car",
+    business: "Automotive",
     title: "Current Form",
     slug: "current-form",
     shortDescription:
@@ -134,7 +134,7 @@ export const projects: Project[] = [
       "The electric sound bed was built from layered charge tones, tyre texture, and HVAC tonal detail to keep the film tactile without resorting to synthetic FX."
   },
   {
-    business: "Car",
+    business: "Automotive",
     title: "Desert Circuit",
     slug: "desert-circuit",
     shortDescription:
@@ -158,7 +158,7 @@ export const projects: Project[] = [
       "A reduced crew footprint allowed the team to move between convoy positions without turning the route into a visible production convoy."
   },
   {
-    business: "Car",
+    business: "Automotive",
     title: "Velocity Notes",
     slug: "velocity-notes",
     shortDescription:

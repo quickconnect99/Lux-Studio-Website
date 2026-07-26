@@ -6,7 +6,7 @@ export default function NotFound() {
     <section className="section-shell flex min-h-[70vh] items-center py-20">
       <div className="glass-panel w-full rounded-[2.5rem] p-8 sm:p-12">
         <p className="eyebrow">404</p>
-        <h1 className="font-[family:var(--font-display)] mt-6 text-5xl uppercase leading-none sm:text-7xl">
+        <h1 className="font-[family-name:var(--font-display)] mt-6 text-5xl uppercase leading-none sm:text-7xl">
           Frame
           <span className="block pl-8 text-accent sm:pl-14">Missing</span>
         </h1>

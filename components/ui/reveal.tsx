@@ -1,7 +1,8 @@
 "use client";
 
-import { motion, useReducedMotion } from "framer-motion";
+import { motion } from "framer-motion";
 import { useState } from "react";
+import { useHydratedReducedMotion } from "@/hooks/use-hydrated-reduced-motion";
 import { cn } from "@/lib/utils";
 
 /**
@@ -32,8 +33,12 @@ const variantConfig: Record<RevealVariant, { offset: number; duration: number }>
 };
 
 function buildOffset(direction: "up" | "left" | "right", offset: number) {
-  if (direction === "left")  return { x: -offset, y: 0 };
-  if (direction === "right") return { x: offset,  y: 0 };
+  // The smallest layout gutter is 16px. Keeping horizontal reveals within
+  // that gutter prevents transformed cards from widening the mobile document.
+  const horizontalOffset = Math.min(offset, 16);
+
+  if (direction === "left") return { x: -horizontalOffset, y: 0 };
+  if (direction === "right") return { x: horizontalOffset, y: 0 };
   return { x: 0, y: offset };
 }
 
@@ -44,7 +49,7 @@ export function Reveal({
   direction = "up",
   variant = "default"
 }: RevealProps) {
-  const shouldReduceMotion = useReducedMotion();
+  const shouldReduceMotion = useHydratedReducedMotion();
   const [revealed, setRevealed] = useState(false);
   const { offset, duration } = variantConfig[variant];
   const initialOffset = buildOffset(direction, offset);

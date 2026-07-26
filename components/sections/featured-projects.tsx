@@ -42,7 +42,7 @@ export function FeaturedProjects({ projects }: FeaturedProjectsProps) {
                 >
                   <span
                     aria-hidden="true"
-                    className="font-[family:var(--font-display)] text-foreground/[0.05] pointer-events-none absolute -right-2 -top-3 select-none text-[6rem] leading-none sm:-right-4 sm:-top-6 sm:text-[11rem] lg:text-[14rem]"
+                    className="font-[family-name:var(--font-display)] text-foreground/[0.05] pointer-events-none absolute -right-2 -top-3 select-none text-[6rem] leading-none sm:-right-4 sm:-top-6 sm:text-[11rem] lg:text-[14rem]"
                   >
                     0{index + 1}
                   </span>
@@ -57,7 +57,7 @@ export function FeaturedProjects({ projects }: FeaturedProjectsProps) {
                       <p className="eyebrow">
                         {project.business} / {project.category}
                       </p>
-                      <h2 className="font-[family:var(--font-display)] text-[2.5rem] uppercase leading-[0.9] tracking-[-0.05em] text-foreground sm:text-5xl lg:text-7xl">
+                      <h2 className="font-[family-name:var(--font-display)] text-[2.5rem] uppercase leading-[0.9] tracking-[-0.05em] text-foreground sm:text-5xl lg:text-7xl">
                         {project.title.split(" ")[0]}
                         <span className="block pl-5 text-accent sm:pl-14">
                           {project.title.split(" ").slice(1).join(" ")}

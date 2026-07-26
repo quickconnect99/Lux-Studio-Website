@@ -28,7 +28,7 @@ export function BusinessFocus({ cards }: BusinessFocusProps) {
       <div className="grid gap-6 lg:grid-cols-[0.72fr_1.28fr]">
         <Reveal className="space-y-5">
           <p className="eyebrow">Business focus</p>
-          <h2 className="font-[family:var(--font-display)] text-[2.5rem] uppercase leading-[0.92] sm:text-5xl">
+          <h2 className="font-[family-name:var(--font-display)] text-[2.5rem] uppercase leading-[0.92] sm:text-5xl">
             Explore
             <span className="block pl-5 text-accent sm:pl-12">
               {hasMultipleSectors ? "More Of Our Work" : "Our Work"}
@@ -72,7 +72,7 @@ export function BusinessFocus({ cards }: BusinessFocusProps) {
                     <p className="text-white/72 text-[0.62rem] uppercase tracking-[0.28em]">
                       {card.business}
                     </p>
-                    <h3 className="font-[family:var(--font-display)] mt-4 text-3xl uppercase leading-none sm:text-4xl">
+                    <h3 className="font-[family-name:var(--font-display)] mt-4 text-3xl uppercase leading-none sm:text-4xl">
                       {card.title}
                     </h3>
                   </div>

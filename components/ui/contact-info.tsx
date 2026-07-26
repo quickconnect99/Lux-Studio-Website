@@ -22,17 +22,20 @@ export function ContactInfo({ contact, showIcons = false }: ContactInfoProps) {
       {contact.email && (
         <a
           href={`mailto:${contact.email}`}
-          className="flex items-center gap-3 leading-7 transition-colors duration-150 hover:text-foreground"
+          className="flex min-h-11 min-w-0 items-center gap-3 break-all leading-7 transition-colors duration-150 hover:text-foreground"
         >
           {showIcons && <Mail className="h-4 w-4 shrink-0 text-accent" />}
           {contact.email}
         </a>
       )}
       {contact.phone && (
-        <p className="flex items-center gap-3 leading-7">
+        <a
+          href={`tel:${contact.phone.replace(/[^\d+]/g, "")}`}
+          className="flex min-h-11 items-center gap-3 leading-7 transition-colors duration-150 hover:text-foreground"
+        >
           {showIcons && <Phone className="h-4 w-4 shrink-0 text-accent" />}
           {contact.phone}
-        </p>
+        </a>
       )}
       {contact.city && (
         <p className="flex items-center gap-3 leading-7">

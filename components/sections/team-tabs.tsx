@@ -14,7 +14,7 @@ export function TeamTabs({ members }: TeamTabsProps) {
       <div className="border-y border-line py-8 sm:py-10">
         <div className="mb-8 max-w-3xl">
           <p className="eyebrow mb-4">Team</p>
-          <h2 className="font-[family:var(--font-display)] text-4xl uppercase leading-none sm:text-6xl">
+          <h2 className="font-[family-name:var(--font-display)] text-4xl uppercase leading-none sm:text-6xl">
             People
             <span className="block pl-8 text-accent sm:pl-12">
               Behind The Work
@@ -52,14 +52,14 @@ export function TeamTabs({ members }: TeamTabsProps) {
 
                 <div
                   className={cn(
-                    "max-w-2xl space-y-5",
+                    "min-w-0 max-w-2xl space-y-5",
                     isReversed && "lg:justify-self-end"
                   )}
                 >
                   <p className="metadata-number">
                     {member.position} / {member.title}
                   </p>
-                  <h3 className="font-[family:var(--font-display)] text-[2.8rem] uppercase leading-[0.9] sm:text-6xl">
+                  <h3 className="font-[family-name:var(--font-display)] break-words text-4xl uppercase leading-[0.9] sm:text-6xl">
                     {member.name}
                   </h3>
                   <p className="text-base leading-8 text-muted sm:text-lg">

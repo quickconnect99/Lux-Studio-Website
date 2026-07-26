@@ -1,16 +1,17 @@
 import type { SiteSettings } from "@/lib/types";
 
-export const LEGAL_PLACEHOLDER = "Bitte ergaenzen";
+export const LEGAL_PLACEHOLDER = "Please complete";
+const legacyLegalPlaceholders = [LEGAL_PLACEHOLDER, "Bitte ergaenzen"];
 
 export const legalProfile = {
   legalForm: "GmbH",
   representative: "Reuteler Benjamin, Nico Hagelberger",
-  streetAddress: "Speckibünt 2",
+  streetAddress: "Speckibuent 2",
   postalCode: "9494",
   city: "Schaan",
   country: "Liechtenstein",
   companyPurpose:
-    "Foto-, Film- und Social-Media-Produktionen für Marken-, Automotive- und Kampagnenprojekte.",
+    "Photo, film, and social media productions for brand, automotive, and campaign projects.",
   registerCourt: "",
   registerNumber: "",
   vatId: "",
@@ -20,12 +21,12 @@ export const legalProfile = {
   mediaOwner: "Lux Studio GmbH",
   editorialResponsibility: "Reuteler Benjamin, Nico Hagelberger",
   editorialLine:
-    "Vorstellung des Unternehmens, seiner Dienstleistungen sowie veröffentlichter Referenz- und Projektarbeiten.",
+    "Presentation of the company, its services, and published reference and project work.",
   hostingProviderName: "Vercel Inc.",
-  hostingProviderLocation: "EU (Frankfurt, Deutschland)",
+  hostingProviderLocation: "EU (Frankfurt, Germany)",
   databaseProviderName: "Supabase",
-  databaseProviderLocation: "EU (Irland)",
-  privacyContactEmail: "nico.hagelberger@lux-studios.net"
+  databaseProviderLocation: "EU (Ireland)",
+  privacyContactEmail: "n.hagelberger@luxstudio.li"
 } as const;
 
 type LegalFieldDescriptor = {
@@ -39,7 +40,12 @@ function hasMeaningfulValue(value: string | undefined) {
   }
 
   const normalized = value.trim().toLowerCase();
-  return normalized.length > 0 && !normalized.startsWith("bitte ergaenzen");
+  return (
+    normalized.length > 0 &&
+    !legacyLegalPlaceholders.some((placeholder) =>
+      normalized.startsWith(placeholder.toLowerCase())
+    )
+  );
 }
 
 export function isMissingLegalValue(value: string | undefined) {
@@ -66,16 +72,16 @@ export function getFormattedBusinessAddress() {
 
 export function getMissingImprintFields(settings: SiteSettings) {
   const fields: LegalFieldDescriptor[] = [
-    { label: "Unternehmensname", value: settings.brand.name },
-    { label: "Rechtsform", value: legalProfile.legalForm },
-    { label: "Vertretungsberechtigte Person", value: legalProfile.representative },
-    { label: "Strasse und Hausnummer", value: legalProfile.streetAddress },
-    { label: "PLZ", value: legalProfile.postalCode },
-    { label: "Ort", value: legalProfile.city },
-    { label: "Land", value: legalProfile.country },
-    { label: "Medieninhaber", value: legalProfile.mediaOwner },
+    { label: "Company name", value: settings.brand.name },
+    { label: "Legal form", value: legalProfile.legalForm },
+    { label: "Authorized representative", value: legalProfile.representative },
+    { label: "Street and number", value: legalProfile.streetAddress },
+    { label: "Postal code", value: legalProfile.postalCode },
+    { label: "City", value: legalProfile.city },
+    { label: "Country", value: legalProfile.country },
+    { label: "Media owner", value: legalProfile.mediaOwner },
     {
-      label: "Redaktionell verantwortlich",
+      label: "Editorially responsible",
       value: legalProfile.editorialResponsibility
     }
   ];
@@ -85,10 +91,10 @@ export function getMissingImprintFields(settings: SiteSettings) {
 
 export function getMissingPrivacyFields() {
   const fields: LegalFieldDescriptor[] = [
-    { label: "Hosting-Provider", value: legalProfile.hostingProviderName },
-    { label: "Hosting-Standort", value: legalProfile.hostingProviderLocation },
+    { label: "Hosting provider", value: legalProfile.hostingProviderName },
+    { label: "Hosting location", value: legalProfile.hostingProviderLocation },
     {
-      label: "Datenbank-Standort",
+      label: "Database location",
       value: legalProfile.databaseProviderLocation
     }
   ];

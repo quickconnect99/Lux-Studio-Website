@@ -59,7 +59,7 @@ export function ProjectImageCarousel({
             <p className="text-[0.62rem] uppercase tracking-meta text-white/75">
               Project stills
             </p>
-            <span className="font-[family:var(--font-mono)] text-[0.62rem] uppercase tracking-meta text-white/75">
+            <span className="font-[family-name:var(--font-mono)] text-[0.62rem] uppercase tracking-meta text-white/75">
               {String(activeIndex + 1).padStart(2, "0")} /{" "}
               {String(images.length).padStart(2, "0")}
             </span>
@@ -125,7 +125,7 @@ export function ProjectImageCarousel({
                   sizes="(min-width: 1024px) 15vw, 112px"
                   className="object-cover"
                 />
-                <span className="absolute bottom-1.5 right-1.5 rounded-full bg-black/55 px-2 py-1 font-[family:var(--font-mono)] text-[0.55rem] text-white/80 backdrop-blur">
+                <span className="absolute bottom-1.5 right-1.5 rounded-full bg-black/55 px-2 py-1 font-[family-name:var(--font-mono)] text-[0.55rem] text-white/80 backdrop-blur">
                   {String(index + 1).padStart(2, "0")}
                 </span>
               </button>

@@ -211,7 +211,7 @@ export function SiteHeader({ settings }: SiteHeaderProps) {
                     href={item.href}
                     className={cn(
                       "flex min-h-16 items-center justify-between rounded-[1.25rem] border px-5 py-4",
-                      "font-[family:var(--font-display)] text-2xl font-medium uppercase leading-none tracking-[0.04em]",
+                      "font-[family-name:var(--font-display)] text-2xl font-medium uppercase leading-none tracking-[0.04em]",
                       "transition-colors duration-150",
                       active
                         ? "border-foreground bg-foreground text-background"
@@ -222,7 +222,7 @@ export function SiteHeader({ settings }: SiteHeaderProps) {
                     <span>{item.label}</span>
                     <span
                       className={cn(
-                        "font-[family:var(--font-mono)] text-[0.68rem]",
+                        "font-[family-name:var(--font-mono)] text-[0.68rem]",
                         active ? "text-accent" : "text-muted"
                       )}
                     >

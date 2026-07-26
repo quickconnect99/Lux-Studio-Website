@@ -23,7 +23,7 @@ export function SiteFooter({ settings }: SiteFooterProps) {
         {/* Brand statement – spans full width on tablet, left col on desktop */}
         <div className="space-y-5 sm:col-span-2 lg:col-span-1">
           <p className="eyebrow">{settings.brand.name}</p>
-          <h2 className="font-[family:var(--font-display)] max-w-xl text-[2.5rem] leading-[0.95] text-foreground sm:text-5xl">
+          <h2 className="font-[family-name:var(--font-display)] max-w-xl text-[2.5rem] leading-[0.95] text-foreground sm:text-5xl">
             {settings.copy.footer.headline}
           </h2>
           <p className="max-w-md text-sm leading-7 text-muted">
@@ -41,7 +41,7 @@ export function SiteFooter({ settings }: SiteFooterProps) {
               <Link
                 key={item.href}
                 href={item.href}
-                className="w-fit transition-colors duration-150 hover:text-accent"
+                className="inline-flex min-h-11 w-fit items-center transition-colors duration-150 hover:text-accent"
               >
                 {item.label}
               </Link>
@@ -63,15 +63,15 @@ export function SiteFooter({ settings }: SiteFooterProps) {
         <div className="flex flex-wrap items-center gap-4">
           <Link
             href="/impressum"
-            className="transition-colors duration-150 hover:text-accent"
+            className="inline-flex min-h-11 items-center transition-colors duration-150 hover:text-accent"
           >
-            Impressum
+            Legal Notice
           </Link>
           <Link
             href="/datenschutz"
-            className="transition-colors duration-150 hover:text-accent"
+            className="inline-flex min-h-11 items-center transition-colors duration-150 hover:text-accent"
           >
-            Datenschutz
+            Privacy Policy
           </Link>
         </div>
         <p className="text-muted/80 max-w-sm text-[0.62rem] leading-5 tracking-[0.18em] sm:text-right sm:text-[0.68rem] sm:tracking-[0.22em]">

@@ -50,7 +50,7 @@ export default async function ServicesPage() {
 
                   {/* Title + description */}
                   <div className="space-y-4">
-                    <h2 className="font-[family:var(--font-display)] text-4xl uppercase leading-none">
+                    <h2 className="font-[family-name:var(--font-display)] text-4xl uppercase leading-none">
                       {service.title}
                     </h2>
                     <p className="max-w-2xl text-sm leading-7 text-muted sm:text-base">

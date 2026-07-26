@@ -127,7 +127,7 @@ export function HorizontalStillStrip({
       <div className="section-shell mb-8 flex flex-wrap items-end justify-between gap-4">
         <div>
           {eyebrow ? <p className="eyebrow mb-4">{eyebrow}</p> : null}
-          <h2 className="font-[family:var(--font-display)] text-4xl uppercase leading-none sm:text-5xl">
+          <h2 className="font-[family-name:var(--font-display)] text-4xl uppercase leading-none sm:text-5xl">
             {lead}
             <span className="block pl-10 text-accent">{trail}</span>
           </h2>

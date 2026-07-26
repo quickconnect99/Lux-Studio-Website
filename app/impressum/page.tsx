@@ -10,9 +10,9 @@ import {
 import { getSiteSettings } from "@/lib/supabase";
 
 export const metadata: Metadata = {
-  title: "Impressum",
+  title: "Legal Notice",
   description:
-    "Kontakt- und Anbieterangaben fuer die Website sowie Hinweise zum Medieninhalt."
+    "Company, contact, and media ownership details for this website."
 };
 
 function DetailRow({
@@ -44,9 +44,9 @@ export default async function ImprintPage() {
     <>
       <PageHeader
         eyebrow="Legal"
-        lead="Impress"
-        trail="um"
-        copy="Zentrale Anbieter- und Kontaktangaben fuer diese Website. Vor dem Livegang bitte alle Platzhalter mit den echten Unternehmensdaten ersetzen."
+        lead="Legal"
+        trail="Notice"
+        copy="Core company and contact details for this website. Before launch, replace all placeholders with the final business information."
       />
 
       <section className="section-shell pb-14">
@@ -59,8 +59,8 @@ export default async function ImprintPage() {
               {missingFields.length > 0 ? (
                 <>
                   <p className="mt-4 text-sm leading-7 text-foreground">
-                    Dieses Impressum enthaelt noch Platzhalter. Vor dem
-                    Livegang bitte mindestens diese Angaben vervollstaendigen:
+                    This legal notice still contains placeholders. Before
+                    launch, complete at least the following details:
                   </p>
                   <ul className="mt-4 grid gap-3">
                     {missingFields.map((field) => (
@@ -75,75 +75,74 @@ export default async function ImprintPage() {
                 </>
               ) : (
                 <p className="mt-4 text-sm leading-7 text-muted">
-                  Keine offensichtlichen Platzhalter mehr gefunden.
+                  No obvious placeholders remain.
                 </p>
               )}
             </div>
 
             <div className="panel-2xl p-6 sm:p-7">
               <p className="text-xs uppercase tracking-eyebrow text-muted">
-                Hinweis
+                Note
               </p>
               <p className="mt-4 text-sm leading-7 text-muted">
-                Die Seite ist als DACH-/EU-freundliche Vorlage aufgebaut. Wenn
-                dein Unternehmenssitz ausserhalb der EU liegt oder besondere
-                Berufsregeln gelten, muessen die Angaben entsprechend angepasst
-                werden.
+                This page is structured as a DACH and EU-friendly template. If
+                your business is based outside the EU or subject to specific
+                professional rules, adjust the details accordingly.
               </p>
             </div>
           </aside>
 
           <div className="panel-2xl p-6 sm:p-8">
-            <h2 className="font-[family:var(--font-display)] text-3xl uppercase leading-none text-foreground sm:text-4xl">
-              Anbieterangaben
+            <h2 className="font-[family-name:var(--font-display)] text-3xl uppercase leading-none text-foreground sm:text-4xl">
+              Company Details
             </h2>
 
             <dl className="mt-6">
-              <DetailRow label="Unternehmensname" value={identity.operatorName} />
-              <DetailRow label="Rechtsform" value={legalProfile.legalForm} />
+              <DetailRow label="Company Name" value={identity.operatorName} />
+              <DetailRow label="Legal Form" value={legalProfile.legalForm} />
               <DetailRow
-                label="Vertreten durch"
+                label="Represented By"
                 value={legalProfile.representative}
               />
-              <DetailRow label="Anschrift" value={businessAddress} />
-              <DetailRow label="E-Mail" value={identity.email} />
-              <DetailRow label="Telefon" value={identity.phone} />
+              <DetailRow label="Address" value={businessAddress} />
+              <DetailRow label="Email" value={identity.email} />
+              <DetailRow label="Phone" value={identity.phone} />
               <DetailRow
-                label="Unternehmensgegenstand"
+                label="Business Purpose"
                 value={legalProfile.companyPurpose}
               />
-              <DetailRow label="Registergericht" value={legalProfile.registerCourt} />
+              <DetailRow label="Register Court" value={legalProfile.registerCourt} />
               <DetailRow
-                label="Registernummer"
+                label="Registration Number"
                 value={legalProfile.registerNumber}
               />
-              <DetailRow label="Umsatzsteuer-ID" value={legalProfile.vatId} />
+              <DetailRow label="VAT ID" value={legalProfile.vatId} />
               <DetailRow
-                label="Aufsichtsbehoerde"
+                label="Supervisory Authority"
                 value={legalProfile.supervisoryAuthority}
               />
               <DetailRow
-                label="Kammer / Berufsverband"
+                label="Chamber / Professional Association"
                 value={legalProfile.chamberOrProfessionalAssociation}
               />
               <DetailRow
-                label="Berufsbezeichnung"
+                label="Professional Title"
                 value={legalProfile.professionalTitle}
               />
             </dl>
 
             <div className="mt-8 rounded-[1.5rem] border border-line bg-panel-secondary p-5">
               <p className="text-xs uppercase tracking-eyebrow text-muted">
-                Medieninhalt
+                Media Ownership
               </p>
               <dl className="mt-4">
-                <DetailRow label="Medieninhaber" value={legalProfile.mediaOwner} />
+                <DetailRow label="Media Owner" value={legalProfile.mediaOwner} />
                 <DetailRow
-                  label="Redaktionell verantwortlich"
+                  label="Editorially Responsible"
                   value={legalProfile.editorialResponsibility}
                 />
                 <DetailRow
-                  label="Grundlegende Ausrichtung"
+                  label="Editorial Line"
                   value={legalProfile.editorialLine}
                 />
               </dl>
@@ -151,14 +150,13 @@ export default async function ImprintPage() {
 
             {!isMissingLegalValue(legalProfile.privacyContactEmail) && (
               <p className="mt-6 text-sm leading-7 text-muted">
-                Datenschutz-Anfragen koennen direkt an{" "}
+                Privacy requests can be sent directly to{" "}
                 <a
                   href={`mailto:${legalProfile.privacyContactEmail}`}
                   className="text-foreground underline underline-offset-4"
                 >
                   {legalProfile.privacyContactEmail}
-                </a>{" "}
-                gerichtet werden.
+                </a>.
               </p>
             )}
           </div>

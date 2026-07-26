@@ -177,7 +177,7 @@ export function ProjectGrid({
           <p className="text-xs uppercase tracking-eyebrow text-muted">
             No selected work here yet
           </p>
-          <h2 className="font-[family:var(--font-display)] mt-4 text-4xl uppercase leading-none text-foreground">
+          <h2 className="font-[family-name:var(--font-display)] mt-4 text-4xl uppercase leading-none text-foreground">
             More
             <span className="block pl-8 text-accent sm:pl-12">Coming Soon</span>
           </h2>
@@ -236,7 +236,7 @@ export function ProjectGrid({
                         </span>
                         <span>{project.year}</span>
                       </div>
-                      <h3 className="font-[family:var(--font-display)] mt-3 text-[2rem] uppercase leading-none sm:mt-4 sm:text-3xl">
+                      <h3 className="font-[family-name:var(--font-display)] mt-3 text-[2rem] uppercase leading-none sm:mt-4 sm:text-3xl">
                         {project.title}
                       </h3>
                       <p className="mt-2 line-clamp-2 max-w-sm text-sm leading-6 text-white/80 sm:mt-3 sm:line-clamp-none sm:leading-7">

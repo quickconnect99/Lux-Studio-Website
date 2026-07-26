@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Barlow_Condensed, IBM_Plex_Mono } from "next/font/google";
+import { Barlow_Condensed, Bodoni_Moda, IBM_Plex_Mono } from "next/font/google";
 import Script from "next/script";
 import "@/app/globals.css";
 import { SiteFooter } from "@/components/layout/site-footer";
@@ -11,7 +11,10 @@ import { siteConfig } from "@/lib/site-config";
 import { getPublishedProjects, getSiteSettings } from "@/lib/supabase";
 import { DEFAULT_THEME, themeIds } from "@/lib/themes";
 
-export const dynamic = "force-dynamic";
+// Pages are cached and served statically, refreshed at most every 5 minutes
+// on their own — but an admin save triggers an immediate refresh via
+// /api/admin/revalidate, so this window is a fallback, not the normal path.
+export const revalidate = 300;
 
 export async function generateMetadata(): Promise<Metadata> {
   const [rawSettings, projects] = await Promise.all([
@@ -54,6 +57,12 @@ const barlow = Barlow_Condensed({
   subsets: ["latin"],
   variable: "--font-barlow",
   weight: ["300", "400", "500", "600", "700"]
+});
+
+const bodoniModa = Bodoni_Moda({
+  subsets: ["latin"],
+  variable: "--font-bodoni",
+  weight: ["400", "500", "600", "700"]
 });
 
 const mono = IBM_Plex_Mono({
@@ -103,11 +112,11 @@ export default async function RootLayout({
   return (
     <html
       lang="en"
-      className={`${barlow.variable} ${mono.variable}`}
+      className={`${barlow.variable} ${bodoniModa.variable} ${mono.variable}`}
       data-theme={DEFAULT_THEME}
       suppressHydrationWarning
     >
-      <body className="font-[family:var(--font-sans)] antialiased">
+      <body className="font-[family-name:var(--font-sans)] antialiased">
         {/* Anti-FOUC: runs synchronously before any content renders */}
         <script
           dangerouslySetInnerHTML={{

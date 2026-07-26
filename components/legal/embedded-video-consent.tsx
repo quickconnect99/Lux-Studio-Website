@@ -40,7 +40,7 @@ export function EmbeddedVideoConsent({
       {posterSrc ? (
         <Image
           src={posterSrc}
-          alt={`${title} Vorschaubild`}
+          alt={`${title} poster image`}
           fill
           sizes="(min-width: 1024px) 55vw, 100vw"
           quality={90}
@@ -55,13 +55,12 @@ export function EmbeddedVideoConsent({
           <p className="font-mono text-[0.68rem] uppercase tracking-[0.28em] text-accent">
             External video / {providerLabel}
           </p>
-          <h3 className="mt-3 font-[family:var(--font-display)] text-3xl uppercase leading-none sm:text-4xl">
-            Video erst nach Klick laden
+          <h3 className="mt-3 font-[family-name:var(--font-display)] text-3xl uppercase leading-none sm:text-4xl">
+            Load Video Only After Click
           </h3>
           <p className="mt-4 max-w-lg text-sm leading-7 text-white/78">
-            Erst mit dem Klick auf den Button wird eine Verbindung zu{" "}
-            {providerLabel} aufgebaut. Dabei koennen personenbezogene Daten an
-            den jeweiligen Anbieter uebertragen werden.
+            Clicking the button opens a connection to {providerLabel}. Personal
+            data may be transferred to the provider during that request.
           </p>
 
           <div className="mt-6 flex flex-col items-start gap-3 sm:flex-row sm:flex-wrap sm:items-center">
@@ -71,7 +70,7 @@ export function EmbeddedVideoConsent({
               className="action-button"
             >
               <Play className="h-4 w-4" />
-              Video laden
+              Load video
             </button>
 
             <a
@@ -80,7 +79,7 @@ export function EmbeddedVideoConsent({
               rel="noreferrer"
               className="inline-flex items-center gap-2 text-xs uppercase tracking-ui text-white/82 transition-colors duration-150 hover:text-accent"
             >
-              Direkt bei {providerLabel}
+              Watch on {providerLabel}
               <ExternalLink className="h-3.5 w-3.5" />
             </a>
 
@@ -88,7 +87,7 @@ export function EmbeddedVideoConsent({
               href="/datenschutz"
               className="text-xs uppercase tracking-ui text-white/68 transition-colors duration-150 hover:text-accent sm:basis-full"
             >
-              Datenschutz ansehen
+              View privacy policy
             </Link>
           </div>
         </div>

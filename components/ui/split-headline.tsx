@@ -45,13 +45,13 @@ export function SplitHeadline({
         </p>
       ) : null}
 
-      <div className="font-[family:var(--font-display)] space-y-1 break-words text-[clamp(2.75rem,13vw,7rem)] uppercase leading-[0.88] tracking-[-0.04em]">
-        <div>{lead}</div>
+      <h1 className="font-[family-name:var(--font-display)] space-y-1 break-words text-[clamp(2.75rem,13vw,7rem)] uppercase leading-[0.88] tracking-[-0.04em]">
+        <span className="block">{lead}</span>
         {/* split-trail-underline draws the animated accent line (see globals.css) */}
-        <div className="pl-4 text-accent sm:pl-12">
+        <span className="block pl-4 text-accent-text sm:pl-12">
           <span className="split-trail-underline">{trail}</span>
-        </div>
-      </div>
+        </span>
+      </h1>
 
       {copy ? (
         <p

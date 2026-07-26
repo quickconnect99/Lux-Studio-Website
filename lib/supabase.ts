@@ -1,3 +1,4 @@
+import { cache } from "react";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { projects as fallbackProjects } from "@/lib/content";
 import {
@@ -70,10 +71,13 @@ export function createServerSupabaseClient() {
       persistSession: false
     },
     global: {
+      // Cached for up to 5 minutes; the admin dashboard forces an immediate
+      // refresh on save via /api/admin/revalidate, so this window is only a
+      // fallback (e.g. if that call fails) rather than the normal path.
       fetch: (input, init) =>
         fetch(input, {
           ...init,
-          cache: "no-store"
+          next: { revalidate: 300 }
         })
     }
   });
@@ -307,7 +311,10 @@ export function normalizeSiteSettingsRecord(
   };
 }
 
-export async function getPublishedProjects() {
+// Wrapped in React's cache() so the layout and a page rendering in the same
+// request (both of which call these) share one Supabase round-trip instead
+// of fetching the same rows twice.
+export const getPublishedProjects = cache(async () => {
   const client = createServerSupabaseClient();
 
   if (!client) {
@@ -330,9 +337,9 @@ export async function getPublishedProjects() {
   }
 
   return (data as SupabaseProjectRow[]).map(normalizeProjectRecord);
-}
+});
 
-export async function getProjectBySlug(slug: string) {
+export const getProjectBySlug = cache(async (slug: string) => {
   const client = createServerSupabaseClient();
 
   if (!client) {
@@ -356,9 +363,9 @@ export async function getProjectBySlug(slug: string) {
   }
 
   return normalizeProjectRecord(data as SupabaseProjectRow);
-}
+});
 
-export async function getSiteSettings() {
+export const getSiteSettings = cache(async () => {
   const client = createServerSupabaseClient();
 
   if (!client) {
@@ -381,4 +388,4 @@ export async function getSiteSettings() {
   }
 
   return normalizeSiteSettingsRecord(data as SupabaseSiteSettingsRow);
-}
+});

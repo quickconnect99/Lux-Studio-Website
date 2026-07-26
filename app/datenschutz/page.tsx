@@ -12,9 +12,9 @@ import {
 import { getSiteSettings } from "@/lib/supabase";
 
 export const metadata: Metadata = {
-  title: "Datenschutz",
+  title: "Privacy Policy",
   description:
-    "Hinweise zur Verarbeitung personenbezogener Daten, Kontaktanfragen und externen Videoeinbettungen."
+    "Information about personal data processing, project inquiries, and third-party video embeds."
 };
 
 function PrivacyBlock({
@@ -26,7 +26,7 @@ function PrivacyBlock({
 }) {
   return (
     <section className="rounded-[2rem] border border-line bg-panel-secondary p-6 shadow-card sm:p-7">
-      <h2 className="font-[family:var(--font-display)] text-3xl uppercase leading-none text-foreground sm:text-4xl">
+      <h2 className="font-[family-name:var(--font-display)] text-3xl uppercase leading-none text-foreground sm:text-4xl">
         {title}
       </h2>
       <div className="mt-5 space-y-4 text-sm leading-7 text-muted">
@@ -46,9 +46,9 @@ export default async function PrivacyPage() {
     <>
       <PageHeader
         eyebrow="Legal"
-        lead="Daten"
-        trail="schutz"
-        copy="Diese Seite dokumentiert die aktuell im Projekt sichtbaren Datenfluesse: Kontaktformular, Theme-Speicherung im Browser und externe Video-Embeds erst nach Nutzeraktion."
+        lead="Privacy"
+        trail="Policy"
+        copy="This page documents the data flows currently visible in the project: the project inquiry form, browser theme storage, and third-party video embeds loaded only after user interaction."
       />
 
       <section className="section-shell pb-14">
@@ -56,11 +56,12 @@ export default async function PrivacyPage() {
           {missingFields.length > 0 && (
             <div className="panel-2xl border border-warning/30 bg-warning/10 p-6 sm:p-7">
               <p className="text-xs uppercase tracking-eyebrow text-muted">
-                Vor Livegang noch pruefen
+                Check Before Launch
               </p>
               <p className="mt-4 text-sm leading-7 text-foreground">
-                Diese Datenschutzerklaerung enthaelt noch Platzhalter fuer
-                Infrastrukturangaben. Bitte ergaenze vor dem Deployment:
+                This privacy policy still contains placeholders for
+                infrastructure details. Please complete the following before
+                deployment:
               </p>
               <ul className="mt-4 grid gap-3 sm:grid-cols-3">
                 {missingFields.map((field) => (
@@ -75,13 +76,14 @@ export default async function PrivacyPage() {
             </div>
           )}
 
-          <PrivacyBlock title="1. Verantwortlicher">
+          <PrivacyBlock title="1. Controller">
             <p>
-              Verantwortlich fuer die Datenverarbeitung auf dieser Website ist{" "}
+              The controller responsible for data processing on this website
+              is{" "}
               <strong className="text-foreground">{identity.operatorName}</strong>.
             </p>
             <p>
-              Kontakt:{" "}
+              Contact:{" "}
               <a
                 href={`mailto:${identity.email}`}
                 className="text-foreground underline underline-offset-4"
@@ -93,130 +95,127 @@ export default async function PrivacyPage() {
             </p>
             {!isMissingLegalValue(legalProfile.privacyContactEmail) && (
               <p>
-                Datenschutzanfragen koennen ausserdem an{" "}
+                Privacy requests can also be sent to{" "}
                 <a
                   href={`mailto:${legalProfile.privacyContactEmail}`}
                   className="text-foreground underline underline-offset-4"
                 >
                   {legalProfile.privacyContactEmail}
-                </a>{" "}
-                gerichtet werden.
+                </a>.
               </p>
             )}
             <p>
-              Weitere Anbieterangaben findest du im{" "}
+              Further provider information is available in the{" "}
               <Link
                 href="/impressum"
                 className="text-foreground underline underline-offset-4"
               >
-                Impressum
+                Legal Notice
               </Link>
               .
             </p>
           </PrivacyBlock>
 
-          <PrivacyBlock title="2. Hosting und technische Bereitstellung">
+          <PrivacyBlock title="2. Hosting and Technical Delivery">
             <p>
-              Beim Aufruf der Website verarbeitet der jeweilige Hosting-Provider
-              technisch notwendige Verbindungsdaten, etwa IP-Adresse,
-              Zeitstempel, Request-Informationen, Browserdaten und
-              Server-Logs, um die Website auszuliefern und die Systemsicherheit
-              zu gewaehrleisten.
+              When you visit the website, the hosting provider processes
+              technically necessary connection data such as IP address,
+              timestamps, request details, browser information, and server logs
+              to deliver the website and maintain system security.
             </p>
             <p>
-              Eingeplanter Hosting-Provider:{" "}
+              Planned hosting provider:{" "}
               <strong className="text-foreground">
                 {legalProfile.hostingProviderName}
               </strong>
               {isMissingLegalValue(legalProfile.hostingProviderLocation)
                 ? "."
-                : `, Standort: ${legalProfile.hostingProviderLocation}.`}
+                : `, location: ${legalProfile.hostingProviderLocation}.`}
             </p>
             <p>
-              Rechtsgrundlage ist das berechtigte Interesse an einem sicheren
-              und stabilen Websitebetrieb.
+              The legal basis is our legitimate interest in a secure and stable
+              website operation.
             </p>
           </PrivacyBlock>
 
-          <PrivacyBlock title="3. Kontaktformular">
+          <PrivacyBlock title="3. Project Inquiry Form">
             <p>
-              Bei einer Projektanfrage werden die im Formular eingegebenen Daten
-              verarbeitet: Name, E-Mail-Adresse, Firma, gewaehlter Service-Typ
-              und Projektbriefing.
+              When you submit a project inquiry, we process the data entered in
+              the form: name, email address, company, selected service type,
+              and project brief.
             </p>
             <p>
-              Zweck ist die Bearbeitung der Anfrage sowie die Vorbereitung einer
-              moeglichen Zusammenarbeit. Rechtsgrundlage ist die Durchfuehrung
-              vorvertraglicher Massnahmen bzw. unser berechtigtes Interesse an
-              der strukturierten Bearbeitung von Projektanfragen.
+              The purpose is to review your request and prepare for a possible
+              collaboration. The legal basis is the performance of
+              pre-contractual steps or our legitimate interest in handling
+              project inquiries in a structured way.
             </p>
             <p>
-              Sofern in der Live-Umgebung aktiviert, werden Formulareintraege in{" "}
+              If enabled in the live environment, form submissions are stored
+              in{" "}
               <strong className="text-foreground">
                 {legalProfile.databaseProviderName}
               </strong>{" "}
-              gespeichert
               {isMissingLegalValue(legalProfile.databaseProviderLocation)
                 ? "."
-                : `, Standort: ${legalProfile.databaseProviderLocation}.`}
+                : `, location: ${legalProfile.databaseProviderLocation}.`}
             </p>
             <p>
-              Die Daten werden nur so lange gespeichert, wie dies fuer die
-              Bearbeitung der Anfrage, anschliessende Kommunikation oder
-              gesetzliche Nachweis- und Aufbewahrungspflichten erforderlich ist.
-            </p>
-          </PrivacyBlock>
-
-          <PrivacyBlock title="4. Externe Videoeinbettungen">
-            <p>
-              Projekte koennen Videos von Drittanbietern wie YouTube oder Vimeo
-              enthalten. Diese Inhalte werden nicht automatisch geladen.
-            </p>
-            <p>
-              Erst wenn du in der Video-Vorschau aktiv auf{" "}
-              <strong className="text-foreground">Video laden</strong> klickst,
-              wird eine Verbindung zum jeweiligen Anbieter hergestellt. Dabei
-              koennen insbesondere IP-Adresse, Browserinformationen und weitere
-              technische Nutzungsdaten an den Anbieter uebermittelt werden.
-            </p>
-            <p>
-              Rechtsgrundlage fuer das Nachladen des externen Inhalts ist deine
-              ausdrueckliche Handlung direkt am jeweiligen Video. Ohne Klick
-              findet kein externer Abruf des eingebetteten Videos statt.
+              The data is stored only as long as necessary to process the
+              inquiry, continue related communication, or meet legal retention
+              and documentation obligations.
             </p>
           </PrivacyBlock>
 
-          <PrivacyBlock title="5. Lokale Speicherung im Browser">
+          <PrivacyBlock title="4. Third-Party Video Embeds">
             <p>
-              Diese Website speichert lokal im Browser die vom Nutzer aktiv
-              gewaehlte Darstellungsvariante des Themes. Dabei wird ein
-              Eintrag unter dem Schluessel <code>theme</code> im
-              Browser-Speicher abgelegt.
+              Projects may include videos from third-party providers such as
+              YouTube or Vimeo. These contents are not loaded automatically.
             </p>
             <p>
-              Der Eintrag dient ausschliesslich dazu, die gewuenschte
-              Oberflaechenvariante beim naechsten Seitenaufruf wiederherzustellen.
-              Es erfolgt keine Reichweitenmessung und kein Marketing-Tracking.
+              Only when you actively click{" "}
+              <strong className="text-foreground">Load video</strong> in the
+              video preview is a connection made to the provider. This may
+              transmit data such as your IP address, browser information, and
+              other technical usage data to that provider.
             </p>
-          </PrivacyBlock>
-
-          <PrivacyBlock title="6. Externe Links und Social Media">
             <p>
-              Auf der Website sind Links zu externen Plattformen und sozialen
-              Netzwerken eingebunden. Beim blossen Anzeigen der Seite werden
-              diese Plattformen nicht automatisch geladen. Erst beim Klick auf
-              einen solchen Link verlaesst du diese Website.
+              The legal basis for loading the external content is your explicit
+              action on the respective video. Without that click, no external
+              request for the embedded video is made.
             </p>
           </PrivacyBlock>
 
-          <PrivacyBlock title="7. Deine Rechte">
+          <PrivacyBlock title="5. Local Browser Storage">
             <p>
-              Dir stehen nach anwendbarem Datenschutzrecht insbesondere Rechte
-              auf Auskunft, Berichtigung, Loeschung, Einschraenkung der
-              Verarbeitung, Datenuebertragbarkeit und Widerspruch zu.
+              This website stores the user-selected theme variant locally in
+              the browser. An entry under the key <code>theme</code> is written
+              to browser storage.
             </p>
             <p>
-              Wenn du Fragen zur Verarbeitung deiner Daten hast, schreibe an{" "}
+              This entry is used solely to restore the preferred interface
+              variant on the next visit. No analytics measurement or marketing
+              tracking is performed.
+            </p>
+          </PrivacyBlock>
+
+          <PrivacyBlock title="6. External Links and Social Media">
+            <p>
+              The website contains links to external platforms and social
+              networks. Simply viewing the page does not automatically load
+              those platforms. Only when you click such a link do you leave
+              this website.
+            </p>
+          </PrivacyBlock>
+
+          <PrivacyBlock title="7. Your Rights">
+            <p>
+              Under applicable data protection law, you may have rights of
+              access, rectification, erasure, restriction of processing, data
+              portability, and objection.
+            </p>
+            <p>
+              If you have questions about the processing of your data, contact{" "}
               <a
                 href={`mailto:${identity.email}`}
                 className="text-foreground underline underline-offset-4"

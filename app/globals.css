@@ -9,7 +9,7 @@
 
   /* ─── Form fields ──────────────────────────────────────────────────── */
   .input-field {
-    @apply w-full rounded-2xl border border-line bg-panel px-4 py-3 text-base text-foreground outline-none
+    @apply min-h-11 w-full rounded-2xl border border-line bg-panel px-4 py-3 text-base text-foreground outline-none
       transition-all duration-200 ease-out
       focus:scale-[1.005] focus:border-accent focus:bg-panel;
   }
@@ -82,7 +82,7 @@
 
 /* ─── Design tokens ────────────────────────────────────────────────────── */
 :root {
-  --font-display: var(--font-barlow);
+  --font-display: var(--font-bodoni);
   --font-sans: var(--font-barlow);
 
   /* Core palette */
@@ -96,6 +96,12 @@
   --accent-contrast: #1b232b;
   --accent-soft: rgba(158, 255, 79, 0.65);
   --accent-blue: #7dd3fc;     /* complementary cool accent */
+
+  /* Darker stand-in for --accent when it renders as text directly on the
+     page background (e.g. SplitHeadline trail). --accent itself stays tuned
+     for buttons/borders/fills; themes whose --accent fails WCAG as text
+     override this one value instead of the whole accent. */
+  --accent-text: var(--accent);
 
   /* Panels – three standardised opacity levels */
   --panel:         rgba(255, 255, 255, 0.80); /* primary panels */
@@ -461,6 +467,9 @@ select:focus-visible {
   --accent-contrast: #f7efe2;
   --accent-soft:     rgba(236, 130, 77, 0.20);
   --accent-blue:     #1e493d;
+  /* #ec824d on this theme's #f3eadb background measures ~2.24:1 (WCAG AA
+     needs 3:1 even for large text) — this darker terracotta measures ~4.7:1. */
+  --accent-text:     #ad4815;
   --panel:           rgba(250, 244, 233, 0.84);
   --panel-secondary: rgba(245, 236, 222, 0.78);
   --panel-subtle:    rgba(30, 73, 61, 0.09);

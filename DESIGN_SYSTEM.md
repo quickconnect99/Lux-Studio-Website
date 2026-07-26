@@ -60,10 +60,13 @@ exposed to Tailwind via `tailwind.config.ts`.
 | Variable          | Font            | Weights          | Usage                              |
 |-------------------|-----------------|------------------|------------------------------------|
 | `--font-display`  | Bodoni Moda     | 400 500 600 700  | Hero headlines, section headings   |
-| `--font-sans`     | Sora            | 300 400 500 600 700 | Body text, UI labels, nav      |
+| `--font-sans`     | Barlow Condensed | 300 400 500 600 700 | Body text, UI labels, nav     |
 | `--font-mono`     | IBM Plex Mono   | 400 500          | Index numbers, year, tech metadata |
 
-Apply with: `font-[family:var(--font-display)]`
+Apply with: `font-[family-name:var(--font-display)]` (Tailwind's arbitrary-value
+type hint for `font-` is `family-name:`, not `family:` — the latter silently
+generates no CSS at all, which is why every custom font on this site fell
+back to the browser default until this was fixed sitewide).
 
 ### Heading Scale (display / Bodoni Moda)
 

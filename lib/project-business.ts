@@ -12,7 +12,13 @@ export const projectBusinesses: ProjectBusiness[] = [
 export function normalizeProjectBusiness(
   value?: string | null
 ): ProjectBusiness {
-  return value?.trim() || "Automotive";
+  const normalized = value?.trim();
+
+  if (!normalized) {
+    return "Automotive";
+  }
+
+  return normalized.toLowerCase() === "car" ? "Automotive" : normalized;
 }
 
 export function parseProjectBusinessParam(

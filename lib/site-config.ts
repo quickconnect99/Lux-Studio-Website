@@ -44,7 +44,7 @@ export const defaultSiteSettings: SiteSettings = {
     { label: "Vimeo", href: "https://vimeo.com" }
   ],
   contact: {
-    email: "nico.hagelberger@lux-studios.net",
+    email: "n.hagelberger@luxstudio.li",
     phone: "+41 00 000 00 00",
     city: "Zurich / Milan / Monaco"
   },
@@ -206,7 +206,7 @@ export const defaultSiteSettings: SiteSettings = {
         "Film and photography for car brands, dealerships, and private commissions.",
       navigationLabel: "Navigation",
       connectLabel: "Connect",
-      mediaNotice: "Externe Medien laden erst nach Klick"
+      mediaNotice: "Third-party media loads only after click"
     }
   }
 };

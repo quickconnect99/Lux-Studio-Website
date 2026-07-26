@@ -80,7 +80,7 @@ export default async function HomePage() {
               <p className="eyebrow text-white/70 before:bg-accent">
                 {publicSettings.copy.home.ctaEyebrow}
               </p>
-              <h2 className="font-[family:var(--font-display)] text-[2.5rem] uppercase leading-[0.92] sm:text-6xl">
+              <h2 className="font-[family-name:var(--font-display)] text-[2.5rem] uppercase leading-[0.92] sm:text-6xl">
                 {publicSettings.copy.home.ctaHeadlineLead}
                 <span className="block pl-5 text-accent sm:pl-12">
                   {publicSettings.copy.home.ctaHeadlineTrail}

@@ -200,13 +200,13 @@ export function InquiryForm({
       </div>
 
       <p className="mt-4 max-w-2xl text-xs leading-6 text-muted">
-        Mit dem Absenden wird deine Anfrage ausschliesslich zur Bearbeitung
-        deiner Projektanfrage verarbeitet. Details findest du in unserer{" "}
+        By submitting this form, your information is processed solely to review
+        and respond to your project inquiry. Details are available in our{" "}
         <Link
           href="/datenschutz"
           className="text-foreground underline underline-offset-4"
         >
-          Datenschutzerklaerung
+          Privacy Policy
         </Link>
         .
       </p>
