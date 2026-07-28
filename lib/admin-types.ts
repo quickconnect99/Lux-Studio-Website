@@ -79,6 +79,8 @@ export type SiteSettingsFormState = {
   servicesText: string; // one per line: "01 | Title | Description | deliverable1, deliverable2"
   // Selected frames
   selectedFramesText: string;
+  // Moving project frames
+  motionFramesText: string;
   // Navigation visibility
   navigationHome: boolean;
   navigationWork: boolean;

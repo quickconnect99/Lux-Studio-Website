@@ -63,7 +63,7 @@ export function FeaturedProjects({ projects }: FeaturedProjectsProps) {
                           {project.title.split(" ").slice(1).join(" ")}
                         </span>
                       </h2>
-                      <p className="max-w-xl text-sm leading-7 text-muted sm:text-base">
+                      <p className="description-copy-compact max-w-xl text-muted">
                         {project.shortDescription}
                       </p>
                     </div>

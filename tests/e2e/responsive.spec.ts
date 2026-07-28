@@ -53,6 +53,46 @@ for (const route of routes) {
   });
 }
 
+test("project description follows metadata and remains readable", async ({
+  page
+}) => {
+  await page.goto("/work/midnight-aeroline", { waitUntil: "networkidle" });
+
+  const metadata = page.locator("[data-metadata-grid]");
+  const description = page.locator("[data-project-description]");
+  await expect(metadata).toBeVisible();
+  await expect(description).toBeVisible();
+
+  const layout = await page.evaluate(() => {
+    const metadataElement = document.querySelector<HTMLElement>(
+      "[data-metadata-grid]"
+    );
+    const descriptionElement = document.querySelector<HTMLElement>(
+      "[data-project-description]"
+    );
+    const descriptionCopy = descriptionElement?.querySelector("p:last-child");
+    const metadataRect = metadataElement?.getBoundingClientRect();
+    const descriptionRect = descriptionElement?.getBoundingClientRect();
+
+    return {
+      metadataBottom: metadataRect?.bottom ?? 0,
+      descriptionTop: descriptionRect?.top ?? 0,
+      descriptionFontSize: descriptionCopy
+        ? Number.parseFloat(getComputedStyle(descriptionCopy).fontSize)
+        : 0,
+      horizontalOverflow:
+        document.documentElement.scrollWidth -
+        document.documentElement.clientWidth
+    };
+  });
+
+  expect(layout.descriptionTop).toBeGreaterThanOrEqual(
+    layout.metadataBottom - 1
+  );
+  expect(layout.descriptionFontSize).toBeGreaterThanOrEqual(16);
+  expect(layout.horizontalOverflow).toBeLessThanOrEqual(0);
+});
+
 test("reduced motion hydrates without hiding content", async ({
   page
 }, testInfo) => {
@@ -109,48 +149,130 @@ test("mobile navigation traps focus and closes with Escape", async ({
   await expect(trigger).toBeFocused();
 });
 
-test("theme menu supports roving keyboard focus", async ({
-  page
-}, testInfo) => {
+test("mobile header displays the company logo", async ({ page }, testInfo) => {
   test.skip(testInfo.project.name !== "mobile-320");
   await page.goto("/", { waitUntil: "networkidle" });
 
-  const trigger = page.getByRole("button", { name: /Choose theme/ });
-  await trigger.click();
+  const logo = page.locator("header img[data-company-logo]");
+  await expect(logo).toBeVisible();
+  await expect(logo).toHaveAttribute("src", /lux-studio-logo\.svg/);
+});
 
-  const menu = page.getByRole("menu", { name: "Theme" });
-  await expect(menu).toBeVisible();
-  const focusedBefore = await page.evaluate(
-    () => document.activeElement?.textContent?.trim() ?? ""
+test("sun and moon switch only between Vintage Dark and Vintage Light", async ({
+  page
+}, testInfo) => {
+  test.skip(testInfo.project.name !== "mobile-320");
+  await page.addInitScript(() => {
+    localStorage.setItem("theme", "obsidian");
+  });
+  await page.goto("/", { waitUntil: "networkidle" });
+
+  const root = page.locator("html");
+  await expect(root).toHaveAttribute("data-theme", "gpt-vintage");
+
+  const switchToLight = page.getByRole("button", {
+    name: "Switch to Vintage Light"
+  });
+  await switchToLight.click();
+  await expect(root).toHaveAttribute("data-theme", "vintage-light");
+  await expect(
+    page.getByRole("button", { name: "Switch to Vintage Dark" })
+  ).toBeVisible();
+  await expect
+    .poll(() => page.evaluate(() => localStorage.getItem("theme")))
+    .toBe("vintage-light");
+
+  await page.getByRole("button", { name: "Switch to Vintage Dark" }).click();
+  await expect(root).toHaveAttribute("data-theme", "gpt-vintage");
+  await expect
+    .poll(() => page.evaluate(() => localStorage.getItem("theme")))
+    .toBe("gpt-vintage");
+});
+
+test("Frames in Motion opens the related project in the same tab", async ({
+  page
+}, testInfo) => {
+  test.skip(testInfo.project.name !== "mobile-390");
+  await page.goto("/", { waitUntil: "networkidle" });
+
+  const strip = page.getByRole("region", {
+    name: /Frames in Motion projects/
+  });
+  const projectLinks = strip.locator('a[data-project-frame-link="true"]');
+
+  await strip.scrollIntoViewIfNeeded();
+  await strip.focus();
+  await expect(strip.locator(".marquee-track")).toHaveCSS(
+    "animation-play-state",
+    "paused"
   );
 
-  await page.keyboard.press("ArrowDown");
-  const focusedAfter = await page.evaluate(
-    () => document.activeElement?.textContent?.trim() ?? ""
+  const visibleLinkIndex = await projectLinks.evaluateAll((links) =>
+    links.findIndex((link) => {
+      const rect = link.getBoundingClientRect();
+      return (
+        rect.right > 0 &&
+        rect.left < window.innerWidth &&
+        rect.bottom > 0 &&
+        rect.top < window.innerHeight
+      );
+    })
   );
+  expect(visibleLinkIndex).toBeGreaterThanOrEqual(0);
 
-  expect(focusedAfter).not.toBe(focusedBefore);
+  const visibleProjectLink = projectLinks.nth(visibleLinkIndex);
+  await expect(visibleProjectLink).toHaveAttribute("href", /^\/work\/.+/);
+  await expect(visibleProjectLink).not.toHaveAttribute("target", "_blank");
+  await visibleProjectLink.click();
+  await expect(page).toHaveURL(/\/work\/[^/?#]+$/);
+});
 
-  const bounds = await menu.evaluate((element) => {
-    const rect = element.getBoundingClientRect();
-    return {
-      left: rect.left,
-      top: rect.top,
-      right: rect.right,
-      bottom: rect.bottom,
-      viewportWidth: window.innerWidth,
-      viewportHeight: window.innerHeight
-    };
+test("Shot With Intent and Frames in Motion use the same heading size", async ({
+  page
+}, testInfo) => {
+  test.skip(testInfo.project.name !== "desktop-1440");
+  await page.goto("/", { waitUntil: "networkidle" });
+
+  const shotHeading = page.getByRole("heading", {
+    name: /Shot\s+With Intent/i
+  });
+  const motionHeading = page.getByRole("heading", {
+    name: /Frames\s+In Motion/i
   });
 
-  expect(bounds.left).toBeGreaterThanOrEqual(0);
-  expect(bounds.top).toBeGreaterThanOrEqual(0);
-  expect(bounds.right).toBeLessThanOrEqual(bounds.viewportWidth);
-  expect(bounds.bottom).toBeLessThanOrEqual(bounds.viewportHeight);
+  const [shotSize, motionSize] = await Promise.all([
+    shotHeading.evaluate((element) => getComputedStyle(element).fontSize),
+    motionHeading.evaluate((element) => getComputedStyle(element).fontSize)
+  ]);
 
-  await page.keyboard.press("Escape");
-  await expect(menu).toBeHidden();
-  await expect(trigger).toBeFocused();
+  expect(motionSize).toBe(shotSize);
+});
+
+test("footer uses the Instagram icon", async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name !== "mobile-390");
+  await page.goto("/", { waitUntil: "networkidle" });
+
+  await expect(
+    page.locator('footer a[aria-label="Instagram"] svg.lucide-instagram')
+  ).toBeVisible();
+  await expect(
+    page.locator('footer a[aria-label="Instagram"] svg.lucide-camera')
+  ).toHaveCount(0);
+});
+
+test("legal notice appends the legal form to the company name", async ({
+  page
+}, testInfo) => {
+  test.skip(testInfo.project.name !== "mobile-390");
+  await page.goto("/impressum", { waitUntil: "networkidle" });
+
+  const companyNameRow = page
+    .getByText("Company Name", { exact: true })
+    .locator("..");
+  await expect(
+    companyNameRow.getByText("Lux Studio GmbH", { exact: true })
+  ).toBeVisible();
+  await expect(page.getByText("Legal Form", { exact: true })).toHaveCount(0);
 });
 
 test("selected-frame navigation uses full-height 15-percent overlays", async ({
@@ -258,6 +380,27 @@ test("lightbox uses a large frame and full-height rectangular navigation", async
     dimensions.previousWidth * 3
   );
   expect(dimensions.nextHeight).toBeGreaterThan(dimensions.nextWidth * 3);
+});
+
+test("project carousel opens fullscreen and keeps image navigation", async ({
+  page
+}, testInfo) => {
+  test.skip(!["mobile-390", "desktop-1440"].includes(testInfo.project.name));
+  await page.goto("/work/midnight-aeroline", { waitUntil: "networkidle" });
+
+  const carousel = page.locator("[data-project-carousel]");
+  await carousel.scrollIntoViewIfNeeded();
+  await carousel.locator("[data-project-carousel-open]").click();
+
+  const dialog = page.getByRole("dialog", { name: "Image lightbox" });
+  await expect(dialog).toBeVisible();
+  await expect(dialog.locator('img[alt="Enlarged still 1"]')).toBeVisible();
+
+  await dialog.locator('[data-lightbox-control="next"]').click();
+  await expect(dialog.locator('img[alt="Enlarged still 2"]')).toBeVisible();
+
+  await page.keyboard.press("Escape");
+  await expect(dialog).toBeHidden();
 });
 
 test("project sharing metadata uses the first project image", async ({
@@ -410,4 +553,23 @@ test("admin switches to the lazy-loaded settings workspace", async ({
   await page.getByRole("button", { name: /^Projects/ }).click();
   await expect(settingsForm).toBeHidden();
   expect(errors).toEqual([]);
+});
+
+test("admin exposes independent homepage frame collections", async ({
+  page
+}, testInfo) => {
+  test.skip(testInfo.project.name !== "desktop-1440");
+  await page.goto("/admin", { waitUntil: "networkidle" });
+
+  await page.getByRole("button", { name: /Site Settings/ }).click();
+  const settingsForm = page.locator("#site-settings-form");
+  await settingsForm.getByRole("button", { name: "01 Home" }).click();
+
+  await expect(
+    settingsForm.getByText("Shot With Intent", { exact: true })
+  ).toBeVisible();
+  await expect(
+    settingsForm.getByText("Frames in Motion", { exact: true })
+  ).toBeVisible();
+  await expect(settingsForm.getByText(/no eight-image limit/i)).toBeVisible();
 });

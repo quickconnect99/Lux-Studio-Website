@@ -134,6 +134,7 @@ export type SiteSettings = {
   };
   services: Service[];
   selectedFrames: string[];
+  motionFrames: string[];
   navigation: NavigationVisibility;
   copy: SiteCopy;
 };

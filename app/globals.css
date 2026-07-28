@@ -78,6 +78,20 @@
   .toggle-row {
     @apply flex items-center gap-3 rounded-[1.5rem] border border-line bg-panel-secondary px-4 py-3 text-sm text-muted;
   }
+
+  .description-copy {
+    font-size: clamp(1rem, 0.965rem + 0.22vw, 1.125rem);
+    line-height: 1.8;
+  }
+
+  .description-copy-compact {
+    font-size: clamp(0.95rem, 0.925rem + 0.16vw, 1.05rem);
+    line-height: 1.7;
+  }
+
+  .project-display-title {
+    font-size: clamp(2.8rem, 6.4vw, 5.5rem);
+  }
 }
 
 /* ─── Design tokens ────────────────────────────────────────────────────── */

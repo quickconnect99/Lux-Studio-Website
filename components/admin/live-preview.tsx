@@ -475,7 +475,7 @@ export function LivePreview({
               rows={4}
               onCommit={onUpdateField}
               wrapperClassName="-mx-2 -my-1 px-2 py-2"
-              displayClassName="text-sm leading-7 text-muted"
+              displayClassName="text-base leading-7 text-muted"
               inputClassName="min-h-[7.5rem]"
             />
           </PreviewFieldShell>
@@ -566,30 +566,30 @@ export function LivePreview({
               />
             </PreviewFieldShell>
           </div>
+
+          <PreviewFieldShell
+            fieldKey="fullDescription"
+            activeField={activeField}
+            onActiveFieldChange={onActiveFieldChange}
+            className="border-t border-line pt-4"
+          >
+            <p className="text-xs uppercase tracking-eyebrow text-muted">
+              Project Description
+            </p>
+            <EditablePreviewField
+              fieldKey="fullDescription"
+              value={formState.fullDescription}
+              placeholder="Full project narrative."
+              kind="textarea"
+              rows={6}
+              onCommit={onUpdateField}
+              wrapperClassName="-mx-2 mt-3 px-2 py-2"
+              displayClassName="text-base leading-7 text-muted"
+              inputClassName="min-h-[10rem]"
+            />
+          </PreviewFieldShell>
         </div>
       </div>
-
-      <PreviewFieldShell
-        fieldKey="fullDescription"
-        activeField={activeField}
-        onActiveFieldChange={onActiveFieldChange}
-        className="panel-2xl p-5"
-      >
-        <p className="text-xs uppercase tracking-eyebrow text-muted">
-          Narrative
-        </p>
-        <EditablePreviewField
-          fieldKey="fullDescription"
-          value={formState.fullDescription}
-          placeholder="Full project narrative."
-          kind="textarea"
-          rows={6}
-          onCommit={onUpdateField}
-          wrapperClassName="-mx-2 mt-3 px-2 py-2"
-          displayClassName="text-sm leading-7 text-muted"
-          inputClassName="min-h-[10rem]"
-        />
-      </PreviewFieldShell>
 
       <div className="panel-2xl p-5">
         <p className="text-xs uppercase tracking-eyebrow text-muted">

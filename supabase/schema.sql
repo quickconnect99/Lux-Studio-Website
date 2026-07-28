@@ -272,6 +272,7 @@ alter table public.site_settings
   add column if not exists about_values     jsonb not null default '[]'::jsonb,
   add column if not exists services         jsonb not null default '[]'::jsonb,
   add column if not exists selected_frames  text[] not null default '{}',
+  add column if not exists motion_frames    text[] not null default '{}',
   add column if not exists navigation_visibility jsonb not null default
     '{"home":true,"work":true,"services":true,"about":true,"contact":true}'::jsonb,
   add column if not exists site_copy jsonb not null default '{}'::jsonb;

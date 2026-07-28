@@ -128,6 +128,7 @@ type SupabaseSiteSettingsRow = {
   about_values: Array<{ title: string; copy: string }> | null;
   services: Service[] | null;
   selected_frames: string[] | null;
+  motion_frames?: string[] | null;
   navigation_visibility: Partial<NavigationVisibility> | null;
   site_copy: Partial<SiteCopy> | null;
 };
@@ -196,6 +197,14 @@ function normalizeSelectedFrames(frames: string[] | null | undefined) {
   }
 
   return frames.map((frame) => frame.trim()).filter(Boolean);
+}
+
+function normalizeMotionFrames(frames: string[] | null | undefined) {
+  const normalized = Array.isArray(frames)
+    ? frames.map((frame) => frame.trim()).filter(Boolean)
+    : [];
+
+  return normalized.length > 0 ? normalized : defaultSiteSettings.motionFrames;
 }
 
 function normalizeTeamMembers(
@@ -303,6 +312,7 @@ export function normalizeSiteSettingsRecord(
     },
     services: normalizeServices(record.services),
     selectedFrames: normalizeSelectedFrames(record.selected_frames),
+    motionFrames: normalizeMotionFrames(record.motion_frames),
     navigation: normalizeNavigationVisibility(record.navigation_visibility),
     copy: normalizeSiteCopy(record.site_copy)
   };

@@ -131,7 +131,7 @@ export function HorizontalStillStrip({
       <div className="section-shell mb-8">
         <div>
           {eyebrow ? <p className="eyebrow mb-4">{eyebrow}</p> : null}
-          <h2 className="font-[family-name:var(--font-display)] text-4xl uppercase leading-none sm:text-5xl">
+          <h2 className="font-[family-name:var(--font-display)] text-4xl uppercase leading-none sm:text-6xl">
             {lead}
             <span className="block pl-10 text-accent">{trail}</span>
           </h2>
@@ -187,7 +187,7 @@ export function HorizontalStillStrip({
                     : `${imageAltPrefix} ${(index % frameItems.length) + 1}`
               }
               tabIndex={frame.href && index < frameItems.length ? 0 : -1}
-              className="film-frame relative h-[220px] w-[320px] shrink-0 overflow-hidden rounded-[1.75rem] sm:h-[260px] sm:w-[440px]"
+              className="film-frame relative h-[245px] w-[340px] shrink-0 overflow-hidden rounded-[1.75rem] sm:h-[300px] sm:w-[480px] lg:h-[320px] lg:w-[520px]"
             >
               <FallbackImage
                 src={frame.image}
@@ -200,7 +200,7 @@ export function HorizontalStillStrip({
                     : `${imageAltPrefix} ${(index % frameItems.length) + 1}`
                 }
                 fill
-                sizes="(min-width: 640px) 440px, 320px"
+                sizes="(min-width: 1024px) 520px, (min-width: 640px) 480px, 340px"
                 unoptimized
                 className="object-cover"
               />

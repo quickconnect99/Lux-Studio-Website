@@ -556,6 +556,7 @@ export function AdminDashboard() {
       {/* TAB: SITE SETTINGS */}
       {canEditCms && activeTab === "settings" ? (
         <SiteSettingsForm
+          projects={projects}
           formState={siteSettingsFormState}
           isDirty={isSettingsDirty}
           updateField={updateSiteSettingsField}

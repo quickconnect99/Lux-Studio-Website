@@ -36,8 +36,11 @@ export default async function HomePage() {
     selectedFrames: publicSettings.selectedFrames,
     fallbackImages: homepageFrameFallbacks,
     galleryImages: projects.flatMap((project) => project.galleryImages)
-  }).slice(0, 8);
-  const motionFrames = buildProjectFrameItems(projects).slice(0, 6);
+  });
+  const motionFrames = buildProjectFrameItems(
+    projects,
+    publicSettings.motionFrames
+  );
   const businessCards = Array.from(
     new Map(projects.map((project) => [project.business, project])).values()
   )
@@ -57,7 +60,7 @@ export default async function HomePage() {
       <HomeHero hero={publicSettings.hero} copy={publicSettings.copy.home} />
 
       <SelectedFrames
-        frames={galleryFrames.slice(0, 8)}
+        frames={galleryFrames}
         label={publicSettings.copy.home.selectedWorkLabel}
       />
 

@@ -96,6 +96,8 @@ test("serializes site settings and file limits", () => {
         ? { ...member, image: "/images/team-portrait-01.jpg" }
         : member
   );
+  formState.motionFramesText =
+    "/images/project-motion-01.jpg\n/images/project-motion-02.jpg";
 
   const payload = buildSiteSettingsDatabasePayload(formState);
 
@@ -109,6 +111,10 @@ test("serializes site settings and file limits", () => {
   assert.deepEqual(payload.about_team_images, [
     "/images/team-gallery-01.jpg",
     "/images/team-gallery-02.jpg"
+  ]);
+  assert.deepEqual(payload.motion_frames, [
+    "/images/project-motion-01.jpg",
+    "/images/project-motion-02.jpg"
   ]);
   assert.equal(
     payload.about_team_members[0]?.image,

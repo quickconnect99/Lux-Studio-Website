@@ -33,9 +33,7 @@ export function PageHeader({
               <p className="text-xs uppercase tracking-eyebrow text-muted">
                 {copyLabel}
               </p>
-              <p className="text-[0.95rem] leading-7 text-muted sm:text-lg sm:leading-8">
-                {copy}
-              </p>
+              <p className="description-copy text-muted">{copy}</p>
             </div>
           ) : null}
         </Reveal>

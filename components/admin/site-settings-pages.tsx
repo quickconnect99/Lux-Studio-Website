@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import {
   ArrowDown,
   ArrowUp,
+  Check,
   Mail,
   MapPin,
   Phone,
@@ -27,6 +28,7 @@ import {
 } from "@/lib/admin-utils";
 
 export function HomePreview({
+  projects = [],
   formState,
   updateField,
   selectedFrameFiles = [],
@@ -34,6 +36,7 @@ export function HomePreview({
   removeSelectedFrameFile
 }: Pick<
   Props,
+  | "projects"
   | "formState"
   | "updateField"
   | "selectedFrameFiles"
@@ -41,9 +44,45 @@ export function HomePreview({
   | "removeSelectedFrameFile"
 >) {
   const selectedFrames = parseMultilineInput(formState.selectedFramesText);
+  const motionFrames = parseMultilineInput(formState.motionFramesText);
+  const availableMotionFrames = Array.from(
+    projects
+      .filter((project) => project.published && !project.isTemplate)
+      .reduce((frames, project) => {
+        [project.coverImage, ...project.galleryImages].forEach((image) => {
+          const normalizedImage = image.trim();
+
+          if (normalizedImage && !frames.has(normalizedImage)) {
+            frames.set(normalizedImage, {
+              image: normalizedImage,
+              projectTitle: project.title
+            });
+          }
+        });
+
+        return frames;
+      }, new Map<string, { image: string; projectTitle: string }>())
+      .values()
+  );
+  const selectedMotionFrames = new Set(motionFrames);
+  const motionFrameSources = new Map(
+    availableMotionFrames.map((frame) => [frame.image, frame.projectTitle])
+  );
 
   function handleSelectedFramesChange(images: string[]) {
     updateField("selectedFramesText", images.join("\n"));
+  }
+
+  function handleMotionFramesChange(images: string[]) {
+    updateField("motionFramesText", images.join("\n"));
+  }
+
+  function toggleMotionFrame(image: string) {
+    handleMotionFramesChange(
+      selectedMotionFrames.has(image)
+        ? motionFrames.filter((frame) => frame !== image)
+        : [...motionFrames, image]
+    );
   }
 
   return (
@@ -172,10 +211,11 @@ export function HomePreview({
       <section className="px-6 py-10 sm:px-10">
         <div className="panel-2xl p-7">
           <p className="text-xs uppercase tracking-eyebrow text-muted">
-            Selected Frames
+            Shot With Intent
           </p>
           <p className="mt-2 max-w-2xl text-xs leading-5 text-muted">
-            These images control the homepage gallery. Frame 01 is shown first.
+            These images control the large homepage gallery. Frame 01 is shown
+            first; the list is independent from Frames in Motion.
           </p>
           <div className="mt-5">
             <GalleryEditor
@@ -185,7 +225,7 @@ export function HomePreview({
               onImagesChange={handleSelectedFramesChange}
               onFilesAdd={addSelectedFrameFiles ?? (() => undefined)}
               onFileRemove={removeSelectedFrameFile ?? (() => undefined)}
-              introText="Order controls the homepage selected-frame strip."
+              introText="Order controls the large Shot With Intent carousel."
               captionPlaceholder={(index) =>
                 `Optional internal note for selected frame ${index + 1}`
               }
@@ -198,6 +238,104 @@ export function HomePreview({
               })}
             />
           </div>
+        </div>
+      </section>
+
+      <section className="px-6 py-10 sm:px-10">
+        <div className="panel-2xl p-7">
+          <p className="text-xs uppercase tracking-eyebrow text-muted">
+            Frames in Motion
+          </p>
+          <p className="mt-2 max-w-2xl text-xs leading-5 text-muted">
+            Select and order the smaller moving frames independently. There is
+            no eight-image limit, and every project image keeps its project
+            link.
+          </p>
+
+          <div className="mt-5">
+            <GalleryEditor
+              key={`motion-frames-${motionFrames.join("|")}`}
+              images={motionFrames}
+              captions={[]}
+              pendingFiles={[]}
+              onImagesChange={handleMotionFramesChange}
+              onFilesAdd={() => undefined}
+              onFileRemove={() => undefined}
+              introText="Drag selected project frames into the order used by the moving strip."
+              showAddControls={false}
+              itemLabel="Motion frame"
+              getFrameRole={(index) => {
+                const image = motionFrames[index];
+                const projectTitle = motionFrameSources.get(image);
+
+                return {
+                  label: projectTitle ?? "Project frame",
+                  description: projectTitle
+                    ? `Links to the ${projectTitle} project.`
+                    : "Keep this image in a published project to preserve its link."
+                };
+              }}
+            />
+          </div>
+
+          {availableMotionFrames.length > 0 ? (
+            <div className="mt-7 border-t border-line pt-6">
+              <p className="text-[0.62rem] uppercase tracking-eyebrow text-muted">
+                Published project image library
+              </p>
+              <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+                {availableMotionFrames.map((frame) => {
+                  const selected = selectedMotionFrames.has(frame.image);
+
+                  return (
+                    <button
+                      key={frame.image}
+                      type="button"
+                      aria-pressed={selected}
+                      onClick={() => toggleMotionFrame(frame.image)}
+                      className={`group relative overflow-hidden rounded-[1.25rem] border text-left transition-colors ${
+                        selected
+                          ? "bg-accent/10 border-accent"
+                          : "border-line bg-panel-secondary hover:border-accent"
+                      }`}
+                    >
+                      <div className="relative aspect-[4/3] overflow-hidden bg-panel-dark">
+                        <Image
+                          src={frame.image}
+                          alt=""
+                          fill
+                          sizes="(min-width: 1280px) 260px, (min-width: 640px) 40vw, 80vw"
+                          unoptimized
+                          className="object-cover transition-transform duration-300 group-hover:scale-[1.03]"
+                        />
+                        <span
+                          className={`absolute right-3 top-3 flex h-8 w-8 items-center justify-center rounded-full border backdrop-blur ${
+                            selected
+                              ? "border-accent bg-accent text-accent-contrast"
+                              : "border-white/30 bg-black/35 text-white"
+                          }`}
+                        >
+                          {selected ? (
+                            <Check className="h-4 w-4" />
+                          ) : (
+                            <Plus className="h-4 w-4" />
+                          )}
+                        </span>
+                      </div>
+                      <span className="block px-4 py-3 text-[0.62rem] uppercase tracking-meta text-muted">
+                        {frame.projectTitle}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          ) : (
+            <p className="mt-5 rounded-[1.25rem] border border-line bg-panel-secondary p-4 text-xs leading-6 text-muted">
+              Publish project images first to build the Frames in Motion
+              library.
+            </p>
+          )}
         </div>
       </section>
 

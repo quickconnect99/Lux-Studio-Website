@@ -37,6 +37,7 @@ type GalleryEditorProps = {
   introText?: string;
   captionPlaceholder?: (index: number) => string;
   showCaptions?: boolean;
+  showAddControls?: boolean;
   itemLabel?: string;
   getFrameRole?: (index: number) => {
     label: string;
@@ -238,6 +239,7 @@ export function GalleryEditor({
   introText = "Gallery order controls the live page: frame 01 becomes the large project image below the narrative, frame 02+ appear lower on the page.",
   captionPlaceholder = (index) => `Caption for frame ${index + 1}...`,
   showCaptions = true,
+  showAddControls = true,
   itemLabel = "Frame",
   getFrameRole = getGalleryFrameRole
 }: GalleryEditorProps) {
@@ -417,7 +419,7 @@ export function GalleryEditor({
       ) : null}
 
       {/* URL input */}
-      {showUrlInput ? (
+      {showAddControls && showUrlInput ? (
         <div className="flex gap-2">
           <input
             autoFocus
@@ -455,7 +457,7 @@ export function GalleryEditor({
             Cancel
           </button>
         </div>
-      ) : (
+      ) : showAddControls ? (
         <div className="flex flex-wrap gap-2 pt-1">
           <button
             type="button"
@@ -474,16 +476,18 @@ export function GalleryEditor({
             Upload Files
           </button>
         </div>
-      )}
+      ) : null}
 
-      <input
-        ref={fileInputRef}
-        type="file"
-        accept="image/*"
-        multiple
-        onChange={handleFileChange}
-        className="sr-only"
-      />
+      {showAddControls ? (
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/*"
+          multiple
+          onChange={handleFileChange}
+          className="sr-only"
+        />
+      ) : null}
     </div>
   );
 }

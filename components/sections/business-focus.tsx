@@ -34,7 +34,7 @@ export function BusinessFocus({ cards }: BusinessFocusProps) {
               {hasMultipleSectors ? "More Of Our Work" : "Our Work"}
             </span>
           </h2>
-          <p className="max-w-md text-sm leading-7 text-muted sm:text-base">
+          <p className="description-copy-compact max-w-md text-muted">
             {hasMultipleSectors
               ? "Two sides of the same studio: automotive campaigns and hospitality films, shot by the same crew."
               : "Automotive films and stills for launches, dealer campaigns, and events."}
@@ -72,7 +72,7 @@ export function BusinessFocus({ cards }: BusinessFocusProps) {
                     <p className="text-white/72 text-[0.62rem] uppercase tracking-[0.28em]">
                       {card.business}
                     </p>
-                    <h3 className="font-[family-name:var(--font-display)] mt-4 text-3xl uppercase leading-none sm:text-4xl">
+                    <h3 className="mt-4 font-[family-name:var(--font-display)] text-3xl uppercase leading-none sm:text-4xl">
                       {card.title}
                     </h3>
                   </div>

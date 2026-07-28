@@ -172,6 +172,7 @@ export function buildSiteSettingsDatabasePayload(
     about_values: parseValuesText(formState.aboutValuesText),
     services: parseServicesText(formState.servicesText),
     selected_frames: parseMultilineInput(formState.selectedFramesText),
+    motion_frames: parseMultilineInput(formState.motionFramesText),
     navigation_visibility: {
       home: formState.navigationHome,
       work: formState.navigationWork,

@@ -68,7 +68,7 @@ export default async function ContactPage() {
             <div className="mt-6">
               <ContactInfo contact={settings.contact} showIcons />
             </div>
-            <p className="mt-5 text-sm leading-7 text-muted">
+            <p className="description-copy-compact mt-5 text-muted">
               {settings.copy.contact.directCopy}
             </p>
 

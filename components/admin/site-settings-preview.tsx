@@ -70,6 +70,7 @@ const SiteSettingsContactPreview = dynamic(
 );
 
 export function SiteSettingsPreview({
+  projects = [],
   formState,
   isDirty = false,
   updateField,
@@ -144,6 +145,7 @@ export function SiteSettingsPreview({
               ) : null}
               {page === "home" ? (
                 <SiteSettingsHomePreview
+                  projects={projects}
                   formState={formState}
                   updateField={updateField}
                   selectedFrameFiles={selectedFrameFiles}

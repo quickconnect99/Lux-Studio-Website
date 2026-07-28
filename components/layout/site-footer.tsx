@@ -23,10 +23,10 @@ export function SiteFooter({ settings }: SiteFooterProps) {
         {/* Brand statement – spans full width on tablet, left col on desktop */}
         <div className="space-y-5 sm:col-span-2 lg:col-span-1">
           <p className="eyebrow">{settings.brand.name}</p>
-          <h2 className="font-[family-name:var(--font-display)] max-w-xl text-[2.5rem] leading-[0.95] text-foreground sm:text-5xl">
+          <h2 className="max-w-xl font-[family-name:var(--font-display)] text-[2.5rem] leading-[0.95] text-foreground sm:text-5xl">
             {settings.copy.footer.headline}
           </h2>
-          <p className="max-w-md text-sm leading-7 text-muted">
+          <p className="description-copy-compact max-w-md text-muted">
             {settings.brand.strapline}
           </p>
         </div>

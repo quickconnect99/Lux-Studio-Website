@@ -320,6 +320,7 @@ export function toSiteSettingsFormState(
     aboutValuesText: formatValuesText(settings.about.values),
     servicesText: formatServicesText(settings.services),
     selectedFramesText: settings.selectedFrames.join("\n"),
+    motionFramesText: settings.motionFrames.join("\n"),
     navigationHome: settings.navigation.home,
     navigationWork: settings.navigation.work,
     navigationServices: settings.navigation.services,

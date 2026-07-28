@@ -80,7 +80,7 @@ export function buildFrameItems({
 
   const images = dedupeImageUrls(
     selectedImages.length > 0
-      ? [...selectedImages, ...galleryImages, ...fallbackImages]
+      ? selectedImages
       : [...galleryImages, ...fallbackImages]
   );
 
@@ -91,7 +91,8 @@ export function buildFrameItems({
 }
 
 export function buildProjectFrameItems(
-  projects: Array<Pick<Project, "slug" | "coverImage" | "galleryImages">>
+  projects: Array<Pick<Project, "slug" | "coverImage" | "galleryImages">>,
+  preferredImages: string[] = []
 ) {
   const frames: FrameItem[] = [];
   const seen = new Set<string>();
@@ -118,7 +119,23 @@ export function buildProjectFrameItems(
     });
   });
 
-  return frames;
+  if (preferredImages.length === 0) {
+    return frames;
+  }
+
+  const projectHrefByImage = new Map(
+    frames.map((frame) => [frame.image, frame.href])
+  );
+  const preferredFrames = buildFrameItems({
+    selectedFrames: preferredImages,
+    fallbackImages: [],
+    galleryImages: []
+  });
+
+  return preferredFrames.map((frame) => ({
+    ...frame,
+    href: frame.href ?? projectHrefByImage.get(frame.image)
+  }));
 }
 
 export function normalizeProjectGallery({

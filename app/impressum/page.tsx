@@ -68,6 +68,9 @@ export default async function ImprintPage() {
   const identity = getPublicLegalIdentity(settings);
   const missingFields = getMissingImprintFields(settings);
   const businessAddress = getFormattedBusinessAddress();
+  const companyName = [identity.operatorName, legalProfile.legalForm]
+    .filter(Boolean)
+    .join(" ");
 
   return (
     <>
@@ -95,7 +98,7 @@ export default async function ImprintPage() {
                     {missingFields.map((field) => (
                       <li
                         key={field.label}
-                        className="rounded-[1.25rem] border border-warning/30 bg-warning/10 px-4 py-3 text-sm leading-6 text-foreground"
+                        className="border-warning/30 bg-warning/10 rounded-[1.25rem] border px-4 py-3 text-sm leading-6 text-foreground"
                       >
                         {field.label}
                       </li>
@@ -127,8 +130,7 @@ export default async function ImprintPage() {
             </h2>
 
             <dl className="mt-6">
-              <DetailRow label="Company Name" value={identity.operatorName} />
-              <DetailRow label="Legal Form" value={legalProfile.legalForm} />
+              <DetailRow label="Company Name" value={companyName} />
               <DetailRow
                 label="Represented By"
                 value={legalProfile.representative}
@@ -140,7 +142,10 @@ export default async function ImprintPage() {
                 label="Business Purpose"
                 value={legalProfile.companyPurpose}
               />
-              <DetailRow label="Register Court" value={legalProfile.registerCourt} />
+              <DetailRow
+                label="Register Court"
+                value={legalProfile.registerCourt}
+              />
               <DetailRow
                 label="Registration Number"
                 value={legalProfile.registerNumber}
@@ -165,7 +170,10 @@ export default async function ImprintPage() {
                 Media Ownership
               </p>
               <dl className="mt-4">
-                <DetailRow label="Media Owner" value={legalProfile.mediaOwner} />
+                <DetailRow
+                  label="Media Owner"
+                  value={legalProfile.mediaOwner}
+                />
                 <DetailRow
                   label="Editorially Responsible"
                   value={legalProfile.editorialResponsibility}
@@ -185,7 +193,8 @@ export default async function ImprintPage() {
                   className="text-foreground underline underline-offset-4"
                 >
                   {legalProfile.privacyContactEmail}
-                </a>.
+                </a>
+                .
               </p>
             )}
           </div>

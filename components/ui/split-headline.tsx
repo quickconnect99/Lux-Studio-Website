@@ -45,7 +45,7 @@ export function SplitHeadline({
         </p>
       ) : null}
 
-      <h1 className="font-[family-name:var(--font-display)] space-y-1 break-words text-[clamp(2.75rem,13vw,7rem)] uppercase leading-[0.88] tracking-[-0.04em]">
+      <h1 className="space-y-1 break-words font-[family-name:var(--font-display)] text-[clamp(2.75rem,13vw,7rem)] uppercase leading-[0.88] tracking-[-0.04em]">
         <span className="block">{lead}</span>
         {/* split-trail-underline draws the animated accent line (see globals.css) */}
         <span className="block pl-4 text-accent-text sm:pl-12">
@@ -56,7 +56,7 @@ export function SplitHeadline({
       {copy ? (
         <p
           className={cn(
-            "max-w-2xl text-[0.95rem] leading-7 text-muted sm:text-lg sm:leading-8",
+            "description-copy max-w-2xl text-muted",
             align === "center" && "mx-auto"
           )}
         >

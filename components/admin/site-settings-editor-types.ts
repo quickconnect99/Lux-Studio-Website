@@ -1,7 +1,11 @@
 import type { ChangeEvent } from "react";
-import type { SiteSettingsFormState } from "@/lib/admin-types";
+import type {
+  AdminProjectListItem,
+  SiteSettingsFormState
+} from "@/lib/admin-types";
 
 export type SiteSettingsEditorProps = {
+  projects?: AdminProjectListItem[];
   formState: SiteSettingsFormState;
   isDirty?: boolean;
   updateField: <K extends keyof SiteSettingsFormState>(

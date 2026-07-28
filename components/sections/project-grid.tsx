@@ -243,7 +243,7 @@ export function ProjectGrid({
                       <h3 className="mt-3 font-[family-name:var(--font-display)] text-[2rem] uppercase leading-none sm:mt-4 sm:text-3xl">
                         {project.title}
                       </h3>
-                      <p className="mt-2 line-clamp-2 max-w-sm text-sm leading-6 text-white/80 sm:mt-3 sm:line-clamp-none sm:leading-7">
+                      <p className="description-copy-compact mt-2 line-clamp-2 max-w-sm text-white/80 sm:mt-3 sm:line-clamp-none">
                         {project.shortDescription}
                       </p>
                     </div>

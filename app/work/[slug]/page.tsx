@@ -178,7 +178,7 @@ export default async function ProjectPage({
             <p className="eyebrow">
               {project.business} / {project.category}
             </p>
-            <h1 className="break-words font-[family-name:var(--font-display)] text-[2.8rem] uppercase leading-[0.9] tracking-[-0.05em] text-foreground sm:text-7xl">
+            <h1 className="project-display-title break-words font-[family-name:var(--font-display)] uppercase leading-[0.9] tracking-[-0.05em] text-foreground">
               {project.title.split(" ")[0]}
               <span className="block pl-5 text-accent sm:pl-14">
                 {project.title.split(" ").slice(1).join(" ")}
@@ -197,23 +197,23 @@ export default async function ProjectPage({
                 { label: "Location", value: project.location },
                 { label: "Year", value: String(project.year) }
               ]}
-              className="sm:!grid-cols-2 xl:!grid-cols-4"
+              className="!grid-cols-2 xl:!grid-cols-4"
               valueClassName="mt-2 text-sm uppercase tracking-meta text-foreground"
             />
+            <div
+              data-project-description
+              className="max-w-3xl space-y-4 border-t border-line pt-5"
+            >
+              <p className="eyebrow">Project Description</p>
+              <p className="description-copy text-muted">
+                {project.fullDescription}
+              </p>
+            </div>
           </Reveal>
 
           <Reveal delay={0.1} direction="right">
             <ProjectMedia project={project} />
           </Reveal>
-        </div>
-      </section>
-
-      <section className="section-shell section-space-tight pt-0">
-        <div className="max-w-3xl space-y-5">
-          <p className="eyebrow">Project Description</p>
-          <p className="text-base leading-8 text-muted sm:text-lg">
-            {project.fullDescription}
-          </p>
         </div>
       </section>
 
@@ -230,7 +230,7 @@ export default async function ProjectPage({
                   </span>
                 </h2>
               </div>
-              <p className="max-w-3xl whitespace-pre-wrap text-base leading-8 text-muted sm:text-lg">
+              <p className="description-copy max-w-3xl whitespace-pre-wrap text-muted">
                 {behindTheScenes}
               </p>
             </div>
@@ -326,7 +326,7 @@ export default async function ProjectPage({
               <h2 className="font-[family-name:var(--font-display)] text-4xl uppercase leading-none sm:text-5xl">
                 {nextProject.title}
               </h2>
-              <p className="max-w-xl text-sm leading-7 text-white/80">
+              <p className="description-copy-compact max-w-xl text-white/80">
                 {nextProject.shortDescription}
               </p>
             </div>

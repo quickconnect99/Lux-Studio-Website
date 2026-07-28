@@ -1,5 +1,5 @@
 import {
-  Camera,
+  Instagram,
   Linkedin,
   Music2,
   Play,
@@ -17,7 +17,7 @@ type SocialLinksProps = {
 function getSocialIcon(label: string): LucideIcon {
   const normalized = label.trim().toLowerCase();
 
-  if (normalized.includes("instagram")) return Camera;
+  if (normalized.includes("instagram")) return Instagram;
   if (normalized.includes("youtube")) return Play;
   if (normalized.includes("vimeo")) return Video;
   if (normalized.includes("linkedin")) return Linkedin;

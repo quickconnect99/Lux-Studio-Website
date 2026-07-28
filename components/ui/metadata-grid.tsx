@@ -22,6 +22,7 @@ export function MetadataGrid({
 }: MetadataGridProps) {
   return (
     <div
+      data-metadata-grid
       className={cn(
         variant === "divider" ? "metadata-grid" : "metadata-grid-cards",
         className

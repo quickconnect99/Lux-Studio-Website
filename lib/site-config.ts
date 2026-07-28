@@ -141,6 +141,18 @@ export const defaultSiteSettings: SiteSettings = {
     "/images/demo-car-04.jpg",
     "/images/demo-car-05.jpg"
   ],
+  motionFrames: [
+    "/images/car-pictures/midnight-aeroline-03.jpg",
+    "/images/car-pictures/midnight-aeroline-02.avif",
+    "/images/car-pictures/alpine-vector-01.avif",
+    "/images/car-pictures/alpine-vector-02.avif",
+    "/images/car-pictures/alpine-vector-03.avif",
+    "/images/demo-car-03.jpg",
+    "/images/project-03.svg",
+    "/images/frame-03.svg",
+    "/images/car-pictures/desert-circuit-01.jpg",
+    "/images/car-pictures/velocity-notes-01.webp"
+  ],
   navigation: {
     home: true,
     work: true,
