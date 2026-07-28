@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { Menu, X } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
@@ -84,12 +85,15 @@ export function SiteHeader({ settings }: SiteHeaderProps) {
                 "transition-transform duration-300 ease-out group-hover:scale-105"
               )}
             >
-              <span
-                aria-hidden="true"
-                className="max-w-full truncate px-1 text-xs font-semibold uppercase tracking-ui text-foreground sm:text-sm"
-              >
-                {settings.brand.mark || "L/S"}
-              </span>
+              <Image
+                data-company-logo
+                src="/images/brand/lux-studio-logo.svg"
+                alt=""
+                width={64}
+                height={64}
+                priority
+                className="h-full w-full object-cover"
+              />
             </div>
             <div className="min-w-0">
               <p className="truncate text-[0.68rem] uppercase tracking-ui text-muted transition-colors duration-200 group-hover:text-foreground sm:text-xs">

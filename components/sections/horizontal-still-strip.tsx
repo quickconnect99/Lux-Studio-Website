@@ -31,6 +31,10 @@ const fallbackStripImages = [
   "/images/car-pictures/alpine-vector-01.avif"
 ];
 
+function isExternalLink(href?: string) {
+  return Boolean(href && /^https?:\/\//i.test(href));
+}
+
 export function HorizontalStillStrip({
   frames,
   images = [],
@@ -169,8 +173,11 @@ export function HorizontalStillStrip({
             <a
               key={`${frame.image}-${index}`}
               href={frame.href}
-              target={frame.href ? "_blank" : undefined}
-              rel={frame.href ? "noreferrer" : undefined}
+              target={isExternalLink(frame.href) ? "_blank" : undefined}
+              rel={isExternalLink(frame.href) ? "noreferrer" : undefined}
+              data-project-frame-link={
+                frame.href?.startsWith("/work/") || undefined
+              }
               aria-hidden={index >= frameItems.length}
               aria-label={
                 index >= frameItems.length

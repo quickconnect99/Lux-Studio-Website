@@ -4,7 +4,7 @@ import { HomeHero } from "@/components/sections/home-hero";
 import { HorizontalStillStrip } from "@/components/sections/horizontal-still-strip";
 import { SelectedFrames } from "@/components/sections/selected-frames";
 import { LinkButton } from "@/components/ui/link-button";
-import { buildFrameItems } from "@/lib/project-images";
+import { buildFrameItems, buildProjectFrameItems } from "@/lib/project-images";
 import { projectBusinessToParam } from "@/lib/project-business";
 import { adaptSiteSettingsToPublishedProjects } from "@/lib/public-portfolio";
 import { isPublicAdminEnabled } from "@/lib/site-config";
@@ -37,6 +37,7 @@ export default async function HomePage() {
     fallbackImages: homepageFrameFallbacks,
     galleryImages: projects.flatMap((project) => project.galleryImages)
   }).slice(0, 8);
+  const motionFrames = buildProjectFrameItems(projects).slice(0, 6);
   const businessCards = Array.from(
     new Map(projects.map((project) => [project.business, project])).values()
   )
@@ -61,11 +62,13 @@ export default async function HomePage() {
       />
 
       <HorizontalStillStrip
-        frames={galleryFrames.slice(0, 6)}
+        frames={motionFrames}
         direction="right"
         eyebrow="Motion reference"
         lead="Frames"
         trail="In Motion"
+        ariaLabel="Frames in Motion projects. Select an image to open the related project."
+        imageAltPrefix="Project frame"
       />
 
       <FeaturedProjects projects={featuredProjects} />

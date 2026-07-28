@@ -1,3 +1,5 @@
+import type { Project } from "@/lib/types";
+
 export function dedupeImageUrls(images: string[]) {
   const seen = new Set<string>();
 
@@ -59,7 +61,9 @@ export function buildFrameItems({
   selectedFrames.forEach((entry) => {
     const parts = splitFrameEntry(entry);
     const image = parts.find(isLikelyImageUrl);
-    const href = parts.find((part) => isWebUrl(part) && !isLikelyImageUrl(part));
+    const href = parts.find(
+      (part) => isWebUrl(part) && !isLikelyImageUrl(part)
+    );
 
     if (image) {
       selectedImages.push(image);
@@ -84,6 +88,37 @@ export function buildFrameItems({
     image,
     href: directLinksByImage.get(image) ?? selectedLinks[index]
   }));
+}
+
+export function buildProjectFrameItems(
+  projects: Array<Pick<Project, "slug" | "coverImage" | "galleryImages">>
+) {
+  const frames: FrameItem[] = [];
+  const seen = new Set<string>();
+
+  projects.forEach((project) => {
+    const slug = project.slug.trim();
+
+    if (!slug) {
+      return;
+    }
+
+    [project.coverImage, ...project.galleryImages].forEach((entry) => {
+      const image = entry.trim();
+
+      if (!image || seen.has(image)) {
+        return;
+      }
+
+      seen.add(image);
+      frames.push({
+        image,
+        href: `/work/${encodeURIComponent(slug)}`
+      });
+    });
+  });
+
+  return frames;
 }
 
 export function normalizeProjectGallery({
