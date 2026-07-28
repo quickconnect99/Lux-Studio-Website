@@ -65,16 +65,32 @@ export function HomeHero({ hero, copy }: HomeHeroProps) {
     setIsPlaying(false);
   }
 
-  function toggleMute() {
+  async function toggleMute() {
     const video = videoRef.current;
 
     if (!video) {
       return;
     }
 
-    const nextMuted = !video.muted;
-    video.muted = nextMuted;
-    setIsMuted(nextMuted);
+    if (video.muted) {
+      video.volume = 1;
+      video.defaultMuted = false;
+      video.muted = false;
+      setIsMuted(false);
+
+      try {
+        await video.play();
+        setIsPlaying(true);
+      } catch {
+        video.muted = true;
+        setIsMuted(true);
+      }
+
+      return;
+    }
+
+    video.muted = true;
+    setIsMuted(true);
   }
 
   return (
@@ -125,6 +141,7 @@ export function HomeHero({ hero, copy }: HomeHeroProps) {
           {fileVideoSrc ? (
             <video
               ref={videoRef}
+              data-hero-reel
               muted={isMuted}
               loop
               playsInline
@@ -135,6 +152,12 @@ export function HomeHero({ hero, copy }: HomeHeroProps) {
               }}
               onPlay={() => setIsPlaying(true)}
               onPause={() => setIsPlaying(false)}
+              onLoadedMetadata={(event) => {
+                event.currentTarget.volume = 1;
+              }}
+              onVolumeChange={(event) => {
+                setIsMuted(event.currentTarget.muted);
+              }}
               className="absolute inset-0 h-full w-full object-cover opacity-60"
             >
               <source src={fileVideoSrc} />
@@ -172,18 +195,21 @@ export function HomeHero({ hero, copy }: HomeHeroProps) {
                   </button>
                   <button
                     type="button"
-                    onClick={toggleMute}
+                    onClick={() => void toggleMute()}
                     aria-pressed={!isMuted}
                     aria-label={
-                      isMuted ? "Unmute showreel video" : "Mute showreel video"
+                      isMuted
+                        ? "Turn hero reel sound on"
+                        : "Turn hero reel sound off"
                     }
-                    className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-white/20 bg-white/10 text-white/85 backdrop-blur"
+                    className="inline-flex min-h-11 shrink-0 items-center justify-center gap-2 rounded-full border border-white/20 bg-white/10 px-3 py-2 text-[0.62rem] tracking-[0.14em] text-white/85 backdrop-blur"
                   >
                     {isMuted ? (
                       <VolumeX className="h-3.5 w-3.5" />
                     ) : (
                       <Volume2 className="h-3.5 w-3.5" />
                     )}
+                    <span>{isMuted ? "Sound On" : "Sound Off"}</span>
                   </button>
                 </>
               ) : null}

@@ -4,7 +4,6 @@ import Script from "next/script";
 import "@/app/globals.css";
 import { SiteFooter } from "@/components/layout/site-footer";
 import { SiteHeader } from "@/components/layout/site-header";
-import { MotionProvider } from "@/components/ui/motion-provider";
 import { ThemeProvider } from "@/components/ui/theme-provider";
 import { adaptSiteSettingsToPublishedProjects } from "@/lib/public-portfolio";
 import {
@@ -14,6 +13,7 @@ import {
 import { siteConfig } from "@/lib/site-config";
 import { getPublishedProjects, getSiteSettings } from "@/lib/supabase";
 import { DEFAULT_THEME, themeIds } from "@/lib/themes";
+import { serializeJsonLd } from "@/lib/json-ld";
 
 // Pages are cached and served statically, refreshed at most every 5 minutes
 // on their own — but an admin save triggers an immediate refresh via
@@ -72,7 +72,6 @@ const mono = IBM_Plex_Mono({
 
 const themeInitScript = `(function(){try{var allowed=${JSON.stringify(themeIds)};var stored=localStorage.getItem("theme");var theme=allowed.indexOf(stored)!==-1?stored:${JSON.stringify(DEFAULT_THEME)};document.documentElement.setAttribute("data-theme",theme);}catch(e){document.documentElement.setAttribute("data-theme",${JSON.stringify(DEFAULT_THEME)});}})();`;
 
-
 /** #22 – viewport-fit=cover prevents notch/safe-area clipping on iOS */
 export const viewport: Viewport = {
   width: "device-width",
@@ -98,7 +97,7 @@ export default async function RootLayout({
     name: settings.brand.name,
     description: settings.brand.strapline,
     url: siteConfig.siteUrl,
-    logo: `${siteConfig.siteUrl}/images/hero-poster.svg`,
+    logo: `${siteConfig.siteUrl}/images/brand/lux-studio-logo.svg`,
     contactPoint: {
       "@type": "ContactPoint",
       email: settings.contact.email,
@@ -119,24 +118,24 @@ export default async function RootLayout({
         {/* Anti-FOUC: runs synchronously before any content renders */}
         <script
           dangerouslySetInnerHTML={{
-            __html: themeInitScript,
+            __html: themeInitScript
           }}
         />
         {/* Schema.org JSON-LD */}
         <Script
           id="schema-org-organization"
           type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationSchema) }}
+          dangerouslySetInnerHTML={{
+            __html: serializeJsonLd(organizationSchema)
+          }}
         />
 
         <ThemeProvider>
-          <MotionProvider>
-            <div className="texture-grid min-h-screen">
-              <SiteHeader settings={settings} />
-              {children}
-              <SiteFooter settings={settings} />
-            </div>
-          </MotionProvider>
+          <div className="texture-grid min-h-screen">
+            <SiteHeader settings={settings} />
+            {children}
+            <SiteFooter settings={settings} />
+          </div>
         </ThemeProvider>
       </body>
     </html>

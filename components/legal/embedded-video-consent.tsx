@@ -44,7 +44,6 @@ export function EmbeddedVideoConsent({
           fill
           sizes="(min-width: 1024px) 55vw, 100vw"
           quality={90}
-          unoptimized
           className="object-cover"
         />
       ) : null}
@@ -58,7 +57,7 @@ export function EmbeddedVideoConsent({
           <h3 className="mt-3 font-[family-name:var(--font-display)] text-3xl uppercase leading-none sm:text-4xl">
             Load Video Only After Click
           </h3>
-          <p className="mt-4 max-w-lg text-sm leading-7 text-white/78">
+          <p className="text-white/78 mt-4 max-w-lg text-sm leading-7">
             Clicking the button opens a connection to {providerLabel}. Personal
             data may be transferred to the provider during that request.
           </p>
@@ -77,7 +76,7 @@ export function EmbeddedVideoConsent({
               href={externalHref}
               target="_blank"
               rel="noreferrer"
-              className="inline-flex items-center gap-2 text-xs uppercase tracking-ui text-white/82 transition-colors duration-150 hover:text-accent"
+              className="text-white/82 inline-flex items-center gap-2 text-xs uppercase tracking-ui transition-colors duration-150 hover:text-accent"
             >
               Watch on {providerLabel}
               <ExternalLink className="h-3.5 w-3.5" />
@@ -85,7 +84,7 @@ export function EmbeddedVideoConsent({
 
             <Link
               href="/datenschutz"
-              className="text-xs uppercase tracking-ui text-white/68 transition-colors duration-150 hover:text-accent sm:basis-full"
+              className="text-white/68 text-xs uppercase tracking-ui transition-colors duration-150 hover:text-accent sm:basis-full"
             >
               View privacy policy
             </Link>

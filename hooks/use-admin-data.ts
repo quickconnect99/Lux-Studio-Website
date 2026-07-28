@@ -25,8 +25,11 @@ import {
   buildRemoteProjectSaveReport
 } from "@/lib/admin-save-report";
 import {
+  removeAdminFiles,
+  removeUnreferencedAdminFiles,
   revalidateAdminPublicContent,
-  uploadAdminFile
+  uploadAdminFile,
+  uploadAdminFiles
 } from "@/lib/admin-storage";
 import {
   createBrowserSupabaseClient,
@@ -218,7 +221,7 @@ export function useAdminData() {
     clearDraft();
   }, [clearDraft]);
 
-  const { handleSignIn, handleSignOut } = useAdminSession({
+  const { handleSignIn, handleSignOut, signInMessage } = useAdminSession({
     supabase,
     credentials: authFormState,
     setSessionEmail,
@@ -266,6 +269,7 @@ export function useAdminData() {
 
     const targetSlug = slugResult.slug;
     const isTemplateSource = Boolean(formState.templateBusiness);
+    const newlyUploadedUrls: string[] = [];
     setSaveReport(null);
     setWorking(true);
 
@@ -280,6 +284,11 @@ export function useAdminData() {
       let nextReport: AdminSaveReport | null = null;
 
       if (supabase && sessionEmail) {
+        const previousMediaUrls = [
+          formState.coverImage,
+          ...parseMultilineInput(formState.galleryImagesText),
+          formState.uploadedVideo
+        ].filter(Boolean);
         const totalFiles =
           (coverFile ? 1 : 0) + (videoFile ? 1 : 0) + galleryFiles.length;
         let uploadedCount = 0;
@@ -291,6 +300,7 @@ export function useAdminData() {
             filename: coverFile.name
           });
           coverImage = await uploadAdminFile(supabase, coverFile, "covers");
+          newlyUploadedUrls.push(coverImage);
         }
 
         if (videoFile) {
@@ -300,18 +310,25 @@ export function useAdminData() {
             filename: videoFile.name
           });
           uploadedVideo = await uploadAdminFile(supabase, videoFile, "videos");
+          newlyUploadedUrls.push(uploadedVideo);
         }
 
         if (galleryFiles.length > 0) {
-          const uploaded: string[] = [];
-          for (const file of galleryFiles) {
-            setUploadProgress({
-              current: ++uploadedCount,
-              total: totalFiles,
-              filename: file.name
-            });
-            uploaded.push(await uploadAdminFile(supabase, file, "gallery"));
-          }
+          const progressOffset = uploadedCount;
+          const uploaded = await uploadAdminFiles(
+            supabase,
+            galleryFiles,
+            "gallery",
+            (completed, file, publicUrl) => {
+              uploadedCount = progressOffset + completed;
+              newlyUploadedUrls.push(publicUrl);
+              setUploadProgress({
+                current: uploadedCount,
+                total: totalFiles,
+                filename: file.name
+              });
+            }
+          );
           galleryImages = [...galleryImages, ...uploaded];
         }
         setUploadProgress(null);
@@ -330,9 +347,20 @@ export function useAdminData() {
         const saveResult = await saveAdminProjectRecord(supabase, payload);
 
         if (!saveResult.ok) {
+          await removeAdminFiles(supabase, newlyUploadedUrls);
           showStatus(saveResult.error.message);
           return;
         }
+
+        const currentMediaUrls = [
+          media.coverImage,
+          ...media.galleryImages,
+          media.uploadedVideo
+        ].filter(Boolean);
+        const replacedMediaUrls = previousMediaUrls.filter(
+          (url) => !currentMediaUrls.includes(url)
+        );
+        void removeUnreferencedAdminFiles(supabase, replacedMediaUrls);
 
         const saved = saveResult.data;
         setProjects(
@@ -391,6 +419,9 @@ export function useAdminData() {
       setSaveReport(nextReport);
     } catch (error) {
       setUploadProgress(null);
+      if (supabase && newlyUploadedUrls.length > 0) {
+        await removeAdminFiles(supabase, newlyUploadedUrls);
+      }
       showStatus(
         toAdminOperationError(error, "The project could not be saved.").message
       );
@@ -431,6 +462,11 @@ export function useAdminData() {
 
     try {
       if (supabase && sessionEmail) {
+        const deletedMediaUrls = [
+          formState.coverImage,
+          ...parseMultilineInput(formState.galleryImagesText),
+          formState.uploadedVideo
+        ].filter(Boolean);
         const deleteResult = await deleteAdminProjectRecord(
           supabase,
           formState.id
@@ -439,6 +475,7 @@ export function useAdminData() {
           showStatus(deleteResult.error.message);
           return;
         }
+        void removeUnreferencedAdminFiles(supabase, deletedMediaUrls);
         void revalidateAdminPublicContent(supabase);
       }
 
@@ -490,6 +527,7 @@ export function useAdminData() {
     updateAuthFormField,
     handleSignIn,
     handleSignOut,
+    signInMessage,
     statusMessage,
     saveReport,
     working,

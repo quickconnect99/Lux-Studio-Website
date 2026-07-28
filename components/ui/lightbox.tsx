@@ -1,6 +1,10 @@
 "use client";
 
-import { useEffect } from "react";
+import {
+  useEffect,
+  useRef,
+  type PointerEvent as ReactPointerEvent
+} from "react";
 import { X, ChevronLeft, ChevronRight } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
 import { FallbackImage } from "@/components/ui/fallback-image";
@@ -8,6 +12,7 @@ import { cn } from "@/lib/utils";
 
 type LightboxProps = {
   images: string[];
+  imageAlts?: string[];
   activeIndex: number | null;
   fallbackImages?: string[];
   onClose: () => void;
@@ -17,6 +22,7 @@ type LightboxProps = {
 
 export function Lightbox({
   images,
+  imageAlts = [],
   activeIndex,
   fallbackImages = [],
   onClose,
@@ -24,29 +30,97 @@ export function Lightbox({
   onNext
 }: LightboxProps) {
   const isOpen = activeIndex !== null;
+  const dialogRef = useRef<HTMLDivElement>(null);
+  const closeButtonRef = useRef<HTMLButtonElement>(null);
+  const pointerOriginX = useRef<number | null>(null);
+  const actionsRef = useRef({ onClose, onPrev, onNext });
+  actionsRef.current = { onClose, onPrev, onNext };
 
-  /* Close on Escape, navigate with arrow keys */
   useEffect(() => {
     if (!isOpen) return;
 
+    const previouslyFocused =
+      document.activeElement instanceof HTMLElement
+        ? document.activeElement
+        : null;
+    const previousOverflow = document.body.style.overflow;
+
     function handleKey(e: KeyboardEvent) {
-      if (e.key === "Escape") onClose();
-      if (e.key === "ArrowLeft") onPrev();
-      if (e.key === "ArrowRight") onNext();
+      if (e.key === "Escape") actionsRef.current.onClose();
+      if (e.key === "ArrowLeft") actionsRef.current.onPrev();
+      if (e.key === "ArrowRight") actionsRef.current.onNext();
+
+      if (e.key !== "Tab" || !dialogRef.current) {
+        return;
+      }
+
+      const focusable = Array.from(
+        dialogRef.current.querySelectorAll<HTMLElement>(
+          'button:not([disabled]), a[href], [tabindex]:not([tabindex="-1"])'
+        )
+      ).filter((element) => !element.hasAttribute("aria-hidden"));
+
+      if (focusable.length === 0) {
+        e.preventDefault();
+        dialogRef.current.focus();
+        return;
+      }
+
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+
+      if (e.shiftKey && document.activeElement === first) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && document.activeElement === last) {
+        e.preventDefault();
+        first.focus();
+      }
     }
 
     document.addEventListener("keydown", handleKey);
     document.body.style.overflow = "hidden";
+    window.requestAnimationFrame(() => closeButtonRef.current?.focus());
+
     return () => {
       document.removeEventListener("keydown", handleKey);
-      document.body.style.overflow = "";
+      document.body.style.overflow = previousOverflow;
+      previouslyFocused?.focus();
     };
-  }, [isOpen, onClose, onPrev, onNext]);
+  }, [isOpen]);
+
+  function handlePointerDown(event: ReactPointerEvent<HTMLDivElement>) {
+    if (event.pointerType === "mouse") {
+      return;
+    }
+
+    pointerOriginX.current = event.clientX;
+  }
+
+  function handlePointerUp(event: ReactPointerEvent<HTMLDivElement>) {
+    if (pointerOriginX.current === null || event.pointerType === "mouse") {
+      return;
+    }
+
+    const distance = event.clientX - pointerOriginX.current;
+    pointerOriginX.current = null;
+
+    if (Math.abs(distance) < 48) {
+      return;
+    }
+
+    if (distance > 0) {
+      onPrev();
+    } else {
+      onNext();
+    }
+  }
 
   return (
     <AnimatePresence>
       {isOpen && activeIndex !== null && (
         <motion.div
+          ref={dialogRef}
           key="lightbox-backdrop"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -57,6 +131,7 @@ export function Lightbox({
           role="dialog"
           aria-modal="true"
           aria-label="Image lightbox"
+          tabIndex={-1}
         >
           {/* Image */}
           <motion.div
@@ -67,23 +142,31 @@ export function Lightbox({
             transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
             className="relative w-full max-w-[112.5rem]"
             onClick={(e) => e.stopPropagation()}
+            onPointerDown={handlePointerDown}
+            onPointerUp={handlePointerUp}
+            onPointerCancel={() => {
+              pointerOriginX.current = null;
+            }}
           >
             <div
               data-lightbox-frame
-              className="film-frame relative aspect-[4/3] max-h-[calc(100dvh-1rem)] overflow-hidden bg-black sm:aspect-[16/9] sm:max-h-[calc(100dvh-2rem)]"
+              className="film-frame relative h-[calc(100dvh-1rem)] max-h-[1080px] w-full overflow-hidden bg-black sm:h-[calc(100dvh-2rem)]"
             >
               <FallbackImage
                 src={images[activeIndex]}
                 fallbackSrc={
-                  fallbackImages[activeIndex % fallbackImages.length] ??
-                  images[activeIndex]
+                  (fallbackImages.length > 0
+                    ? fallbackImages[activeIndex % fallbackImages.length]
+                    : undefined) ?? images[activeIndex]
                 }
-                alt={`Enlarged still ${activeIndex + 1}`}
+                alt={
+                  imageAlts[activeIndex] ??
+                  `Enlarged project still ${activeIndex + 1}`
+                }
                 fill
                 sizes="(min-width: 1920px) 1800px, calc(100vw - 2rem)"
-                className="object-cover"
+                className="object-contain"
                 quality={95}
-                unoptimized
                 priority
               />
 
@@ -136,6 +219,7 @@ export function Lightbox({
 
           {/* Close */}
           <button
+            ref={closeButtonRef}
             type="button"
             aria-label="Close lightbox"
             onClick={(e) => {

@@ -223,8 +223,40 @@ export const projectTemplates: AdminProjectListItem[] = [
   createProjectTemplate("Hospitality")
 ];
 
+function escapeDelimitedValue(value: string, delimiter: string) {
+  return value.replace(/\\/g, "\\\\").replaceAll(delimiter, `\\${delimiter}`);
+}
+
+function splitEscaped(value: string, delimiter: string) {
+  const parts: string[] = [];
+  let current = "";
+
+  for (let index = 0; index < value.length; index += 1) {
+    const character = value[index];
+    const next = value[index + 1];
+
+    if (character === "\\" && (next === delimiter || next === "\\")) {
+      current += next;
+      index += 1;
+    } else if (character === delimiter) {
+      parts.push(current);
+      current = "";
+    } else {
+      current += character;
+    }
+  }
+
+  parts.push(current);
+  return parts;
+}
+
 export function formatSocialLinksText(links: SocialLink[]): string {
-  return links.map((link) => `${link.label} | ${link.href}`).join("\n");
+  return links
+    .map(
+      (link) =>
+        `${escapeDelimitedValue(link.label, "|")} | ${escapeDelimitedValue(link.href, "|")}`
+    )
+    .join("\n");
 }
 
 export function parseSocialLinksText(value: string): SocialLink[] {
@@ -233,7 +265,7 @@ export function parseSocialLinksText(value: string): SocialLink[] {
     .map((line) => line.trim())
     .filter(Boolean)
     .map((line) => {
-      const [label, href] = line.split("|");
+      const [label, href] = splitEscaped(line, "|");
       return { label: label?.trim() ?? "", href: href?.trim() ?? "" };
     })
     .filter((link) => link.label && link.href);
@@ -242,7 +274,12 @@ export function parseSocialLinksText(value: string): SocialLink[] {
 export function formatValuesText(
   values: Array<{ title: string; copy: string }>
 ): string {
-  return values.map((v) => `${v.title} | ${v.copy}`).join("\n");
+  return values
+    .map(
+      (value) =>
+        `${escapeDelimitedValue(value.title, "|")} | ${escapeDelimitedValue(value.copy, "|")}`
+    )
+    .join("\n");
 }
 
 export function parseValuesText(
@@ -253,11 +290,10 @@ export function parseValuesText(
     .map((line) => line.trim())
     .filter(Boolean)
     .map((line) => {
-      const pipeIndex = line.indexOf("|");
-      if (pipeIndex === -1) return { title: line, copy: "" };
+      const [title, ...copyParts] = splitEscaped(line, "|");
       return {
-        title: line.slice(0, pipeIndex).trim(),
-        copy: line.slice(pipeIndex + 1).trim()
+        title: title.trim(),
+        copy: copyParts.join("|").trim()
       };
     })
     .filter((v) => v.title);
@@ -267,7 +303,7 @@ export function formatServicesText(services: Service[]): string {
   return services
     .map(
       (s) =>
-        `${s.number} | ${s.title} | ${s.description} | ${s.deliverables.join(", ")}`
+        `${escapeDelimitedValue(s.number, "|")} | ${escapeDelimitedValue(s.title, "|")} | ${escapeDelimitedValue(s.description, "|")} | ${escapeDelimitedValue(s.deliverables.join(", "), "|")}`
     )
     .join("\n");
 }
@@ -278,7 +314,7 @@ export function parseServicesText(value: string): Service[] {
     .map((line) => line.trim())
     .filter(Boolean)
     .map((line, index) => {
-      const parts = line.split("|").map((p) => p.trim());
+      const parts = splitEscaped(line, "|").map((part) => part.trim());
       const [number, title, description, deliverablesStr] = parts;
       return {
         number: number || String(index + 1).padStart(2, "0"),

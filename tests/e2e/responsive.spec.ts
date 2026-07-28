@@ -189,6 +189,38 @@ test("sun and moon switch only between Vintage Dark and Vintage Light", async ({
     .toBe("gpt-vintage");
 });
 
+test("hero reel sound can be enabled by the viewer", async ({
+  page
+}, testInfo) => {
+  test.skip(testInfo.project.name !== "desktop-1440");
+  await page.goto("/", { waitUntil: "networkidle" });
+
+  const video = page.locator("video[data-hero-reel]");
+  await expect(video).toBeVisible();
+  await expect(video).toHaveJSProperty("muted", true);
+
+  await page.getByRole("button", { name: "Turn hero reel sound on" }).click();
+
+  await expect(video).toHaveJSProperty("muted", false);
+  const playback = await video.evaluate((element) => {
+    const media = element as HTMLVideoElement;
+    return {
+      paused: media.paused,
+      volume: media.volume,
+      duration: media.duration,
+      readyState: media.readyState
+    };
+  });
+
+  expect(playback.paused).toBe(false);
+  expect(playback.volume).toBe(1);
+  expect(playback.duration).toBeGreaterThan(0);
+  expect(playback.readyState).toBeGreaterThanOrEqual(2);
+  await expect(
+    page.getByRole("button", { name: "Turn hero reel sound off" })
+  ).toBeVisible();
+});
+
 test("Frames in Motion opens the related project in the same tab", async ({
   page
 }, testInfo) => {
@@ -390,17 +422,22 @@ test("project carousel opens fullscreen and keeps image navigation", async ({
 
   const carousel = page.locator("[data-project-carousel]");
   await carousel.scrollIntoViewIfNeeded();
-  await carousel.locator("[data-project-carousel-open]").click();
+  const fullscreenTrigger = carousel.locator("[data-project-carousel-open]");
+  await fullscreenTrigger.click();
 
   const dialog = page.getByRole("dialog", { name: "Image lightbox" });
   await expect(dialog).toBeVisible();
-  await expect(dialog.locator('img[alt="Enlarged still 1"]')).toBeVisible();
+  await expect(
+    dialog.getByRole("button", { name: "Close lightbox" })
+  ).toBeFocused();
+  await expect(dialog.locator("img").first()).toHaveAttribute("alt", /.+/);
 
   await dialog.locator('[data-lightbox-control="next"]').click();
-  await expect(dialog.locator('img[alt="Enlarged still 2"]')).toBeVisible();
+  await expect(dialog.getByText(/2 \/ \d+/)).toBeVisible();
 
   await page.keyboard.press("Escape");
   await expect(dialog).toBeHidden();
+  await expect(fullscreenTrigger).toBeFocused();
 });
 
 test("project sharing metadata uses the first project image", async ({

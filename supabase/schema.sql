@@ -14,11 +14,13 @@ create table if not exists public.projects (
   cover_image text not null,
   gallery_images text[] not null default '{}',
   gallery_captions text[] not null default '{}',
+  gallery_items jsonb not null default '[]'::jsonb,
   video_url text,
   uploaded_video text,
   featured boolean not null default false,
   published boolean not null default false,
   created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
   behind_the_scenes text
 );
 
@@ -75,6 +77,9 @@ grant execute on function public.is_admin() to authenticated;
 
 alter table public.projects
 add column if not exists gallery_captions text[] not null default '{}';
+
+alter table public.projects
+add column if not exists gallery_items jsonb not null default '[]'::jsonb;
 
 alter table public.projects
 add column if not exists business text not null default 'Automotive';
@@ -188,6 +193,8 @@ using (public.is_admin())
 with check (public.is_admin());
 
 create index if not exists projects_created_at_idx on public.projects (created_at desc);
+create index if not exists projects_published_created_at_idx
+on public.projects (published, created_at desc);
 create index if not exists inquiries_created_at_idx on public.inquiries (created_at desc);
 create index if not exists inquiry_rate_limits_key_time_idx
 on public.inquiry_rate_limits (client_key_hash, attempted_at desc);
@@ -247,9 +254,9 @@ values (
   'L/S',
   'Films and photography for car launches, dealer campaigns, and events.',
   'n.hagelberger@luxstudio.li',
-  '+41 00 000 00 00',
+  '',
   'Zurich / Milan / Monaco',
-  '[{"label":"Instagram","href":"https://instagram.com"},{"label":"YouTube","href":"https://youtube.com"},{"label":"Vimeo","href":"https://vimeo.com"}]'::jsonb
+  '[{"label":"Instagram","href":"https://www.instagram.com/"}]'::jsonb
 )
 on conflict (id) do nothing;
 
@@ -276,6 +283,30 @@ alter table public.site_settings
   add column if not exists navigation_visibility jsonb not null default
     '{"home":true,"work":true,"services":true,"about":true,"contact":true}'::jsonb,
   add column if not exists site_copy jsonb not null default '{}'::jsonb;
+
+alter table public.projects
+  add column if not exists updated_at timestamptz not null default now();
+
+create or replace function public.set_updated_at()
+returns trigger
+language plpgsql
+set search_path = public
+as $$
+begin
+  new.updated_at = now();
+  return new;
+end;
+$$;
+
+drop trigger if exists projects_set_updated_at on public.projects;
+create trigger projects_set_updated_at
+before update on public.projects
+for each row execute function public.set_updated_at();
+
+drop trigger if exists site_settings_set_updated_at on public.site_settings;
+create trigger site_settings_set_updated_at
+before update on public.site_settings
+for each row execute function public.set_updated_at();
 
 -- Storage setup:
 -- 1. Bucket + object policies above assume the bucket id is `projects`.

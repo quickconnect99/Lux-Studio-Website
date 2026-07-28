@@ -9,11 +9,13 @@ import { cn } from "@/lib/utils";
 
 type ProjectImageCarouselProps = {
   images: string[];
+  captions?: string[];
   title: string;
 };
 
 export function ProjectImageCarousel({
   images,
+  captions = [],
   title
 }: ProjectImageCarouselProps) {
   const [activeIndex, setActiveIndex] = useState(0);
@@ -22,6 +24,12 @@ export function ProjectImageCarousel({
   if (images.length === 0) return null;
 
   const activeImage = images[activeIndex];
+  const activeCaption = captions[activeIndex]?.trim();
+  const imageAlts = images.map((_, index) =>
+    captions[index]?.trim()
+      ? `${title}: ${captions[index].trim()}`
+      : `${title} project still ${index + 1}`
+  );
 
   function prev() {
     setActiveIndex((current) => (current - 1 + images.length) % images.length);
@@ -60,7 +68,7 @@ export function ProjectImageCarousel({
               >
                 <Image
                   src={activeImage}
-                  alt={`${title} carousel image ${activeIndex + 1}`}
+                  alt={imageAlts[activeIndex]}
                   fill
                   sizes="(min-width: 1440px) 1360px, 100vw"
                   className="object-cover"
@@ -168,11 +176,21 @@ export function ProjectImageCarousel({
               ))}
             </div>
           ) : null}
+
+          {activeCaption ? (
+            <p
+              aria-live="polite"
+              className="description-copy-compact rounded-[1rem] border border-line bg-panel px-4 py-3 text-muted"
+            >
+              {activeCaption}
+            </p>
+          ) : null}
         </div>
       </div>
 
       <Lightbox
         images={images}
+        imageAlts={imageAlts}
         activeIndex={fullscreenIndex}
         onClose={() => setFullscreenIndex(null)}
         onPrev={() =>

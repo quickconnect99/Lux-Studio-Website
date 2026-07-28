@@ -10,7 +10,12 @@ export function ThemeSwitcher() {
   const isDark = theme === VINTAGE_DARK_THEME;
 
   if (!mounted) {
-    return null;
+    return (
+      <div
+        aria-hidden="true"
+        className="h-11 w-11 shrink-0 rounded-full border border-transparent"
+      />
+    );
   }
 
   const nextTheme = isDark ? VINTAGE_LIGHT_THEME : VINTAGE_DARK_THEME;

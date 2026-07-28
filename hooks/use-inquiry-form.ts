@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { Inquiry } from "@/lib/types";
 import {
   BRIEF_MAX,
@@ -38,6 +38,16 @@ export function useInquiryForm() {
   const [shaking, setShaking] = useState(false);
   const [website, setWebsite] = useState("");
   const [startedAt, setStartedAt] = useState(() => Date.now());
+  const shakeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(
+    () => () => {
+      if (shakeTimerRef.current) {
+        clearTimeout(shakeTimerRef.current);
+      }
+    },
+    []
+  );
 
   function updateField<Key extends keyof Inquiry>(
     field: Key,
@@ -56,8 +66,29 @@ export function useInquiryForm() {
   }
 
   function triggerShake() {
+    if (shakeTimerRef.current) {
+      clearTimeout(shakeTimerRef.current);
+    }
+
     setShaking(true);
-    setTimeout(() => setShaking(false), 450);
+    shakeTimerRef.current = setTimeout(() => {
+      setShaking(false);
+      shakeTimerRef.current = null;
+    }, 450);
+  }
+
+  function focusFirstInvalidField(nextErrors: InquiryErrors) {
+    const firstField = Object.keys(nextErrors)[0];
+
+    if (!firstField) {
+      return;
+    }
+
+    window.requestAnimationFrame(() => {
+      document
+        .querySelector<HTMLElement>(`[data-inquiry-field="${firstField}"]`)
+        ?.focus();
+    });
   }
 
   async function handleSubmit(event: { preventDefault(): void }) {
@@ -74,6 +105,7 @@ export function useInquiryForm() {
         "Please review the highlighted fields before sending the inquiry."
       );
       triggerShake();
+      focusFirstInvalidField(nextErrors);
       return;
     }
 
@@ -99,15 +131,15 @@ export function useInquiryForm() {
         })
       });
 
-      const payload = (await response
-        .json()
-        .catch(() => null)) as
-        | { message?: string; errors?: InquiryErrors }
-        | null;
+      const payload = (await response.json().catch(() => null)) as {
+        message?: string;
+        errors?: InquiryErrors;
+      } | null;
 
       if (!response.ok) {
         if (payload?.errors) {
           setErrors(payload.errors);
+          focusFirstInvalidField(payload.errors);
         }
 
         throw new Error(
@@ -117,7 +149,8 @@ export function useInquiryForm() {
 
       setStatus("success");
       setMessage(
-        payload?.message ?? "Inquiry received - we'll be in touch within 24-48 hours."
+        payload?.message ??
+          "Inquiry received - we'll be in touch within 24-48 hours."
       );
       setFormState(initialState);
       setWebsite("");

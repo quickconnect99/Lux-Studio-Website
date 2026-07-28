@@ -14,8 +14,48 @@ import { projectBusinesses } from "@/lib/project-business";
 import { SITE_SETTINGS_ID } from "@/lib/supabase";
 import type { Project, TeamMember } from "@/lib/types";
 
-export const MAX_IMAGE_BYTES = 25 * 1024 * 1024;
-export const MAX_VIDEO_BYTES = 2 * 1024 * 1024 * 1024;
+export const MAX_IMAGE_BYTES = 15 * 1024 * 1024;
+export const MAX_VIDEO_BYTES = 500 * 1024 * 1024;
+
+const imageMimeTypes = new Set([
+  "image/avif",
+  "image/gif",
+  "image/jpeg",
+  "image/png",
+  "image/webp"
+]);
+const imageExtensions = new Set(["avif", "gif", "jpeg", "jpg", "png", "webp"]);
+const videoMimeTypes = new Set(["video/mp4", "video/quicktime", "video/webm"]);
+const videoExtensions = new Set(["mov", "mp4", "webm"]);
+
+type MediaFileLike = {
+  name: string;
+  size: number;
+  type?: string;
+};
+
+export function getInvalidMediaFiles<T extends MediaFileLike>(
+  files: T[],
+  kind: "image" | "video"
+) {
+  const allowedMimeTypes = kind === "image" ? imageMimeTypes : videoMimeTypes;
+  const allowedExtensions =
+    kind === "image" ? imageExtensions : videoExtensions;
+  const maxBytes = kind === "image" ? MAX_IMAGE_BYTES : MAX_VIDEO_BYTES;
+
+  return files.filter((file) => {
+    const extension = file.name.split(".").pop()?.toLowerCase() ?? "";
+    const mimeType = file.type?.trim().toLowerCase() ?? "";
+
+    return (
+      file.size <= 0 ||
+      file.size > maxBytes ||
+      !allowedExtensions.has(extension) ||
+      !mimeType ||
+      !allowedMimeTypes.has(mimeType)
+    );
+  });
+}
 
 export type ProjectMediaState = {
   coverImage: string;
@@ -99,6 +139,10 @@ export function buildProjectDatabasePayload({
     cover_image: media.coverImage,
     gallery_images: media.galleryImages,
     gallery_captions: media.galleryCaptions,
+    gallery_items: media.galleryImages.map((image, index) => ({
+      image,
+      caption: media.galleryCaptions[index] ?? ""
+    })),
     video_url: formState.videoUrl || null,
     uploaded_video: media.uploadedVideo || null,
     featured: formState.featured,
@@ -135,6 +179,10 @@ export function buildLocalProject({
     coverImage: media.coverImage,
     galleryImages: media.galleryImages,
     galleryCaptions: media.galleryCaptions,
+    galleryItems: media.galleryImages.map((image, index) => ({
+      image,
+      caption: media.galleryCaptions[index] ?? ""
+    })),
     videoUrl: formState.videoUrl || undefined,
     uploadedVideo: media.uploadedVideo || undefined,
     featured: formState.featured,

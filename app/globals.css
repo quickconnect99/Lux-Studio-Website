@@ -9,15 +9,11 @@
 
   /* ─── Form fields ──────────────────────────────────────────────────── */
   .input-field {
-    @apply min-h-11 w-full rounded-2xl border border-line bg-panel px-4 py-3 text-base text-foreground outline-none
-      transition-all duration-200 ease-out
-      focus:scale-[1.005] focus:border-accent focus:bg-panel;
+    @apply min-h-11 w-full rounded-2xl border border-line bg-panel px-4 py-3 text-base text-foreground outline-none transition-all duration-200 ease-out focus:scale-[1.005] focus:border-accent focus:bg-panel;
   }
 
   .textarea-field {
-    @apply w-full rounded-[1.5rem] border border-line bg-panel px-4 py-3 text-base text-foreground outline-none
-      transition-all duration-200 ease-out
-      focus:scale-[1.005] focus:border-accent focus:bg-panel;
+    @apply w-full rounded-[1.5rem] border border-line bg-panel px-4 py-3 text-base text-foreground outline-none transition-all duration-200 ease-out focus:scale-[1.005] focus:border-accent focus:bg-panel;
   }
 
   /* Error state – uses CSS variable so colour stays in the design system */
@@ -58,17 +54,11 @@
 
   /* ─── Buttons / pills ──────────────────────────────────────────────── */
   .control-pill {
-    @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-full border border-line bg-panel px-4 py-2
-      text-xs uppercase tracking-ui text-foreground;
+    @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-full border border-line bg-panel px-4 py-2 text-xs uppercase tracking-ui text-foreground;
   }
 
   .action-button {
-    @apply inline-flex min-h-11 items-center justify-center gap-3 rounded-full border border-foreground bg-foreground
-      px-5 py-3 text-xs uppercase tracking-ui text-background
-      transition-all duration-150 ease-out
-      hover:bg-accent hover:text-accent-contrast
-      active:scale-95
-      disabled:opacity-70;
+    @apply inline-flex min-h-11 items-center justify-center gap-3 rounded-full border border-foreground bg-foreground px-5 py-3 text-xs uppercase tracking-ui text-background transition-all duration-150 ease-out hover:bg-accent hover:text-accent-contrast active:scale-95 disabled:opacity-70;
   }
 
   .muted-pill {
@@ -102,14 +92,14 @@
   /* Core palette */
   --background: #f4f1ea;
   --foreground: #1b232b;
-  --muted:      #58636c;
-  --muted-warm: #6b6360;      /* warmer secondary for footer / dark contexts */
+  --muted: #58636c;
+  --muted-warm: #6b6360; /* warmer secondary for footer / dark contexts */
 
   /* Accent */
-  --accent:      #9eff4f;
+  --accent: #9eff4f;
   --accent-contrast: #1b232b;
   --accent-soft: rgba(158, 255, 79, 0.65);
-  --accent-blue: #7dd3fc;     /* complementary cool accent */
+  --accent-blue: #7dd3fc; /* complementary cool accent */
 
   /* Darker stand-in for --accent when it renders as text directly on the
      page background (e.g. SplitHeadline trail). --accent itself stays tuned
@@ -118,23 +108,23 @@
   --accent-text: var(--accent);
 
   /* Panels – three standardised opacity levels */
-  --panel:         rgba(255, 255, 255, 0.80); /* primary panels */
-  --panel-secondary: rgba(255, 255, 255, 0.70); /* nested content */
-  --panel-subtle:  rgba(255, 255, 255, 0.55); /* background fills */
-  --panel-dark:    #11161b;
-  --panel-dark-mid: #1a1f25;  /* lighter dark for nested dark panels */
+  --panel: rgba(255, 255, 255, 0.8); /* primary panels */
+  --panel-secondary: rgba(255, 255, 255, 0.7); /* nested content */
+  --panel-subtle: rgba(255, 255, 255, 0.55); /* background fills */
+  --panel-dark: #11161b;
+  --panel-dark-mid: #1a1f25; /* lighter dark for nested dark panels */
 
   /* Borders */
   --line: rgba(27, 35, 43, 0.12);
 
   /* Semantic colours (kept in system so components can reference vars) */
-  --error:   #ef4444;
+  --error: #ef4444;
   --success: #10b981;
   --warning: #f59e0b;
 
   /* Theming helpers */
-  --header-bg:  rgba(244, 241, 234, 0.82);
-  --grid-line:  rgba(27, 35, 43, 0.04);
+  --header-bg: rgba(244, 241, 234, 0.82);
+  --grid-line: rgba(27, 35, 43, 0.04);
 }
 
 /* ─── Base ─────────────────────────────────────────────────────────────── */
@@ -286,17 +276,30 @@ select:focus-visible {
 
 .dark-panel {
   background:
-    radial-gradient(circle at top, color-mix(in srgb, var(--accent) 10%, transparent), transparent 30%),
+    radial-gradient(
+      circle at top,
+      color-mix(in srgb, var(--accent) 10%, transparent),
+      transparent 30%
+    ),
     linear-gradient(180deg, var(--panel-dark) 0%, var(--panel-dark-mid) 100%);
 }
 
 .admin-theme-surface {
   background:
-    radial-gradient(circle at top right, color-mix(in srgb, var(--accent) 18%, transparent), transparent 32%),
-    radial-gradient(circle at bottom left, color-mix(in srgb, var(--accent) 10%, transparent), transparent 28%),
+    radial-gradient(
+      circle at top right,
+      color-mix(in srgb, var(--accent) 18%, transparent),
+      transparent 32%
+    ),
+    radial-gradient(
+      circle at bottom left,
+      color-mix(in srgb, var(--accent) 10%, transparent),
+      transparent 28%
+    ),
     var(--panel);
   box-shadow:
-    inset 0 0 0 1px color-mix(in srgb, var(--accent) 14%, rgba(255, 255, 255, 0.12)),
+    inset 0 0 0 1px
+      color-mix(in srgb, var(--accent) 14%, rgba(255, 255, 255, 0.12)),
     0 22px 80px rgba(15, 23, 32, 0.12);
 }
 
@@ -305,7 +308,7 @@ select:focus-visible {
   position: relative;
   overflow: hidden;
   border-radius: 1.35rem;
-  border: 1px solid rgba(255, 255, 255, 0.50);
+  border: 1px solid rgba(255, 255, 255, 0.5);
   background:
     linear-gradient(
       135deg,
@@ -314,8 +317,8 @@ select:focus-visible {
     ),
     rgba(255, 255, 255, 0.18);
   box-shadow:
-    inset 0 0 0 1px rgba(255, 255, 255, 0.12),  /* inner light line */
-    0 24px 100px rgba(15, 23, 32, 0.14);
+    inset 0 0 0 1px rgba(255, 255, 255, 0.12),
+    /* inner light line */ 0 24px 100px rgba(15, 23, 32, 0.14);
 }
 
 @media (min-width: 640px) {
@@ -419,11 +422,22 @@ select:focus-visible {
 
 /* Shake animation for form errors */
 @keyframes shake {
-  0%, 100% { transform: translateX(0); }
-  20%       { transform: translateX(-6px); }
-  40%       { transform: translateX(6px); }
-  60%       { transform: translateX(-4px); }
-  80%       { transform: translateX(4px); }
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  20% {
+    transform: translateX(-6px);
+  }
+  40% {
+    transform: translateX(6px);
+  }
+  60% {
+    transform: translateX(-4px);
+  }
+  80% {
+    transform: translateX(4px);
+  }
 }
 
 .shake {
@@ -432,13 +446,21 @@ select:focus-visible {
 
 /* ─── Keyframes ─────────────────────────────────────────────────────────── */
 @keyframes marquee {
-  from { transform: translateX(0%); }
-  to   { transform: translateX(-50%); }
+  from {
+    transform: translateX(0%);
+  }
+  to {
+    transform: translateX(-50%);
+  }
 }
 
 @keyframes marquee-reverse {
-  from { transform: translateX(-50%); }
-  to   { transform: translateX(0%); }
+  from {
+    transform: translateX(-50%);
+  }
+  to {
+    transform: translateX(0%);
+  }
 }
 
 /* ─── Reduced motion ────────────────────────────────────────────────────── */
@@ -473,30 +495,34 @@ select:focus-visible {
 
 /* Vintage Light - faded paper, terracotta and racing green */
 [data-theme="vintage-light"] {
-  --background:      #f3eadb;
-  --foreground:      #1e493d;
-  --muted:           #6d6a61;
-  --muted-warm:      #7b685c;
-  --accent:          #ec824d;
+  --background: #f3eadb;
+  --foreground: #1e493d;
+  --muted: #6d6a61;
+  --muted-warm: #7b685c;
+  --accent: #ec824d;
   --accent-contrast: #f7efe2;
-  --accent-soft:     rgba(236, 130, 77, 0.20);
-  --accent-blue:     #1e493d;
+  --accent-soft: rgba(236, 130, 77, 0.2);
+  --accent-blue: #1e493d;
   /* #ec824d on this theme's #f3eadb background measures ~2.24:1 (WCAG AA
      needs 3:1 even for large text) — this darker terracotta measures ~4.7:1. */
-  --accent-text:     #ad4815;
-  --panel:           rgba(250, 244, 233, 0.84);
+  --accent-text: #ad4815;
+  --panel: rgba(250, 244, 233, 0.84);
   --panel-secondary: rgba(245, 236, 222, 0.78);
-  --panel-subtle:    rgba(30, 73, 61, 0.09);
-  --panel-dark:      #17342c;
-  --panel-dark-mid:  #22443a;
-  --line:            rgba(30, 73, 61, 0.14);
-  --header-bg:       rgba(243, 234, 219, 0.88);
-  --grid-line:       rgba(30, 73, 61, 0.06);
+  --panel-subtle: rgba(30, 73, 61, 0.09);
+  --panel-dark: #17342c;
+  --panel-dark-mid: #22443a;
+  --line: rgba(30, 73, 61, 0.14);
+  --header-bg: rgba(243, 234, 219, 0.88);
+  --grid-line: rgba(30, 73, 61, 0.06);
 }
 [data-theme="vintage-light"] body {
   background:
     radial-gradient(circle at 0% 0%, rgba(236, 130, 77, 0.18), transparent 28%),
-    radial-gradient(circle at 100% 12%, rgba(30, 73, 61, 0.14), transparent 24%),
+    radial-gradient(
+      circle at 100% 12%,
+      rgba(30, 73, 61, 0.14),
+      transparent 24%
+    ),
     linear-gradient(180deg, #f5ecd9 0%, #eadfcb 100%);
 }
 [data-theme="vintage-light"] ::selection {
@@ -505,332 +531,41 @@ select:focus-visible {
 }
 
 /* Vintage Noir - warm noir with terracotta and racing green */
-[data-theme="vintage"] {
-  --background:      #17120f;
-  --foreground:      #f3e7d7;
-  --muted:           #b8a595;
-  --muted-warm:      #c79b82;
-  --accent:          #ec824d;
-  --accent-contrast: #17120f;
-  --accent-soft:     rgba(236, 130, 77, 0.24);
-  --accent-blue:     #1e493d;
-  --panel:           rgba(25, 31, 28, 0.74);
-  --panel-secondary: rgba(34, 26, 22, 0.78);
-  --panel-subtle:    rgba(30, 73, 61, 0.28);
-  --panel-dark:      #0d1512;
-  --panel-dark-mid:  #15211d;
-  --line:            rgba(243, 231, 215, 0.10);
-  --header-bg:       rgba(23, 18, 15, 0.88);
-  --grid-line:       rgba(30, 73, 61, 0.10);
-}
-[data-theme="vintage"] body {
-  background:
-    radial-gradient(circle at 12% 0%, rgba(236, 130, 77, 0.18), transparent 30%),
-    radial-gradient(circle at 88% 10%, rgba(30, 73, 61, 0.42), transparent 30%),
-    linear-gradient(180deg, #191310 0%, #0d1512 52%, #0a0d0b 100%);
-}
-[data-theme="vintage"] ::selection {
-  background: rgba(236, 130, 77, 0.40);
-  color: #17120f;
-}
-
 /* Vintage Dark - green noir with terracotta highlights */
 [data-theme="gpt-vintage"] {
-  --background:      #101917;
-  --foreground:      #f2e9db;
-  --muted:           #b7aa97;
-  --muted-warm:      #c98f72;
-  --accent:          #ec824d;
+  --background: #101917;
+  --foreground: #f2e9db;
+  --muted: #b7aa97;
+  --muted-warm: #c98f72;
+  --accent: #ec824d;
   --accent-contrast: #1e493d;
-  --accent-soft:     rgba(236, 130, 77, 0.22);
-  --accent-blue:     #1e493d;
-  --panel:           rgba(23, 41, 36, 0.78);
+  --accent-soft: rgba(236, 130, 77, 0.22);
+  --accent-blue: #1e493d;
+  --panel: rgba(23, 41, 36, 0.78);
   --panel-secondary: rgba(248, 236, 219, 0.08);
-  --panel-subtle:    rgba(30, 73, 61, 0.24);
-  --panel-dark:      #08110f;
-  --panel-dark-mid:  #1e493d;
-  --line:            rgba(242, 233, 219, 0.10);
-  --header-bg:       rgba(16, 25, 23, 0.86);
-  --grid-line:       rgba(236, 130, 77, 0.06);
+  --panel-subtle: rgba(30, 73, 61, 0.24);
+  --panel-dark: #08110f;
+  --panel-dark-mid: #1e493d;
+  --line: rgba(242, 233, 219, 0.1);
+  --header-bg: rgba(16, 25, 23, 0.86);
+  --grid-line: rgba(236, 130, 77, 0.06);
 }
 [data-theme="gpt-vintage"] body {
   background:
-    radial-gradient(circle at 10% 0%, rgba(236, 130, 77, 0.18), transparent 26%),
+    radial-gradient(
+      circle at 10% 0%,
+      rgba(236, 130, 77, 0.18),
+      transparent 26%
+    ),
     radial-gradient(circle at 88% 18%, rgba(30, 73, 61, 0.52), transparent 32%),
-    radial-gradient(circle at 50% 100%, rgba(242, 233, 219, 0.06), transparent 30%),
+    radial-gradient(
+      circle at 50% 100%,
+      rgba(242, 233, 219, 0.06),
+      transparent 30%
+    ),
     linear-gradient(180deg, #14211d 0%, #0d1513 48%, #090c0b 100%);
 }
 [data-theme="gpt-vintage"] ::selection {
   background: rgba(236, 130, 77, 0.42);
   color: #1e493d;
-}
-
-/* ─── 2. Obsidian – deep black · neon lime ───────────────────────────── */
-[data-theme="obsidian"] {
-  --background:      #0c0f12;
-  --foreground:      #e8ecef;
-  --muted:           #8a9aa8;
-  --muted-warm:      #7a8a98;
-  --accent:          #9eff4f;
-  --accent-contrast: #0c0f12;
-  --accent-soft:     rgba(158, 255, 79, 0.20);
-  --accent-blue:     #7dd3fc;
-  --panel:           rgba(255, 255, 255, 0.06);
-  --panel-secondary: rgba(255, 255, 255, 0.04);
-  --panel-subtle:    rgba(255, 255, 255, 0.03);
-  --panel-dark:      #040608;
-  --panel-dark-mid:  #0a0d10;
-  --line:            rgba(255, 255, 255, 0.10);
-  --header-bg:       rgba(12, 15, 18, 0.88);
-  --grid-line:       rgba(255, 255, 255, 0.04);
-}
-[data-theme="obsidian"] body {
-  background:
-    radial-gradient(circle at 0% 0%,   rgba(158, 255, 79, 0.07), transparent 30%),
-    radial-gradient(circle at 100% 10%, rgba(125, 211, 252, 0.05), transparent 25%),
-    linear-gradient(180deg, #0e1115 0%, #080b0d 100%);
-}
-[data-theme="obsidian"] ::selection {
-  background: rgba(158, 255, 79, 0.30);
-  color: #e8ecef;
-}
-
-/* ─── 3. Carbon – dark grey · signal red ────────────────────────────── */
-[data-theme="carbon"] {
-  --background:      #141518;
-  --foreground:      #f0f0f0;
-  --muted:           #8a8a94;
-  --muted-warm:      #8a8480;
-  --accent:          #ff3b3b;
-  --accent-contrast: #0c0f12;
-  --accent-soft:     rgba(255, 59, 59, 0.20);
-  --accent-blue:     #7dd3fc;
-  --panel:           rgba(255, 255, 255, 0.05);
-  --panel-secondary: rgba(255, 255, 255, 0.04);
-  --panel-subtle:    rgba(255, 255, 255, 0.03);
-  --panel-dark:      #080809;
-  --panel-dark-mid:  #0f1012;
-  --line:            rgba(255, 255, 255, 0.10);
-  --header-bg:       rgba(20, 21, 24, 0.88);
-  --grid-line:       rgba(255, 255, 255, 0.04);
-}
-[data-theme="carbon"] body {
-  background:
-    radial-gradient(circle at 0% 0%,   rgba(255, 59, 59, 0.07), transparent 28%),
-    radial-gradient(circle at 100% 10%, rgba(255, 59, 59, 0.04), transparent 22%),
-    linear-gradient(180deg, #161719 0%, #0f1012 100%);
-}
-[data-theme="carbon"] ::selection {
-  background: rgba(255, 59, 59, 0.35);
-  color: #f0f0f0;
-}
-
-/* ─── 4. Arctic – cool white · electric blue ────────────────────────── */
-[data-theme="arctic"] {
-  --background:      #f8f9fb;
-  --foreground:      #0f1923;
-  --muted:           #52697a;
-  --muted-warm:      #5a6a78;
-  --accent:          #2563eb;
-  --accent-contrast: #f8f9fb;
-  --accent-soft:     rgba(37, 99, 235, 0.18);
-  --accent-blue:     #7dd3fc;
-  --panel:           rgba(255, 255, 255, 0.92);
-  --panel-secondary: rgba(255, 255, 255, 0.85);
-  --panel-subtle:    rgba(255, 255, 255, 0.70);
-  --panel-dark:      #0f1923;
-  --panel-dark-mid:  #1a2633;
-  --line:            rgba(15, 25, 35, 0.10);
-  --header-bg:       rgba(248, 249, 251, 0.88);
-  --grid-line:       rgba(15, 25, 35, 0.04);
-}
-[data-theme="arctic"] body {
-  background:
-    radial-gradient(circle at 0% 0%,   rgba(37, 99, 235, 0.08), transparent 25%),
-    radial-gradient(circle at 100% 10%, rgba(125, 211, 252, 0.12), transparent 25%),
-    linear-gradient(180deg, #f8f9fb 0%, #f0f3f8 100%);
-}
-[data-theme="arctic"] ::selection {
-  background: rgba(37, 99, 235, 0.20);
-  color: #0f1923;
-}
-
-/* ─── 5. Amber – deep anthracite · gold ─────────────────────────────── */
-[data-theme="amber"] {
-  --background:      #111008;
-  --foreground:      #f5f0e8;
-  --muted:           #9a9080;
-  --muted-warm:      #9a8870;
-  --accent:          #f0a500;
-  --accent-contrast: #111008;
-  --accent-soft:     rgba(240, 165, 0, 0.20);
-  --accent-blue:     #7dd3fc;
-  --panel:           rgba(255, 255, 255, 0.06);
-  --panel-secondary: rgba(255, 255, 255, 0.04);
-  --panel-subtle:    rgba(255, 255, 255, 0.03);
-  --panel-dark:      #060500;
-  --panel-dark-mid:  #0d0c08;
-  --line:            rgba(255, 255, 255, 0.10);
-  --header-bg:       rgba(17, 16, 8, 0.88);
-  --grid-line:       rgba(255, 255, 255, 0.04);
-}
-[data-theme="amber"] body {
-  background:
-    radial-gradient(circle at 0% 0%,   rgba(240, 165, 0, 0.10), transparent 28%),
-    radial-gradient(circle at 100% 10%, rgba(240, 165, 0, 0.05), transparent 22%),
-    linear-gradient(180deg, #131108 0%, #0d0c08 100%);
-}
-[data-theme="amber"] ::selection {
-  background: rgba(240, 165, 0, 0.30);
-  color: #f5f0e8;
-}
-
-/* ─── 6. Midnight Racing – deep navy · electric cyan ────────────────── */
-[data-theme="midnight-racing"] {
-  --background:      #070d1a;
-  --foreground:      #dce8f5;
-  --muted:           #7a9ab8;
-  --muted-warm:      #6a8898;
-  --accent:          #00d4ff;
-  --accent-contrast: #070d1a;
-  --accent-soft:     rgba(0, 212, 255, 0.18);
-  --accent-blue:     #7dd3fc;
-  --panel:           rgba(0, 212, 255, 0.06);
-  --panel-secondary: rgba(255, 255, 255, 0.04);
-  --panel-subtle:    rgba(255, 255, 255, 0.03);
-  --panel-dark:      #040810;
-  --panel-dark-mid:  #0a1020;
-  --line:            rgba(255, 255, 255, 0.10);
-  --header-bg:       rgba(7, 13, 26, 0.88);
-  --grid-line:       rgba(0, 212, 255, 0.05);
-}
-[data-theme="midnight-racing"] body {
-  background:
-    radial-gradient(circle at 0% 0%,   rgba(0, 212, 255, 0.10), transparent 30%),
-    radial-gradient(circle at 100% 10%, rgba(0, 212, 255, 0.05), transparent 25%),
-    linear-gradient(180deg, #080e1c 0%, #050810 100%);
-}
-[data-theme="midnight-racing"] ::selection {
-  background: rgba(0, 212, 255, 0.25);
-  color: #dce8f5;
-}
-
-/* ─── 7. Titanium – cool silver · deep violet ───────────────────────── */
-[data-theme="titanium"] {
-  --background:      #f2f2f4;
-  --foreground:      #1a1a2e;
-  --muted:           #52527a;
-  --muted-warm:      #5a5a72;
-  --accent:          #7c3aed;
-  --accent-contrast: #f2f2f4;
-  --accent-soft:     rgba(124, 58, 237, 0.18);
-  --accent-blue:     #7dd3fc;
-  --panel:           rgba(255, 255, 255, 0.88);
-  --panel-secondary: rgba(255, 255, 255, 0.80);
-  --panel-subtle:    rgba(255, 255, 255, 0.65);
-  --panel-dark:      #1a1a2e;
-  --panel-dark-mid:  #24243e;
-  --line:            rgba(26, 26, 46, 0.10);
-  --header-bg:       rgba(242, 242, 244, 0.88);
-  --grid-line:       rgba(26, 26, 46, 0.04);
-}
-[data-theme="titanium"] body {
-  background:
-    radial-gradient(circle at 0% 0%,   rgba(124, 58, 237, 0.08), transparent 25%),
-    radial-gradient(circle at 100% 10%, rgba(125, 211, 252, 0.10), transparent 25%),
-    linear-gradient(180deg, #f2f2f4 0%, #ebebed 100%);
-}
-[data-theme="titanium"] ::selection {
-  background: rgba(124, 58, 237, 0.18);
-  color: #1a1a2e;
-}
-
-/* ─── 8. Asphalt – warm dark grey · burnout orange ──────────────────── */
-[data-theme="asphalt"] {
-  --background:      #1c1a17;
-  --foreground:      #ede8e0;
-  --muted:           #9a9088;
-  --muted-warm:      #9a8878;
-  --accent:          #ff6a1a;
-  --accent-contrast: #1c1a17;
-  --accent-soft:     rgba(255, 106, 26, 0.20);
-  --accent-blue:     #7dd3fc;
-  --panel:           rgba(255, 255, 255, 0.05);
-  --panel-secondary: rgba(255, 255, 255, 0.04);
-  --panel-subtle:    rgba(255, 255, 255, 0.03);
-  --panel-dark:      #110f0d;
-  --panel-dark-mid:  #181512;
-  --line:            rgba(255, 255, 255, 0.10);
-  --header-bg:       rgba(28, 26, 23, 0.88);
-  --grid-line:       rgba(255, 255, 255, 0.04);
-}
-[data-theme="asphalt"] body {
-  background:
-    radial-gradient(circle at 0% 0%,   rgba(255, 106, 26, 0.08), transparent 28%),
-    radial-gradient(circle at 100% 10%, rgba(255, 106, 26, 0.05), transparent 22%),
-    linear-gradient(180deg, #1e1c19 0%, #131210 100%);
-}
-[data-theme="asphalt"] ::selection {
-  background: rgba(255, 106, 26, 0.30);
-  color: #ede8e0;
-}
-
-/* ─── 9. Glacier – ice white · mint green ───────────────────────────── */
-[data-theme="glacier"] {
-  --background:      #f0f5f4;
-  --foreground:      #0e1f1c;
-  --muted:           #4a6a60;
-  --muted-warm:      #5a6a60;
-  --accent:          #00c896;
-  --accent-contrast: #0e1f1c;
-  --accent-soft:     rgba(0, 200, 150, 0.18);
-  --accent-blue:     #7dd3fc;
-  --panel:           rgba(255, 255, 255, 0.90);
-  --panel-secondary: rgba(255, 255, 255, 0.82);
-  --panel-subtle:    rgba(255, 255, 255, 0.68);
-  --panel-dark:      #0e1f1c;
-  --panel-dark-mid:  #162e28;
-  --line:            rgba(14, 31, 28, 0.10);
-  --header-bg:       rgba(240, 245, 244, 0.88);
-  --grid-line:       rgba(14, 31, 28, 0.04);
-}
-[data-theme="glacier"] body {
-  background:
-    radial-gradient(circle at 0% 0%,   rgba(0, 200, 150, 0.10), transparent 25%),
-    radial-gradient(circle at 100% 10%, rgba(125, 211, 252, 0.10), transparent 25%),
-    linear-gradient(180deg, #f0f5f4 0%, #e8efee 100%);
-}
-[data-theme="glacier"] ::selection {
-  background: rgba(0, 200, 150, 0.25);
-  color: #0e1f1c;
-}
-
-/* ─── 10. Bloodline – near black · carmine red ──────────────────────── */
-[data-theme="bloodline"] {
-  --background:      #0d0a0a;
-  --foreground:      #f0ebe8;
-  --muted:           #9a8880;
-  --muted-warm:      #8a8078;
-  --accent:          #c41230;
-  --accent-contrast: #f0ebe8;
-  --accent-soft:     rgba(196, 18, 48, 0.20);
-  --accent-blue:     #7dd3fc;
-  --panel:           rgba(255, 255, 255, 0.05);
-  --panel-secondary: rgba(255, 255, 255, 0.04);
-  --panel-subtle:    rgba(255, 255, 255, 0.03);
-  --panel-dark:      #060404;
-  --panel-dark-mid:  #100808;
-  --line:            rgba(255, 255, 255, 0.10);
-  --header-bg:       rgba(13, 10, 10, 0.88);
-  --grid-line:       rgba(255, 255, 255, 0.04);
-}
-[data-theme="bloodline"] body {
-  background:
-    radial-gradient(circle at 0% 0%,   rgba(196, 18, 48, 0.08), transparent 28%),
-    radial-gradient(circle at 100% 10%, rgba(196, 18, 48, 0.05), transparent 22%),
-    linear-gradient(180deg, #0f0c0c 0%, #090606 100%);
-}
-[data-theme="bloodline"] ::selection {
-  background: rgba(196, 18, 48, 0.30);
-  color: #f0ebe8;
 }

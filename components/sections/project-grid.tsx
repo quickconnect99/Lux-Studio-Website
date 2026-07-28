@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { startTransition, useMemo, useState } from "react";
+import { startTransition, useEffect, useMemo, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
 import { ArrowUpRight } from "lucide-react";
@@ -57,6 +57,12 @@ export function ProjectGrid({
   >(resolvedInitialBusiness ?? ALL);
   const [activeCategory, setActiveCategory] = useState(ALL);
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
+
+  useEffect(() => {
+    setActiveBusiness(resolvedInitialBusiness ?? ALL);
+    setActiveCategory(ALL);
+    setVisibleCount(PAGE_SIZE);
+  }, [resolvedInitialBusiness]);
 
   const businessFilteredProjects = useMemo(
     () =>
@@ -138,6 +144,7 @@ export function ProjectGrid({
             <motion.button
               key={business}
               type="button"
+              aria-pressed={activeBusiness === business}
               onClick={() => selectBusiness(business)}
               whileTap={{ scale: 0.94 }}
               transition={{ duration: 0.15 }}
@@ -160,6 +167,7 @@ export function ProjectGrid({
           <motion.button
             key={category}
             type="button"
+            aria-pressed={activeCategory === category}
             onClick={() => selectCategory(category)}
             whileTap={{ scale: 0.94 }}
             transition={{ duration: 0.15 }}
@@ -175,6 +183,13 @@ export function ProjectGrid({
           </motion.button>
         ))}
       </div>
+
+      <p className="sr-only" role="status" aria-live="polite">
+        Showing {Math.min(visible.length, filteredProjects.length)} of{" "}
+        {filteredProjects.length} projects
+        {activeBusiness === ALL ? "" : ` for ${activeBusiness}`}
+        {activeCategory === ALL ? "" : ` in ${activeCategory}`}.
+      </p>
 
       {filteredProjects.length === 0 ? (
         <div className="rounded-[2rem] border border-line bg-panel-secondary p-8 text-center shadow-card">

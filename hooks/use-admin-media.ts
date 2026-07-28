@@ -1,11 +1,7 @@
 "use client";
 
 import { type ChangeEvent, useCallback, useEffect, useState } from "react";
-import {
-  MAX_IMAGE_BYTES,
-  MAX_VIDEO_BYTES,
-  getOversizedFiles
-} from "@/lib/admin-persistence";
+import { getInvalidMediaFiles } from "@/lib/admin-persistence";
 
 export function useAdminMedia({
   onChange,
@@ -28,6 +24,27 @@ export function useAdminMedia({
     Array<{ index: number; file: File }>
   >([]);
   const [coverPreviewUrl, setCoverPreviewUrl] = useState<string | null>(null);
+
+  const validateFiles = useCallback(
+    (files: File[], kind: "image" | "video") => {
+      const invalid = getInvalidMediaFiles(files, kind);
+
+      if (invalid.length === 0) {
+        return true;
+      }
+
+      const maxLabel = kind === "image" ? "15 MB" : "500 MB";
+      const formats =
+        kind === "image"
+          ? "AVIF, GIF, JPEG, PNG, or WebP"
+          : "MOV, MP4, or WebM";
+      onError(
+        `Unsupported media: ${invalid.map((file) => file.name).join(", ")}. Use ${formats}, with a maximum of ${maxLabel} per file.`
+      );
+      return false;
+    },
+    [onError]
+  );
 
   useEffect(() => {
     if (!coverFile) {
@@ -84,19 +101,14 @@ export function useAdminMedia({
 
   const addGalleryFiles = useCallback(
     (newFiles: File[]) => {
-      const oversized = getOversizedFiles(newFiles, MAX_IMAGE_BYTES);
-
-      if (oversized.length > 0) {
-        onError(
-          `Files too large: ${oversized.map((file) => file.name).join(", ")}. Maximum 25 MB per image.`
-        );
+      if (!validateFiles(newFiles, "image")) {
         return;
       }
 
       onChange();
       setGalleryFiles((current) => [...current, ...newFiles]);
     },
-    [onChange, onError]
+    [onChange, validateFiles]
   );
 
   const removeGalleryFile = useCallback(
@@ -111,19 +123,14 @@ export function useAdminMedia({
 
   const addSelectedFrameFiles = useCallback(
     (newFiles: File[]) => {
-      const oversized = getOversizedFiles(newFiles, MAX_IMAGE_BYTES);
-
-      if (oversized.length > 0) {
-        onError(
-          `Files too large: ${oversized.map((file) => file.name).join(", ")}. Maximum 25 MB per image.`
-        );
+      if (!validateFiles(newFiles, "image")) {
         return;
       }
 
       onChange();
       setSelectedFrameFiles((current) => [...current, ...newFiles]);
     },
-    [onChange, onError]
+    [onChange, validateFiles]
   );
 
   const removeSelectedFrameFile = useCallback(
@@ -138,19 +145,14 @@ export function useAdminMedia({
 
   const addAboutTeamGalleryFiles = useCallback(
     (newFiles: File[]) => {
-      const oversized = getOversizedFiles(newFiles, MAX_IMAGE_BYTES);
-
-      if (oversized.length > 0) {
-        onError(
-          `Files too large: ${oversized.map((file) => file.name).join(", ")}. Maximum 25 MB per image.`
-        );
+      if (!validateFiles(newFiles, "image")) {
         return;
       }
 
       onChange();
       setAboutTeamGalleryFiles((current) => [...current, ...newFiles]);
     },
-    [onChange, onError]
+    [onChange, validateFiles]
   );
 
   const removeAboutTeamGalleryFile = useCallback(
@@ -165,12 +167,7 @@ export function useAdminMedia({
 
   const setAboutTeamMemberImageFile = useCallback(
     (index: number, file: File | null) => {
-      const oversized = file ? getOversizedFiles([file], MAX_IMAGE_BYTES) : [];
-
-      if (oversized.length > 0) {
-        onError(
-          `Files too large: ${oversized.map((file) => file.name).join(", ")}. Maximum 25 MB per image.`
-        );
+      if (file && !validateFiles([file], "image")) {
         return;
       }
 
@@ -180,7 +177,7 @@ export function useAdminMedia({
         return file ? [...withoutIndex, { index, file }] : withoutIndex;
       });
     },
-    [onChange, onError]
+    [onChange, validateFiles]
   );
 
   const handleFileSelection = useCallback(
@@ -190,14 +187,8 @@ export function useAdminMedia({
     ) => {
       const files = Array.from(event.target.files ?? []);
       const isVideo = type === "video" || type === "siteHeroVideo";
-      const limit = isVideo ? MAX_VIDEO_BYTES : MAX_IMAGE_BYTES;
-      const limitLabel = isVideo ? "2 GB" : "25 MB";
-      const oversized = getOversizedFiles(files, limit);
 
-      if (oversized.length > 0) {
-        onError(
-          `File too large: ${oversized.map((file) => file.name).join(", ")}. Maximum size for ${isVideo ? "videos" : "images"} is ${limitLabel}.`
-        );
+      if (!validateFiles(files, isVideo ? "video" : "image")) {
         event.target.value = "";
         return;
       }
@@ -206,7 +197,7 @@ export function useAdminMedia({
       if (type === "video") setVideoFile(files[0] ?? null);
       if (type === "siteHeroVideo") setSiteHeroVideoFile(files[0] ?? null);
     },
-    [onError, setCoverFile, setSiteHeroVideoFile, setVideoFile]
+    [setCoverFile, setSiteHeroVideoFile, setVideoFile, validateFiles]
   );
 
   return {

@@ -1,6 +1,8 @@
 # Lux Studio
 
-Premium automotive video portfolio and marketing site scaffolded with Next.js, Tailwind CSS, Framer Motion, and Supabase-ready data/storage hooks.
+Production-oriented automotive portfolio and marketing site built with Next.js,
+Tailwind CSS, Framer Motion, and Supabase-backed content, auth, inquiries, and
+media storage.
 
 ## Stack
 
@@ -17,7 +19,8 @@ Premium automotive video portfolio and marketing site scaffolded with Next.js, T
 - Dynamic project detail pages
 - Services, About, and Contact pages
 - Simple admin workspace for editing project content, global social/contact settings, and uploading assets
-- Placeholder automotive-focused copy and SVG media surfaces
+- Versioned Supabase migrations, protected admin access, resilient public error
+  states, and automated quality checks
 
 ## Local setup
 
@@ -34,19 +37,19 @@ Premium automotive video portfolio and marketing site scaffolded with Next.js, T
 - Add `SUPABASE_SERVICE_ROLE_KEY` on the server so `/api/inquiries` can persist contact requests without exposing open client-side inserts.
 - Add `RESEND_API_KEY`, `INQUIRY_EMAIL_TO`, and optionally `INQUIRY_EMAIL_FROM` so saved inquiries also send an email notification.
 - `/admin` uses Supabase Auth directly. Database and storage access is restricted to users listed in `public.admin_users`.
-- Public pages fall back to local placeholder content if Supabase is not configured.
+- Public pages use local demo content only when Supabase is intentionally not configured.
 - The admin page works in demo mode without Supabase and persists to Supabase once auth/env vars are added.
 - Global settings are read from the `site_settings` table when available.
 - See `docs/supabase-production-setup.md` for the production checklist.
 - See `docs/live-launch-checklist.md` for the launch sequence and smoke test command.
 
-## Replace later
+## Production content gates
 
-- Brand name, navigation copy, and contact details: `lib/site-config.ts`
-- Placeholder projects and premium copy: `lib/content.ts`
-- Hero showreel path: `components/sections/home-hero.tsx`
-- SVG placeholder imagery: `public/images/*`
-- Public brand/contact/social fallback: `lib/site-config.ts`
+- Apply every migration in `supabase/migrations`.
+- Enter final brand, contact, social, project, and legal content in the CMS and
+  `lib/legal.ts`.
+- Replace demo projects and media before relying on the no-Supabase fallback.
+- Follow `docs/technical-roadmap.md` for remaining external release gates.
 
 ## Media
 

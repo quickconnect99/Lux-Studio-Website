@@ -1,12 +1,14 @@
 "use client";
 
-import { useCallback, useEffect } from "react";
+import { useCallback, useEffect, useState } from "react";
 import type { Session, SupabaseClient } from "@supabase/supabase-js";
 
 type AdminCredentials = {
   email: string;
   password: string;
 };
+
+export type SignInMessage = { tone: "error" | "success"; text: string } | null;
 
 type UseAdminSessionOptions = {
   supabase: SupabaseClient | null;
@@ -35,6 +37,8 @@ export function useAdminSession({
   resetCredentials,
   showStatus
 }: UseAdminSessionOptions) {
+  const [signInMessage, setSignInMessage] = useState<SignInMessage>(null);
+
   const authorizeSession = useCallback(
     async (session: Session | null) => {
       if (!supabase || !session?.user.email) {
@@ -49,9 +53,10 @@ export function useAdminSession({
         await supabase.auth.signOut();
         setSessionEmail(null);
         onSessionEnded();
-        showStatus(
-          "This Supabase account is not authorized for the admin workspace."
-        );
+        const message =
+          "This Supabase account is not authorized for the admin workspace.";
+        showStatus(message);
+        setSignInMessage({ tone: "error", text: message });
         return false;
       }
 
@@ -123,6 +128,7 @@ export function useAdminSession({
       }
 
       onBeforeAuth();
+      setSignInMessage(null);
       setWorking(true);
 
       try {
@@ -140,11 +146,16 @@ export function useAdminSession({
           return;
         }
 
-        showStatus("Signed in. Project syncing is now enabled.");
+        const message = "Signed in. Project syncing is now enabled.";
+        showStatus(message);
+        setSignInMessage({ tone: "success", text: message });
         onSignInSuccess();
         resetCredentials();
       } catch (error) {
-        showStatus(error instanceof Error ? error.message : "Sign-in failed.");
+        const message =
+          error instanceof Error ? error.message : "Sign-in failed.";
+        showStatus(message);
+        setSignInMessage({ tone: "error", text: message });
       } finally {
         setWorking(false);
       }
@@ -171,9 +182,9 @@ export function useAdminSession({
     await supabase.auth.signOut();
     setSessionEmail(null);
     onSessionEnded();
-    showStatus(
-      "Signed out. Templates remain available for new project drafts."
-    );
+    const message = "Signed out. Templates remain available for new project drafts.";
+    showStatus(message);
+    setSignInMessage({ tone: "success", text: message });
   }, [
     onBeforeAuth,
     onSessionEnded,
@@ -184,6 +195,7 @@ export function useAdminSession({
 
   return {
     handleSignIn,
-    handleSignOut
+    handleSignOut,
+    signInMessage
   };
 }

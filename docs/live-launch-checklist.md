@@ -2,7 +2,8 @@
 
 ## 1. Supabase
 
-- SQL aus `supabase/schema.sql` im SQL Editor ausfuehren
+- [x] alle versionierten Migrationen aus `supabase/migrations` anwenden
+- [x] `npm run migrations:check` ausfuehren
 - pruefen, dass der Bucket `projects` existiert und public ist
 - in Auth mindestens einen Admin-User anlegen
 - UUID des Admin-Users in `public.admin_users` eintragen
@@ -45,6 +46,10 @@ Zusatzchecks im Browser:
 - nur User aus `public.admin_users` koennen Inhalte verwalten
 - Bild-Upload im Admin funktioniert
 - neue Bilder werden auf den Projektseiten korrekt gerendert
+- Shot With Intent und Frames in Motion speichern Auswahl, Reihenfolge und
+  Projektlinks nach einem Reload korrekt
+- ersetzte Medien bleiben nur erhalten, wenn sie noch an anderer Stelle
+  referenziert werden
 - Kontaktformular speichert eine Anfrage
 - API-Antworten enthalten einen `x-request-id`-Header
 - Function-Logs enthalten nach der Migration kein

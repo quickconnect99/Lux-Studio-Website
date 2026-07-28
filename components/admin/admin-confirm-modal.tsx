@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { AlertTriangle, RefreshCw, X } from "lucide-react";
 import type { AdminConfirmDialogState } from "@/lib/admin-types";
 import { cn } from "@/lib/utils";
@@ -20,20 +20,67 @@ export function AdminConfirmModal({
   onConfirm,
   onInputChange
 }: AdminConfirmModalProps) {
+  const modalRef = useRef<HTMLDivElement>(null);
+  const closeButtonRef = useRef<HTMLButtonElement>(null);
+  const onCloseRef = useRef(onClose);
+  const workingRef = useRef(working);
+  onCloseRef.current = onClose;
+  workingRef.current = working;
+
   useEffect(() => {
     if (!dialog) {
       return;
     }
 
+    const previouslyFocused =
+      document.activeElement instanceof HTMLElement
+        ? document.activeElement
+        : null;
+    const previousOverflow = document.body.style.overflow;
+
     function handleKeyDown(event: KeyboardEvent) {
-      if (event.key === "Escape" && !working) {
-        onClose();
+      if (event.key === "Escape" && !workingRef.current) {
+        onCloseRef.current();
+        return;
+      }
+
+      if (event.key !== "Tab" || !modalRef.current) {
+        return;
+      }
+
+      const focusable = Array.from(
+        modalRef.current.querySelectorAll<HTMLElement>(
+          'button:not([disabled]), input:not([disabled]), [tabindex]:not([tabindex="-1"])'
+        )
+      );
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+
+      if (!first || !last) {
+        event.preventDefault();
+        modalRef.current.focus();
+      } else if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
       }
     }
 
     window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [dialog, onClose, working]);
+    document.body.style.overflow = "hidden";
+    window.requestAnimationFrame(() => {
+      const input = modalRef.current?.querySelector<HTMLElement>("input");
+      (input ?? closeButtonRef.current ?? modalRef.current)?.focus();
+    });
+
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+      document.body.style.overflow = previousOverflow;
+      previouslyFocused?.focus();
+    };
+  }, [dialog]);
 
   if (!dialog) {
     return null;
@@ -54,9 +101,11 @@ export function AdminConfirmModal({
       />
 
       <div
+        ref={modalRef}
         role="dialog"
         aria-modal="true"
         aria-labelledby="admin-confirm-title"
+        tabIndex={-1}
         className="panel-2xl relative z-10 w-full max-w-xl overflow-hidden border border-line p-6 shadow-2xl sm:p-7"
       >
         <div className="flex items-start justify-between gap-4">
@@ -86,6 +135,7 @@ export function AdminConfirmModal({
           </div>
 
           <button
+            ref={closeButtonRef}
             type="button"
             onClick={onClose}
             disabled={working}
@@ -111,7 +161,11 @@ export function AdminConfirmModal({
               />
             </label>
             <p className="text-xs leading-6 text-muted">
-              Type <span className="font-medium text-foreground">{dialog.requireMatchText}</span> exactly to continue.
+              Type{" "}
+              <span className="font-medium text-foreground">
+                {dialog.requireMatchText}
+              </span>{" "}
+              exactly to continue.
             </p>
           </div>
         ) : null}
@@ -136,9 +190,7 @@ export function AdminConfirmModal({
                 : ""
             )}
           >
-            {working ? (
-              <RefreshCw className="h-4 w-4 animate-spin" />
-            ) : null}
+            {working ? <RefreshCw className="h-4 w-4 animate-spin" /> : null}
             {dialog.confirmLabel}
           </button>
         </div>

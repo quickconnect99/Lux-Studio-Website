@@ -18,6 +18,15 @@ test("selects a page image before project and general fallbacks", () => {
   );
 });
 
+test("extracts the image from a linked frame selection", () => {
+  assert.equal(
+    resolveSharingImage({
+      preferredImages: ["/images/frame.jpg | /work/project"]
+    }),
+    "/images/frame.jpg"
+  );
+});
+
 test("uses the first project cover when no page image is supplied", () => {
   assert.equal(
     resolveSharingImage({ projects, settings: defaultSiteSettings }),

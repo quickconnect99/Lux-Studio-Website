@@ -6,6 +6,7 @@ import {
   normalizePublicMediaUrl
 } from "@/lib/media-url";
 import { normalizeProjectBusiness } from "@/lib/project-business";
+import { normalizeProjectGallery } from "@/lib/project-images";
 import { DEFAULT_PROJECT_IMAGE, defaultSiteSettings } from "@/lib/site-config";
 import type {
   NavigationVisibility,
@@ -97,16 +98,23 @@ type SupabaseProjectRow = {
   cover_image: string;
   gallery_images: string[] | null;
   gallery_captions: string[] | null;
+  gallery_items?: Array<{
+    image?: string | null;
+    caption?: string | null;
+    alt?: string | null;
+  }> | null;
   video_url: string | null;
   uploaded_video: string | null;
   featured: boolean;
   published: boolean;
   created_at: string;
+  updated_at?: string | null;
   behind_the_scenes: string | null;
 };
 
 type SupabaseSiteSettingsRow = {
   id: string;
+  updated_at?: string | null;
   brand_name: string | null;
   brand_mark: string | null;
   brand_strapline: string | null;
@@ -199,12 +207,12 @@ function normalizeSelectedFrames(frames: string[] | null | undefined) {
   return frames.map((frame) => frame.trim()).filter(Boolean);
 }
 
-function normalizeMotionFrames(frames: string[] | null | undefined) {
-  const normalized = Array.isArray(frames)
-    ? frames.map((frame) => frame.trim()).filter(Boolean)
-    : [];
+export function normalizeMotionFrames(frames: string[] | null | undefined) {
+  if (!Array.isArray(frames)) {
+    return defaultSiteSettings.motionFrames;
+  }
 
-  return normalized.length > 0 ? normalized : defaultSiteSettings.motionFrames;
+  return frames.map((frame) => frame.trim()).filter(Boolean);
 }
 
 function normalizeTeamMembers(
@@ -232,6 +240,32 @@ function normalizeTeamMembers(
 }
 
 export function normalizeProjectRecord(record: SupabaseProjectRow): Project {
+  const legacyGallery = normalizeProjectGallery({
+    coverImage: record.cover_image,
+    galleryImages: filterPublicMediaUrls(record.gallery_images),
+    galleryCaptions: record.gallery_captions ?? []
+  });
+  const rawStructuredGallery = Array.isArray(record.gallery_items)
+    ? record.gallery_items
+        .map((item) => ({
+          image: normalizePublicMediaUrl(item?.image),
+          caption: item?.caption?.trim() ?? "",
+          alt: item?.alt?.trim() || undefined
+        }))
+        .filter((item) => item.image)
+    : [];
+  const normalizedStructuredGallery = normalizeProjectGallery({
+    coverImage: record.cover_image,
+    galleryImages: rawStructuredGallery.map((item) => item.image),
+    galleryCaptions: rawStructuredGallery.map((item) => item.caption)
+  });
+  const structuredGallery = normalizedStructuredGallery.items.map((item) => ({
+    ...item,
+    alt: rawStructuredGallery.find((source) => source.image === item.image)?.alt
+  }));
+  const galleryItems =
+    structuredGallery.length > 0 ? structuredGallery : legacyGallery.items;
+
   return {
     id: record.id,
     business: normalizeProjectBusiness(record.business),
@@ -247,13 +281,15 @@ export function normalizeProjectRecord(record: SupabaseProjectRow): Project {
       record.cover_image,
       DEFAULT_PROJECT_IMAGE
     ),
-    galleryImages: filterPublicMediaUrls(record.gallery_images),
-    galleryCaptions: record.gallery_captions ?? [],
+    galleryImages: galleryItems.map((item) => item.image),
+    galleryCaptions: galleryItems.map((item) => item.caption),
+    galleryItems,
     videoUrl: normalizePublicMediaUrl(record.video_url) || undefined,
     uploadedVideo: normalizePublicMediaUrl(record.uploaded_video) || undefined,
     featured: record.featured,
     published: record.published,
     createdAt: record.created_at,
+    updatedAt: record.updated_at ?? record.created_at,
     behindTheScenes: record.behind_the_scenes ?? undefined
   };
 }
@@ -262,6 +298,7 @@ export function normalizeSiteSettingsRecord(
   record: SupabaseSiteSettingsRow
 ): SiteSettings {
   return {
+    updatedAt: record.updated_at ?? defaultSiteSettings.updatedAt,
     brand: {
       name: record.brand_name?.trim() || defaultSiteSettings.brand.name,
       mark: record.brand_mark?.trim() || defaultSiteSettings.brand.mark,
@@ -336,7 +373,9 @@ export const getPublishedProjects = cache(async () => {
 
   if (error) {
     console.error("[supabase] Failed to load published projects", error);
-    return [];
+    throw new Error("Published projects are temporarily unavailable.", {
+      cause: error
+    });
   }
 
   if (!data) {
@@ -362,7 +401,9 @@ export const getProjectBySlug = cache(async (slug: string) => {
 
   if (error) {
     console.error(`[supabase] Failed to load project "${slug}"`, error);
-    return undefined;
+    throw new Error("This project is temporarily unavailable.", {
+      cause: error
+    });
   }
 
   if (!data) {
@@ -387,7 +428,9 @@ export const getSiteSettings = cache(async () => {
 
   if (error) {
     console.error("[supabase] Failed to load site settings", error);
-    return defaultSiteSettings;
+    throw new Error("Site settings are temporarily unavailable.", {
+      cause: error
+    });
   }
 
   if (!data) {

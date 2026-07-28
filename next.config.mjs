@@ -1,9 +1,12 @@
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL?.trim();
 const remotePatterns = [];
+let supabaseOrigin = "";
+const isProduction = process.env.NODE_ENV === "production";
 
 if (supabaseUrl) {
   try {
     const { protocol, hostname, port } = new URL(supabaseUrl);
+    supabaseOrigin = `${protocol}//${hostname}${port ? `:${port}` : ""}`;
 
     remotePatterns.push({
       protocol: protocol.replace(":", ""),
@@ -18,7 +21,26 @@ if (supabaseUrl) {
   }
 }
 
+const contentSecurityPolicy = [
+  "default-src 'self'",
+  "base-uri 'self'",
+  "object-src 'none'",
+  "frame-ancestors 'none'",
+  "form-action 'self'",
+  `script-src 'self' 'unsafe-inline'${isProduction ? "" : " 'unsafe-eval'"}`,
+  "style-src 'self' 'unsafe-inline'",
+  "font-src 'self' data:",
+  `img-src 'self' data: blob: https:${supabaseOrigin ? ` ${supabaseOrigin}` : ""}`,
+  `media-src 'self' blob: https:${supabaseOrigin ? ` ${supabaseOrigin}` : ""}`,
+  `connect-src 'self'${supabaseOrigin ? ` ${supabaseOrigin}` : ""}`,
+  "frame-src https://www.youtube-nocookie.com https://www.youtube.com https://player.vimeo.com",
+  isProduction ? "upgrade-insecure-requests" : ""
+]
+  .filter(Boolean)
+  .join("; ");
+
 const securityHeaders = [
+  { key: "Content-Security-Policy", value: contentSecurityPolicy },
   { key: "X-Frame-Options", value: "DENY" },
   { key: "X-Content-Type-Options", value: "nosniff" },
   { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },

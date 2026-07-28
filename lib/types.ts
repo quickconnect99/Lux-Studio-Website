@@ -2,6 +2,12 @@ export type ProjectBusiness = string;
 
 export type ProjectCategory = string;
 
+export type GalleryItem = {
+  image: string;
+  caption: string;
+  alt?: string;
+};
+
 export type Project = {
   id?: string;
   business: ProjectBusiness;
@@ -16,11 +22,13 @@ export type Project = {
   coverImage: string;
   galleryImages: string[];
   galleryCaptions?: string[];
+  galleryItems?: GalleryItem[];
   videoUrl?: string;
   uploadedVideo?: string;
   featured: boolean;
   published: boolean;
   createdAt: string;
+  updatedAt?: string;
   behindTheScenes?: string;
 };
 
@@ -103,6 +111,7 @@ export type SiteCopy = {
 };
 
 export type SiteSettings = {
+  updatedAt: string;
   brand: {
     name: string;
     mark: string;

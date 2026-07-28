@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { DEFAULT_PROJECT_IMAGE } from "@/lib/site-config";
 import type { Project, SiteSettings } from "@/lib/types";
+import { buildFrameItems, isLikelyImageUrl } from "@/lib/project-images";
 
 type SharingMetadataOptions = {
   title: string;
@@ -22,16 +23,27 @@ export function resolveSharingImage({
   projects = [],
   settings
 }: SharingImageOptions = {}) {
-  const candidates = [
+  const entries = [
     ...preferredImages,
     ...projects.map((project) => project.coverImage),
     ...(settings?.selectedFrames ?? []),
     DEFAULT_PROJECT_IMAGE
   ];
+  const candidates = entries.flatMap((entry) => {
+    if (!entry?.trim()) {
+      return [];
+    }
+
+    return buildFrameItems({
+      selectedFrames: [entry],
+      fallbackImages: [],
+      galleryImages: []
+    }).map((frame) => frame.image);
+  });
 
   return (
     candidates.find((candidate): candidate is string =>
-      Boolean(candidate?.trim())
+      Boolean(candidate?.trim() && isLikelyImageUrl(candidate))
     ) ?? DEFAULT_PROJECT_IMAGE
   );
 }

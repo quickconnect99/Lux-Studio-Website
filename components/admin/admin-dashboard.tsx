@@ -94,6 +94,7 @@ export function AdminDashboard() {
     updateAuthFormField,
     handleSignIn,
     handleSignOut,
+    signInMessage,
     statusMessage,
     saveReport,
     working,
@@ -408,6 +409,24 @@ export function AdminDashboard() {
                   Sign In
                 </button>
               </form>
+              {signInMessage ? (
+                <p
+                  role="status"
+                  aria-live="polite"
+                  className={`mt-3 flex items-center gap-2 text-sm ${
+                    signInMessage.tone === "error"
+                      ? "text-error"
+                      : "text-success"
+                  }`}
+                >
+                  {signInMessage.tone === "error" ? (
+                    <AlertTriangle className="h-4 w-4 shrink-0" />
+                  ) : (
+                    <CheckCircle2 className="h-4 w-4 shrink-0" />
+                  )}
+                  {signInMessage.text}
+                </p>
+              ) : null}
             </div>
           </div>
         </div>

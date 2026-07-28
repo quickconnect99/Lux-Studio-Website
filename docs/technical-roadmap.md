@@ -1,299 +1,238 @@
 # Technische Roadmap
 
-Stand: 26. Juli 2026
+Stand: 28. Juli 2026
 
 ## Zielbild
 
-Die Website soll reproduzierbar deploybar, auf kleinen und großen Viewports
-stabil, für Tastatur und Touch bedienbar und im Produktionsbetrieb
-beobachtbar sein. Der Admin-Bereich wird schrittweise modularisiert, ohne die
-bestehenden Payloads oder den redaktionellen Workflow in einem Big-Bang-Umbau
-zu verändern.
+Lux Studio soll als responsive, barrierearme und zuverlässig deploybare
+Portfolio-Website funktionieren. Redakteure müssen Medien eindeutig Projekten
+zuordnen und Änderungen ohne Datenverlust speichern können. Fehler externer
+Dienste dürfen nicht als leeres Portfolio erscheinen.
 
-## Status-Legende
+## Status
 
-- `Erledigt`: im Repository umgesetzt und lokal verifiziert
-- `In Arbeit`: lokal umsetzbarer Schritt dieser Iteration
-- `Gate`: benötigt eine bewusste Freigabe oder Änderung externer Infrastruktur
-- `Geplant`: sinnvoller Folgeschritt ohne akuten Produktionsblocker
+- `Erledigt`: im Repository umgesetzt
+- `Verifikation`: umgesetzt, vollständige Regression läuft noch
+- `Geplant`: sinnvoller weiterer Schritt ohne akuten Funktionsblocker
+- `Gate`: benötigt Produktionszugang, echte Inhalte oder eine externe Entscheidung
 
-## Phase 0 — Repository-Datenschutz
+## Phase 0 – Datenschutz und Repository
 
-Status: lokal `Erledigt`, Remote-Aktualisierung bleibt ein `Gate`
+Status: `Erledigt`, koordinierter Remote-Historienabgleich bleibt ein `Gate`
 
-Priorität: kritisch
+- Private Dokumente und echte Umgebungsdateien sind nicht Teil des Git-Index.
+- Schutzmuster für Rechnungen und lokale Secrets bleiben in `.gitignore`.
+- Ein historischer Remote-Rewrite darf nur koordiniert mit allen
+  Repository-Nutzern erfolgen.
 
-- Rechnungen und andere private Dokumente dürfen nicht im Git-Index liegen.
-- Dateimuster für private Dokumente bleiben in `.gitignore`.
-- Falls private Dateien bereits gepusht wurden, muss eine koordinierte
-  Historienbereinigung mit `git filter-repo` erfolgen.
-- Betroffene Zugangsdaten und personenbezogene Informationen sind dann als
-  offengelegt zu behandeln.
-
-Audit und Bereinigung vom 26. Juli 2026:
-
-- Im aktuellen Git-Index liegt nur `.env.example`; Rechnungen und echte
-  Umgebungsdateien werden nicht getrackt.
-- Aus sämtlichen lokalen Branch-, Remote-Tracking- und Stash-Referenzen wurden
-  `car pictures/Rechnung_Handy.pdf`,
-  `car pictures/Rechnung_Handy1.pdf` und
-  `car pictures/Rechnung_Internet.pdf` entfernt.
-- Die Dateien wurden nicht geöffnet oder inhaltlich verarbeitet.
-- Alte Wiederherstellungsreferenzen und Reflogs wurden nach erfolgreicher
-  Prüfung entfernt; die zugehörigen unerreichbaren Objekte wurden lokal
-  bereinigt.
-
-Akzeptanzkriterien:
-
-- `git ls-files` listet keine Rechnungen oder privaten Dokumente.
-- Neue PDF-Rechnungen können nicht versehentlich committed werden.
-- Der bereinigte Branch wurde koordiniert force-gepusht und alle
-  Repository-Nutzer haben ihre Klone anschließend neu aufgebaut.
-
-Freigabe-Gate:
-
-- Der lokale Rewrite ist abgeschlossen. Vor dem Force-Push auf GitHub muss ein
-  Wartungsfenster mit allen Repository-Nutzern abgestimmt werden; vorhandene
-  Klone dürfen die alte Historie danach nicht erneut pushen.
-
-## Phase 1 — Korrektheit und Zugriffsschutz
-
-Status: Repository und Produktionsschema `Erledigt`, Live-Workflow-Test bleibt
-ein `Gate`
-
-Priorität: hoch
-
-- Lokale Demo-Projekte werden nur verwendet, wenn Supabase nicht konfiguriert
-  ist.
-- Datenbankfehler reaktivieren keine gelöschten Demo-Projekte.
-- Supabase-Login und Schreiboperationen verwenden die explizite
-  Admin-Allowlist.
-- Admin-Revalidierung prüft die Session serverseitig.
-- RLS und Storage-Policies begrenzen Änderungen auf freigeschaltete
-  Admin-Konten.
-
-Akzeptanzkriterien:
-
-- Ein in Supabase fehlender Slug liefert `notFound`.
-- Ein angemeldeter, aber nicht freigeschalteter User sieht keinen Editor.
-- Ein normaler authentifizierter User kann keine CMS-Daten verändern.
-- `/admin` ist im Produktions-Build ohne explizite Aktivierung nicht
-  erreichbar.
-
-Deployment-Stand:
-
-- Alle sieben versionierten Migrationen wurden am 26. Juli 2026 auf das
-  verknüpfte Projekt „Lux Studio Website“ angewendet.
-- Rate-Limit-Tabelle, RLS, RPC-Berechtigungen, Indizes, Projekt-Default und
-  globale Kontaktadresse wurden anschließend read-only verifiziert.
-
-Freigabe-Gate:
-
-- Der vollständige Admin-Workflow muss vor dem Livegang zusätzlich mit einem
-  echten Nicht-Admin-Konto im Browser geprüft werden.
-
-## Phase 2 — Toolchain und automatisierte Qualität
+## Phase 1 – Öffentliche Funktionen und Navigation
 
 Status: `Erledigt`
 
-Priorität: hoch
+Erledigt:
 
-- Node.js 20.19 oder neuer ist über `.nvmrc` festgelegt.
-- Next.js und `eslint-config-next` verwenden dieselbe Version.
-- CI führt Typecheck, Lint, Unit-Tests und Build aus.
-- Eine Playwright-Suite prüft die öffentlichen Routen und den lokalen
-  Admin-Bereich bei 320, 390, 768 und 1440 Pixel Breite.
-- Browserfehler, fehlende Hauptüberschriften, kaputte Bilder und horizontaler
-  Overflow führen zu einem Testfehler.
-- Menü, Theme-Auswahl und Reduced-Motion-Hydration erhalten eigene
-  Interaktionstests.
-
-Akzeptanzkriterien:
-
-- `npm run typecheck`, `npm run lint`, `npm test`, `npm run test:e2e` und
-  `npm run build` laufen reproduzierbar.
-- CI installiert nur Chromium und speichert Playwright-Artefakte bei Fehlern.
-- Browser-Screenshots, Traces und Reports werden nicht committed.
-
-## Phase 3 — Responsive GUI und Barrierearmut
-
-Status: `Erledigt`, anschließend kontinuierliche Qualitätssicherung
-
-Priorität: hoch
-
-- Animationszustände sind zwischen Server und erster Client-Ausgabe stabil.
-- Horizontale Reveal-Animationen überschreiten auf kleinen Displays nicht den
-  Seitengutter.
-- Jede öffentliche Inhaltsseite besitzt genau eine Hauptüberschrift.
-- Mobile Navigation, Theme-Menü und Admin-Dialoge sind per Tastatur bedienbar.
-- Wesentliche Form-, Drag-, Lösch- und Navigationsaktionen verwenden
-  touchfreundliche Trefferflächen.
-- Viewportgebundene Overlays werden nicht von transformierten oder
-  backdrop-gefilterten Vorfahren abgeschnitten.
+- Shot With Intent besitzt kein stilles Acht-Bilder-Limit mehr.
+- Shot With Intent und Frames in Motion können getrennt und in beliebiger
+  Reihenfolge gepflegt werden.
+- Beide Frame-Bereiche besitzen eine veröffentlichte Projektbild-Bibliothek.
+- Frame-Auswahlen speichern Bild und internen Projektlink gemeinsam.
+- Identische Bild-URLs verschiedener Projekte behalten dadurch ihre eindeutige
+  Zuordnung.
+- Interne Frame-Links verwenden Next-Navigation im selben Tab.
+- Die Work-Filter synchronisieren sich mit URL-Änderungen und melden ihren
+  aktiven Zustand mit `aria-pressed`.
+- Die Ergebnisanzahl der Work-Filter wird für assistive Technik angekündigt.
+- Die Next-Project-Navigation wird bei null oder nur einem Projekt nicht
+  gerendert.
+- Einwort-Projekttitel erzeugen keine leere zweite Titelzeile.
 
 Akzeptanzkriterien:
 
-- Kein horizontaler Dokument-Overflow in den definierten Viewports.
-- Keine Hydration- oder Konsolenfehler bei normaler oder reduzierter Bewegung.
-- Mobile Overlays bleiben vollständig innerhalb des Viewports.
+- Leere und nicht leere Frames-in-Motion-Auswahlen bleiben nach Speichern und
+  erneutem Laden exakt erhalten.
+- Mehr als acht Shot-With-Intent-Bilder erscheinen öffentlich.
+- Vor/Zurück-Navigation des Browsers hält Work-URL und Filterzustand synchron.
 
-## Phase 4 — Admin-Modularisierung und Bundle
+## Phase 2 – Projektmedien und Fullscreen
 
-Status: drei Iterationen `Erledigt`
+Status: `Erledigt`
 
-Priorität: mittel
+Erledigt:
 
-Bereits getrennte Integrationsgrenzen:
+- Projektbilder erscheinen nur noch in einer zentralen Carousel-/Gallery-UI.
+- Captions bleiben im Carousel sichtbar und werden auch für Bildbeschreibungen
+  verwendet.
+- Der Fullscreen-Modus zeigt Bilder mit `object-contain` ohne Beschnitt.
+- Lightbox: Escape, Pfeiltasten, Fokus-Trap, initialer Fokus,
+  Fokuswiederherstellung, Scroll-Lock und Touch-Swipe.
+- Das Datenmodell erhält strukturierte `gallery_items`; die bisherigen
+  Bild-/Caption-Arrays bleiben während der kompatiblen Migration erhalten.
+- JSON-LD verwendet eine sichere Serialisierung.
 
-- Medienauswahl und Vorschau-URLs: `use-admin-media.ts`
-- Browser-Drafts: `use-admin-draft.ts`
-- Formularzustand: `use-form.ts`
-- Datenbank-Payloads und Normalisierung: `admin-persistence.ts`
-- Site-Settings-Oberfläche: nach Inhaltsbereichen aufgeteilt
+Geplant:
 
-Diese Iteration:
+- Nach erfolgreichem Produktions-Rollout die Legacy-Spalten
+  `gallery_images`/`gallery_captions` in einer separaten Migration entfernen.
+- Redaktionell pflegbare individuelle Alt-Texte im Gallery Editor ergänzen.
 
-- Auth-Session und Session-Lifecycle aus `use-admin-data.ts` extrahieren.
-- Schwere Admin-Editoren und Vorschauen dynamisch laden.
-- Loading-Zustände so gestalten, dass Layout und Fokus stabil bleiben.
-- Reine Logik an Modulgrenzen mit Unit-Tests absichern.
+## Phase 3 – Accessibility und responsive Bedienung
 
-Zweite Iteration:
+Status: `Erledigt`
 
-- Site-Settings-Formularzustand, Laden und Speichern in
-  `use-admin-site-settings.ts` kapseln.
-- Storage-Uploads und öffentliche Revalidierung aus dem UI-Hook in
-  `admin-storage.ts` verschieben.
-- Projekt-Laden, Upsert und Löschen über `admin-project-repository.ts`
-  abstrahieren.
-- Zusammenführen lokaler Projekte ohne Datenbank-ID mit Unit-Tests absichern.
+Erledigt:
 
-Abgeschlossene dritte Iteration:
+- Theme-Switcher besitzt während der Hydration einen größenstabilen Platzhalter.
+- Inquiry-Status wird über `status`/`alert` und `aria-live` angekündigt.
+- Bei Formularfehlern springt der Fokus zum ersten fehlerhaften Feld.
+- Shake-Timer werden beim Unmount sauber beendet.
+- Admin-Bestätigungsdialoge besitzen Fokus-Trap, initialen Fokus,
+  Fokuswiederherstellung und Scroll-Lock.
+- Frames in Motion verwendet Pointer Events und Pointer Capture statt
+  getrennter Mouse-/Touch-Logik.
+- Öffentliche Error-, Global-Error- und Loading-Boundaries sind vorhanden.
+- Frame-Alt-Texte verwenden Projekttitel, sofern eine Projektzuordnung bekannt
+  ist.
 
-- Projektauswahl, Slug-Prüfung und Bestätigungsdialoge in einen
-  `use-admin-project-workspace`-Hook überführen.
-- Mutationsergebnisse und Repository-Fehler über typisierte Resultate statt
-  über verteilte Status-Strings transportieren.
-- Projekt-Laden, Slug-Lookup, Upsert und Löschen ausschließlich über das
-  Projekt-Repository ausführen.
-- Datenbankdetails gegenüber der GUI auf sichere, handlungsorientierte
-  Fehlertypen abbilden.
-- `use-admin-data.ts` als Orchestrator beibehalten; der Hook wurde dabei von
-  869 auf 551 Zeilen reduziert.
+Geplant:
 
-Akzeptanzkriterien:
+- Axe-Core in die Browser-Suite aufnehmen.
+- Screenreader-Tests für Menü, Lightbox, Filter und Inquiry als feste
+  Release-Checkliste dokumentieren.
 
-- Auth, Media-Queue, Draft-Persistenz und Site-Settings liegen nicht mehr im
-  zentralen Hook.
-- Projekt-CRUD greift nur über das Repository auf Supabase zu.
-- Settings-Code wird beim initialen Projekt-Editor nicht zwingend geladen.
-- Bestehende Datenbank- und lokale Payloads bleiben kompatibel.
-- Änderungen der Admin-Chunk-Größe bleiben unter zwei Prozent und werden im
-  Build-Report dokumentiert.
+## Phase 4 – Uploads und Storage-Lifecycle
 
-Bewusste Architekturentscheidung:
+Status: `Erledigt`
 
-- Ein zusätzlicher globaler Admin-Context wird erst eingeführt, wenn mehrere
-  voneinander unabhängige Admin-Routen denselben Zustand benötigen. Für die
-  aktuelle einzelne Arbeitsfläche würde er nur eine weitere Indirektion
-  erzeugen.
+Erledigt:
 
-Build-Report:
-
-- Vor der dritten Iteration: `/admin` 76,6 kB, First Load 227 kB.
-- Danach: `/admin` 77,6 kB, First Load 228 kB.
-- Die zusätzliche typisierte Fehler- und Workspace-Grenze kostet damit rund
-  1 kB beziehungsweise 1,3 Prozent auf der nur explizit aktivierbaren
-  Admin-Route. Die öffentlichen Routen werden dadurch nicht größer.
-
-## Phase 5 — Produktionshärtung und Beobachtbarkeit
-
-Status: Repository und Produktionsmigration `Erledigt`, externer
-Monitoring-Anbieter bleibt ein `Gate`
-
-Priorität: mittel
-
-- Das Inquiry-Rate-Limit erhält einen persistenten Supabase-RPC-Pfad.
-- Falls die Migration noch nicht aktiv ist, bleibt das lokale In-Memory-Limit
-  als klar protokollierter Fallback erhalten.
-- Serverfehler werden strukturiert und ohne Formulardaten oder Geheimnisse
-  protokolliert.
-- Anfrage-, Supabase- und E-Mail-Fehler erhalten stabile Event-Namen und eine
-  Request-ID.
-
-Akzeptanzkriterien:
-
-- Mit angewendetem Schema funktioniert das Limit über mehrere
-  Serverless-Instanzen hinweg.
-- Ein fehlender RPC führt nicht zum Ausfall des Kontaktformulars.
-- Logs enthalten keine E-Mail-Adresse, keinen Nachrichtentext und keine
-  Zugangsdaten.
-- Kritische Fehler sind anhand von Event-Name und Request-ID korrelierbar.
-
-Produktionsnachweis:
-
-- `20260726000100_inquiry_rate_limit_and_defaults.sql` und
-  `20260726000200_update_global_contact_email.sql` sind remote registriert.
-- Ein transaktionaler Smoke-Test lieferte für zwei erlaubte und einen
-  blockierten Versuch `[true, true, false]`; der Test wurde vollständig
+- Bilder und Videos werden nach MIME-Typ, Dateiendung, positiver Dateigröße und
+  Maximalgröße geprüft.
+- Erlaubte Bilder: AVIF, GIF, JPEG, PNG und WebP bis 15 MB.
+- Erlaubte Videos: MOV, MP4 und WebM bis 500 MB.
+- Storage-Dateien verwenden UUIDs und `upsert: false`; bestehende Dateien
+  werden nicht überschrieben.
+- Mehrere Uploads laufen mit begrenzter Parallelität.
+- Schlägt der Datenbank-Save fehl, werden neu hochgeladene Dateien
   zurückgerollt.
-- `anon` und `authenticated` besitzen kein Execute-Recht auf den RPC,
-  `service_role` besitzt es.
+- Ersetzte oder gelöschte Medien werden nur entfernt, wenn sie weder von
+  Projekten noch von Site Settings referenziert werden.
 
-Freigabe-Gate:
+Geplant:
 
-- Ein externer Anbieter wie Sentry, Axiom oder Datadog benötigt
-  Anbieterentscheidung, Account, Datenregion und Secret-Konfiguration.
+- Resumierbare Uploads und serverseitiges Transcoding für große Videos.
+- Automatische Bildvarianten und Komprimierung vor dem Produktions-Rollout.
+- Periodischer read-only Orphan-Report für den Storage.
 
-## Phase 6 — Dependency- und Framework-Migration
+## Phase 5 – Datenresilienz, SEO und Security
 
-Status: lokal `Bewertet`, Major-Migration und Preview bleiben `Gates`
+Status: `Erledigt`; echte Inhalte und rechtliche Abnahme bleiben ein `Gate`
 
-Priorität: mittel
+Erledigt:
 
-- Direkte Sicherheitsupdates innerhalb der aktuellen Next-Linie werden
-  zeitnah eingespielt.
-- Verbleibende transitive `postcss`-/`sharp`-Findings werden in einer
-  kontrollierten Next-Major-Migration aufgelöst.
-- Die Migration umfasst Codemods, Build, Unit-/E2E-Tests und einen
-  Preview-Deploy.
+- Supabase-Abfragefehler werfen einen kontrollierten Seitenfehler statt leere
+  Arrays oder Demo-Inhalt zurückzugeben.
+- Fallback-Inhalte enthalten keine erfundene Telefonnummer und keine generischen
+  YouTube-/Vimeo-Profile mehr. Ein neutraler Instagram-Plattformlink hält die
+  ausdrücklich gewünschte Footer-Aktion sichtbar.
+- Organisation-JSON-LD verwendet das echte Lux-Studio-Logo.
+- JSON-LD escaped scriptkritische Zeichen.
+- Die Sitemap ist ISR-basiert und verwendet echte Änderungszeitpunkte.
+- Projekte und Site Settings aktualisieren `updated_at` über Datenbank-Trigger.
+- Ein kombinierter Published-/Created-Index ist für wachsende Projektlisten
+  vorbereitet.
+- Eine dokumentweite Content-Security-Policy ergänzt die vorhandenen
+  Sicherheitsheader.
+- CMS-Inhalte werden nicht mehr rekursiv anhand vorhandener Projektkategorien
+  umgeschrieben.
+- Die Migrationen `20260728000200` bis `20260728000400` sind auf dem
+  verknüpften Supabase-Projekt angewendet und remote verifiziert.
 
-Ergebnis der Bewertung vom 26. Juli 2026:
+Gate:
 
-- Installiert ist Next.js `15.5.22`, der aktuelle npm-Backport der
-  Maintenance-LTS-Linie.
-- Die aktuelle stabile Major-Linie ist Next.js `16.2.12`.
-- Der Quellcode verwendet keine bei Next.js 16 entfernte synchrone
-  Request-API und keine eigene Webpack-Konfiguration.
-- Für Next.js 16 muss `images.qualities` mindestens die im Projekt verwendeten
-  Werte `90` und `95` explizit erlauben.
-- `npm audit --omit=dev` meldet weiterhin drei hohe transitive Findings in
-  Nexts eingebundenem `postcss@8.4.31` und `sharp@0.34.5`. Die von npm
-  vorgeschlagene automatische Abhilfe wäre ein falscher Downgrade auf
-  Next.js 9 und wird nicht angewendet.
-- Details und Migrationscheckliste stehen in
-  `docs/next-major-assessment.md`.
+- Echte Telefonnummer und echte Social-Profile im CMS hinterlegen, falls sie
+  öffentlich gezeigt werden sollen.
+- Rechtstexte und Unternehmensangaben fachlich/juristisch abnehmen.
 
-Akzeptanzkriterien:
+## Phase 6 – Performance und Refactoring
 
-- Kein ungeprüfter `npm audit fix --force`.
-- Keine offenen hohen Production-Advisories.
-- Öffentliche Seiten, Admin-Workflow und Supabase-Revalidierung bestehen die
-  vollständige Regression.
+Status: teilweise `Erledigt`, Rest `Geplant`
 
-Freigabe-Gate:
+Erledigt:
 
-- Framework-Major-Upgrades werden in einem eigenen Branch und mit
-  Preview-Deployment durchgeführt.
-- Die drei hohen Production-Advisories benötigen eine upstream-kompatible
-  Paketauflösung oder eine dokumentierte Risikofreigabe; ein Major-Upgrade
-  allein darf nicht als Behebung angenommen werden.
+- Der globale Framer-Motion-Wrapper und die clientseitige Root-Routenanimation
+  wurden entfernt.
+- Nur Vintage Light und Vintage Dark bleiben als Theme-Typen und CSS-Tokens
+  erhalten.
+- Dynamische lokale und Supabase-Bilder werden optimiert; unbekannte externe
+  Hosts bleiben aus Kompatibilitätsgründen unoptimiert.
+- Frame-Bibliothek und Zuordnungslogik sind aus der großen Settings-Datei
+  extrahiert.
 
-## Empfohlene Reihenfolge
+Geplant:
 
-1. Bereinigtes `main` koordiniert mit `--force-with-lease` auf GitHub
-   veröffentlichen und bestehende Klone danach neu aufsetzen.
-2. Admin-Workflow im Produktionsprojekt mit einem Nicht-Admin-Konto prüfen.
-3. Monitoring-Anbieter, Datenregion und Secret-Verwaltung freigeben.
-4. Next.js 16 in einem eigenen Branch migrieren, die Production-Advisories
-   erneut bewerten und den vollständigen Preview-Deploy abnehmen.
+- `project-editor.tsx`, `live-preview.tsx` und die verbleibenden
+  Settings-Seiten weiter nach Inhaltsdomänen aufteilen.
+- Textbasierte `|`-Formate für Services, Werte und Social-Links durch typisierte
+  Repeater ersetzen.
+- Das 12-MB-Demo-Projektvideo extern transcodieren oder durch eine kleinere
+  Produktionsfassung ersetzen; im Repository ist kein Video-Encoder vorhanden.
+- Bundle-Grenzwerte automatisiert im CI-Build protokollieren.
+
+## Phase 7 – Tests, CI und Deployment
+
+Status: `Erledigt`
+
+Erledigt:
+
+- Unit-Tests decken interne Frame-Links, doppelte Bild-URLs, sichere JSON-LD-
+  Serialisierung, leere Motion-Frames und Uploadvalidierung ab.
+- CI prüft Benennung und Eindeutigkeit aller versionierten Migrationen.
+- Typecheck, Lint, Unit-Tests, Build und responsive Playwright-Tests bleiben die
+  Freigabekette.
+
+Geplant:
+
+- Die große responsive E2E-Datei in Navigation, Media, Admin und Layout teilen.
+- Stabile visuelle Regressionen für Home, Work, Projektdetail und mobile
+  Navigation aufnehmen.
+- Einen echten Supabase-Save/Reload-Test in einer isolierten Testdatenbank
+  ausführen.
+- Supabase-Typen nach jeder Remote-Migration automatisiert generieren.
+
+Gate:
+
+- CI kann Remote-Migrationsparität erst mit einem dedizierten
+  Supabase-CI-Zugang prüfen.
+- Produktions-Smoke-Test mit echtem Admin- und Nicht-Admin-Konto.
+
+Aktueller Prüfstand:
+
+- TypeScript-Typecheck: erfolgreich.
+- ESLint: erfolgreich.
+- Unit-Tests: 32 erfolgreich.
+- Migrationsprüfung: 12 eindeutig benannte und sortierte Migrationen.
+- Remote-Migrationsstand: alle 12 lokalen und entfernten Versionen stimmen
+  überein.
+- Responsive Playwright-Suite: 73 erfolgreich, 67 absichtlich
+  viewportabhängig übersprungen, keine Fehler.
+- Next.js-Produktions-Build: erfolgreich.
+
+## Phase 8 – Betrieb und externe Entscheidungen
+
+Status: `Gate`
+
+- Monitoring-Anbieter, Datenregion, Aufbewahrung und Secrets festlegen.
+- Alerts für Inquiry-Speicherfehler und fehlgeschlagene E-Mail-Benachrichtigungen
+  konfigurieren.
+- Next-Major-Upgrade in eigenem Branch mit Preview-Deployment durchführen.
+- Keine automatischen Force-Upgrades oder ungeprüften Dependency-Downgrades.
+
+## Release-Reihenfolge
+
+1. [x] Lokale Qualitätskette vollständig grün abschließen.
+2. [x] Neue Migrationen im verknüpften Supabase-Projekt anwenden.
+3. [ ] Admin-Save/Reload für beide Frame-Sammlungen und Projektgalerien prüfen.
+4. [ ] Mobile, Tablet, Desktop und Wide-Desktop visuell abnehmen.
+5. [ ] Echte Kontakt-, Social- und Legal-Daten prüfen.
+6. [ ] Preview deployen, Live-Smoke-Test ausführen und erst danach
+   veröffentlichen.

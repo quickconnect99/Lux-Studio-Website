@@ -57,6 +57,7 @@ export function InquiryForm({
         <label className="space-y-2 text-sm text-muted">
           <span className="text-xs uppercase tracking-eyebrow">Name</span>
           <input
+            data-inquiry-field="name"
             required
             autoComplete="name"
             value={formState.name}
@@ -75,6 +76,7 @@ export function InquiryForm({
         <label className="space-y-2 text-sm text-muted">
           <span className="text-xs uppercase tracking-eyebrow">Email</span>
           <input
+            data-inquiry-field="email"
             required
             type="email"
             autoComplete="email"
@@ -95,6 +97,7 @@ export function InquiryForm({
       <label className="mt-4 block space-y-2 text-sm text-muted">
         <span className="text-xs uppercase tracking-eyebrow">Company</span>
         <input
+          data-inquiry-field="company"
           autoComplete="organization"
           value={formState.company}
           maxLength={80}
@@ -114,6 +117,7 @@ export function InquiryForm({
       <label className="mt-4 block space-y-2 text-sm text-muted">
         <span className="text-xs uppercase tracking-eyebrow">Service Type</span>
         <select
+          data-inquiry-field="serviceType"
           required
           value={formState.serviceType}
           aria-invalid={Boolean(errors.serviceType)}
@@ -145,6 +149,7 @@ export function InquiryForm({
       <label className="mt-4 block space-y-2 text-sm text-muted">
         <span className="text-xs uppercase tracking-eyebrow">Brief</span>
         <textarea
+          data-inquiry-field="brief"
           required
           value={formState.brief}
           maxLength={BRIEF_MAX}
@@ -213,6 +218,8 @@ export function InquiryForm({
 
       {message && (
         <p
+          role={status === "error" ? "alert" : "status"}
+          aria-live={status === "error" ? "assertive" : "polite"}
           className={cn(
             "mt-4 text-sm",
             status === "error"

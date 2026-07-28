@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import Image from "next/image";
 import Link from "next/link";
 import Script from "next/script";
 import { notFound } from "next/navigation";
@@ -8,8 +7,8 @@ import { ProjectMedia } from "@/components/sections/project-media";
 import { ProjectImageCarousel } from "@/components/sections/project-image-carousel";
 import { LinkButton } from "@/components/ui/link-button";
 import { Reveal } from "@/components/ui/reveal";
-import { RevealList } from "@/components/ui/reveal-list";
 import { normalizeProjectGallery } from "@/lib/project-images";
+import { serializeJsonLd } from "@/lib/json-ld";
 import {
   getProjectPrimaryMetaLabel,
   parseProjectBusinessParam,
@@ -101,23 +100,20 @@ export default async function ProjectPage({
     (entry) => entry.slug === project.slug
   );
   const nextProject =
-    navigableProjects[(currentIndex + 1) % navigableProjects.length];
+    navigableProjects.length > 1
+      ? navigableProjects[
+          (Math.max(currentIndex, 0) + 1) % navigableProjects.length
+        ]
+      : null;
   const normalizedGallery = normalizeProjectGallery({
     coverImage: project.coverImage,
     galleryImages: project.galleryImages,
     galleryCaptions: project.galleryCaptions ?? []
   });
-  const carouselImages = [project.coverImage, ...project.galleryImages].filter(
-    (img, index, arr) => img && arr.indexOf(img) === index
-  );
-
-  const heroStill = normalizedGallery.images[0] ?? null;
-  const supportingStillItems = normalizedGallery.images
-    .slice(1)
-    .map((image, index) => ({
-      image,
-      caption: normalizedGallery.captions[index + 1] ?? ""
-    }));
+  const carouselImages = [project.coverImage, ...normalizedGallery.images];
+  const carouselCaptions = ["", ...normalizedGallery.captions];
+  const [titleLead, ...titleTrailParts] = project.title.trim().split(/\s+/);
+  const titleTrail = titleTrailParts.join(" ");
 
   const videoUrl = project.videoUrl || project.uploadedVideo;
   const primarySubject = project.carModel.trim() || project.category;
@@ -163,13 +159,13 @@ export default async function ProjectPage({
       <Script
         id={`schema-breadcrumb-${project.slug}`}
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }}
+        dangerouslySetInnerHTML={{ __html: serializeJsonLd(breadcrumbSchema) }}
       />
       {videoSchema && (
         <Script
           id={`schema-video-${project.slug}`}
           type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(videoSchema) }}
+          dangerouslySetInnerHTML={{ __html: serializeJsonLd(videoSchema) }}
         />
       )}
       <section className="section-shell pb-8 pt-7 sm:pb-10 sm:pt-20">
@@ -179,10 +175,12 @@ export default async function ProjectPage({
               {project.business} / {project.category}
             </p>
             <h1 className="project-display-title break-words font-[family-name:var(--font-display)] uppercase leading-[0.9] tracking-[-0.05em] text-foreground">
-              {project.title.split(" ")[0]}
-              <span className="block pl-5 text-accent sm:pl-14">
-                {project.title.split(" ").slice(1).join(" ")}
-              </span>
+              {titleLead}
+              {titleTrail ? (
+                <span className="block pl-5 text-accent sm:pl-14">
+                  {titleTrail}
+                </span>
+              ) : null}
             </h1>
             <MetadataGrid
               items={[
@@ -239,119 +237,51 @@ export default async function ProjectPage({
       ) : null}
 
       <section className="section-shell section-space-tight pt-0">
-        <ProjectImageCarousel images={carouselImages} title={project.title} />
+        <ProjectImageCarousel
+          images={carouselImages}
+          captions={carouselCaptions}
+          title={project.title}
+        />
       </section>
 
-      <section className="section-shell section-space-tight pt-0">
-        <div className="space-y-6">
-          {heroStill ? (
-            <Reveal>
-              <div className="film-frame relative overflow-hidden rounded-[1.35rem] sm:rounded-[2rem]">
-                <div className="aspect-[4/3] sm:aspect-[16/9]" />
-                <Image
-                  src={heroStill}
-                  alt={`${project.title} still 1`}
-                  fill
-                  sizes="100vw"
-                  className="object-cover"
-                />
+      {nextProject ? (
+        <section className="section-shell section-space-tight pt-0">
+          <div className="dark-panel rounded-[1.5rem] p-5 text-white sm:rounded-[2.5rem] sm:p-12">
+            <div className="grid gap-8 lg:grid-cols-[1fr_auto] lg:items-end">
+              <div className="space-y-4">
+                <p className="eyebrow text-white/70 before:bg-accent">
+                  Next project
+                </p>
+                <h2 className="font-[family-name:var(--font-display)] text-4xl uppercase leading-none sm:text-5xl">
+                  {nextProject.title}
+                </h2>
+                <p className="description-copy-compact max-w-xl text-white/80">
+                  {nextProject.shortDescription}
+                </p>
               </div>
-            </Reveal>
-          ) : null}
 
-          {supportingStillItems.length > 0 ? (
-            <div className="grid gap-6">
-              <RevealList
-                items={supportingStillItems}
-                getKey={(item) => item.image}
-                render={(item, index) =>
-                  (() => {
-                    const caption = item.caption.trim() || null;
-
-                    if (!caption) {
-                      return (
-                        <div className="film-frame relative overflow-hidden rounded-[1.35rem] sm:rounded-[2rem]">
-                          <div className="aspect-[4/3] sm:aspect-[16/9]" />
-                          <Image
-                            src={item.image}
-                            alt={`${project.title} still ${index + 2}`}
-                            fill
-                            sizes="100vw"
-                            className="object-cover"
-                          />
-                        </div>
-                      );
-                    }
-
-                    return (
-                      <div className="overflow-hidden rounded-[1.5rem] border border-line bg-panel-secondary p-3 shadow-card sm:rounded-[2rem] sm:p-5">
-                        <div className="grid gap-5 lg:grid-cols-[minmax(0,0.68fr)_minmax(220px,0.32fr)] lg:items-start">
-                          <div className="film-frame relative overflow-hidden rounded-[1.25rem] sm:rounded-[1.75rem]">
-                            <div className="aspect-[4/3] sm:aspect-[4/5]" />
-                            <Image
-                              src={item.image}
-                              alt={`${project.title} still ${index + 2}`}
-                              fill
-                              sizes="(min-width: 1024px) 46vw, 100vw"
-                              className="object-cover"
-                            />
-                          </div>
-
-                          <div className="flex h-full flex-col justify-start gap-4 rounded-[1.25rem] border border-line bg-panel px-4 py-5 sm:min-h-[220px] sm:gap-6 sm:rounded-[1.5rem] sm:px-6 sm:py-6">
-                            <p className="text-accent/90 font-mono text-[0.72rem] uppercase tracking-[0.28em]">
-                              Still 0{index + 2}
-                            </p>
-                            <p className="text-foreground/82 max-w-[28ch] text-base leading-8 sm:text-[1.02rem]">
-                              {caption}
-                            </p>
-                          </div>
-                        </div>
-                      </div>
-                    );
-                  })()
-                }
-              />
-            </div>
-          ) : null}
-        </div>
-      </section>
-
-      <section className="section-shell section-space-tight pt-0">
-        <div className="dark-panel rounded-[1.5rem] p-5 text-white sm:rounded-[2.5rem] sm:p-12">
-          <div className="grid gap-8 lg:grid-cols-[1fr_auto] lg:items-end">
-            <div className="space-y-4">
-              <p className="eyebrow text-white/70 before:bg-accent">
-                Next project
-              </p>
-              <h2 className="font-[family-name:var(--font-display)] text-4xl uppercase leading-none sm:text-5xl">
-                {nextProject.title}
-              </h2>
-              <p className="description-copy-compact max-w-xl text-white/80">
-                {nextProject.shortDescription}
-              </p>
-            </div>
-
-            <div className="grid gap-3 sm:flex sm:flex-wrap sm:gap-4">
-              <LinkButton
-                href={`${`/work/${nextProject.slug}`}${
-                  activeBusiness
-                    ? `?business=${projectBusinessToParam(activeBusiness)}`
-                    : ""
-                }`}
-                className="w-full sm:w-auto"
-              >
-                View Next
-              </LinkButton>
-              <Link
-                href={backHref}
-                className="inline-flex min-h-12 items-center justify-center rounded-full border border-white/15 px-5 text-xs uppercase tracking-eyebrow text-white/80 hover:text-accent sm:min-h-0 sm:justify-start sm:border-0 sm:px-0"
-              >
-                Back to Work
-              </Link>
+              <div className="grid gap-3 sm:flex sm:flex-wrap sm:gap-4">
+                <LinkButton
+                  href={`${`/work/${nextProject.slug}`}${
+                    activeBusiness
+                      ? `?business=${projectBusinessToParam(activeBusiness)}`
+                      : ""
+                  }`}
+                  className="w-full sm:w-auto"
+                >
+                  View Next
+                </LinkButton>
+                <Link
+                  href={backHref}
+                  className="inline-flex min-h-12 items-center justify-center rounded-full border border-white/15 px-5 text-xs uppercase tracking-eyebrow text-white/80 hover:text-accent sm:min-h-0 sm:justify-start sm:border-0 sm:px-0"
+                >
+                  Back to Work
+                </Link>
+              </div>
             </div>
           </div>
-        </div>
-      </section>
+        </section>
+      ) : null}
     </div>
   );
 }

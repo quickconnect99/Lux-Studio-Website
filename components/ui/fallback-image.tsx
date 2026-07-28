@@ -13,9 +13,34 @@ export function FallbackImage({
   fallbackSrc,
   alt,
   onError,
+  unoptimized,
   ...props
 }: FallbackImageProps) {
   const [currentSrc, setCurrentSrc] = useState(src);
+  const configuredStorageHost = (() => {
+    try {
+      return process.env.NEXT_PUBLIC_SUPABASE_URL
+        ? new URL(process.env.NEXT_PUBLIC_SUPABASE_URL).hostname
+        : null;
+    } catch {
+      return null;
+    }
+  })();
+  const shouldSkipOptimization = (() => {
+    if (unoptimized !== undefined) {
+      return unoptimized;
+    }
+
+    if (currentSrc.startsWith("/")) {
+      return false;
+    }
+
+    try {
+      return new URL(currentSrc).hostname !== configuredStorageHost;
+    } catch {
+      return true;
+    }
+  })();
 
   useEffect(() => {
     setCurrentSrc(src);
@@ -26,6 +51,7 @@ export function FallbackImage({
       {...props}
       src={currentSrc}
       alt={alt}
+      unoptimized={shouldSkipOptimization}
       onError={(event) => {
         onError?.(event);
 

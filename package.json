@@ -9,9 +9,10 @@
     "start:prod": "next start",
     "lint": "eslint app components hooks lib next.config.mjs playwright.config.ts scripts tests --max-warnings=0 --cache",
     "typecheck": "tsc --noEmit",
-    "test": "tsx --test tests/rate-limit.test.ts tests/inquiry-rate-limit.test.ts tests/admin-persistence.test.ts tests/admin-project-repository.test.ts tests/admin-result.test.ts tests/public-portfolio.test.ts tests/sharing-metadata.test.ts",
+    "test": "node scripts/run-unit-tests.mjs",
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
+    "migrations:check": "node scripts/check-migrations.mjs",
     "format": "prettier . --write",
     "smoke:live": "node scripts/smoke-test-live.mjs"
   },

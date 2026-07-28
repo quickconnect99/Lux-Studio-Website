@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { ChevronLeft, ChevronRight, Expand } from "lucide-react";
 import { Lightbox } from "@/components/ui/lightbox";
@@ -22,8 +23,12 @@ const fallbackFrameImages = [
 ];
 
 export function SelectedFrames({ frames, label }: SelectedFramesProps) {
-  const frameItems = frames.slice(0, 8);
+  const frameItems = frames;
   const frameImages = frameItems.map((frame) => frame.image);
+  const frameAlts = frameItems.map(
+    (frame, index) => frame.alt ?? `Selected project still ${index + 1}`
+  );
+  const router = useRouter();
   const shouldReduceMotion = useReducedMotion();
   const [focusedIndex, setFocusedIndex] = useState(0);
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
@@ -39,7 +44,11 @@ export function SelectedFrames({ frames, label }: SelectedFramesProps) {
     const href = frameItems[index]?.href;
 
     if (href) {
-      window.open(href, "_blank", "noopener,noreferrer");
+      if (/^https?:\/\//i.test(href)) {
+        window.open(href, "_blank", "noopener,noreferrer");
+      } else {
+        router.push(href);
+      }
       return;
     }
 
@@ -135,10 +144,9 @@ export function SelectedFrames({ frames, label }: SelectedFramesProps) {
                 fallbackSrc={
                   fallbackFrameImages[index % fallbackFrameImages.length]
                 }
-                alt={`Automotive still ${index + 1}`}
+                alt={frame.alt ?? `Selected project still ${index + 1}`}
                 fill
                 sizes="(min-width: 1280px) 660px, (min-width: 640px) 48vw, 78vw"
-                unoptimized
                 className="object-cover"
               />
             </motion.div>
@@ -201,10 +209,9 @@ export function SelectedFrames({ frames, label }: SelectedFramesProps) {
                   fallbackSrc={
                     fallbackFrameImages[index % fallbackFrameImages.length]
                   }
-                  alt={`Automotive still ${index + 1}`}
+                  alt={frame.alt ?? `Selected project still ${index + 1}`}
                   fill
                   sizes="(min-width: 1280px) 660px, (min-width: 640px) 48vw, 78vw"
-                  unoptimized
                   className="object-cover"
                 />
               </div>
@@ -342,6 +349,7 @@ export function SelectedFrames({ frames, label }: SelectedFramesProps) {
 
       <Lightbox
         images={frameImages}
+        imageAlts={frameAlts}
         fallbackImages={fallbackFrameImages}
         activeIndex={activeIndex}
         onClose={closeLightbox}

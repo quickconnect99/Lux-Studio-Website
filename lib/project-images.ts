@@ -18,12 +18,18 @@ export function dedupeImageUrls(images: string[]) {
 export type FrameItem = {
   image: string;
   href?: string;
+  alt?: string;
+  projectTitle?: string;
 };
 
 const imageFilePattern = /\.(?:avif|gif|jpe?g|png|svg|webp)(?:[?#].*)?$/i;
 
 function isWebUrl(value: string) {
   return /^https?:\/\//i.test(value);
+}
+
+function isLinkValue(value: string) {
+  return (value.startsWith("/") || isWebUrl(value)) && !isLikelyImageUrl(value);
 }
 
 export function isLikelyImageUrl(value: string) {
@@ -54,51 +60,66 @@ export function buildFrameItems({
   fallbackImages: string[];
   galleryImages: string[];
 }) {
-  const selectedImages: string[] = [];
+  const selectedItems: FrameItem[] = [];
   const selectedLinks: string[] = [];
-  const directLinksByImage = new Map<string, string>();
 
   selectedFrames.forEach((entry) => {
     const parts = splitFrameEntry(entry);
     const image = parts.find(isLikelyImageUrl);
-    const href = parts.find(
-      (part) => isWebUrl(part) && !isLikelyImageUrl(part)
-    );
+    const href = parts.find(isLinkValue);
 
     if (image) {
-      selectedImages.push(image);
+      selectedItems.push({ image, href });
     }
 
     if (href) {
       selectedLinks.push(href);
     }
-
-    if (image && href) {
-      directLinksByImage.set(image, href);
-    }
   });
 
-  const images = dedupeImageUrls(
-    selectedImages.length > 0
-      ? selectedImages
-      : [...galleryImages, ...fallbackImages]
-  );
+  if (selectedItems.length > 0) {
+    const seen = new Set<string>();
 
-  return images.map((image, index) => ({
-    image,
-    href: directLinksByImage.get(image) ?? selectedLinks[index]
-  }));
+    return selectedItems
+      .map((item, index) => ({
+        ...item,
+        href: item.href ?? selectedLinks[index]
+      }))
+      .filter((item) => {
+        const key = `${item.image}\u0000${item.href ?? ""}`;
+
+        if (seen.has(key)) {
+          return false;
+        }
+
+        seen.add(key);
+        return true;
+      });
+  }
+
+  return dedupeImageUrls([...galleryImages, ...fallbackImages]).map(
+    (image, index) => ({
+      image,
+      href: selectedLinks[index]
+    })
+  );
+}
+
+export function serializeFrameItem(frame: FrameItem) {
+  return frame.href ? `${frame.image} | ${frame.href}` : frame.image;
 }
 
 export function buildProjectFrameItems(
-  projects: Array<Pick<Project, "slug" | "coverImage" | "galleryImages">>,
+  projects: Array<
+    Pick<Project, "title" | "slug" | "coverImage" | "galleryImages">
+  >,
   preferredImages: string[] = []
 ) {
   const frames: FrameItem[] = [];
-  const seen = new Set<string>();
 
   projects.forEach((project) => {
     const slug = project.slug.trim();
+    const seenInProject = new Set<string>();
 
     if (!slug) {
       return;
@@ -107,14 +128,16 @@ export function buildProjectFrameItems(
     [project.coverImage, ...project.galleryImages].forEach((entry) => {
       const image = entry.trim();
 
-      if (!image || seen.has(image)) {
+      if (!image || seenInProject.has(image)) {
         return;
       }
 
-      seen.add(image);
+      seenInProject.add(image);
       frames.push({
         image,
-        href: `/work/${encodeURIComponent(slug)}`
+        href: `/work/${encodeURIComponent(slug)}`,
+        alt: `${project.title} project still`,
+        projectTitle: project.title
       });
     });
   });
@@ -123,19 +146,40 @@ export function buildProjectFrameItems(
     return frames;
   }
 
-  const projectHrefByImage = new Map(
-    frames.map((frame) => [frame.image, frame.href])
-  );
+  const projectFramesByImage = new Map<string, FrameItem[]>();
+  frames.forEach((frame) => {
+    projectFramesByImage.set(frame.image, [
+      ...(projectFramesByImage.get(frame.image) ?? []),
+      frame
+    ]);
+  });
   const preferredFrames = buildFrameItems({
     selectedFrames: preferredImages,
     fallbackImages: [],
     galleryImages: []
   });
+  const usedMatches = new Map<string, number>();
 
-  return preferredFrames.map((frame) => ({
-    ...frame,
-    href: frame.href ?? projectHrefByImage.get(frame.image)
-  }));
+  return preferredFrames.map((frame) => {
+    const matches = projectFramesByImage.get(frame.image) ?? [];
+    const explicitMatch = frame.href
+      ? matches.find((match) => match.href === frame.href)
+      : undefined;
+    const matchIndex = usedMatches.get(frame.image) ?? 0;
+    const inferredMatch = explicitMatch ?? matches[matchIndex] ?? matches[0];
+
+    if (!explicitMatch && inferredMatch) {
+      usedMatches.set(frame.image, matchIndex + 1);
+    }
+
+    return {
+      ...inferredMatch,
+      ...frame,
+      href: frame.href ?? inferredMatch?.href,
+      alt: inferredMatch?.alt,
+      projectTitle: inferredMatch?.projectTitle
+    };
+  });
 }
 
 export function normalizeProjectGallery({
@@ -169,5 +213,12 @@ export function normalizeProjectGallery({
     captions.push((galleryCaptions[index] ?? "").trim());
   });
 
-  return { images, captions };
+  return {
+    images,
+    captions,
+    items: images.map((image, index) => ({
+      image,
+      caption: captions[index] ?? ""
+    }))
+  };
 }

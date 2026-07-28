@@ -33,6 +33,7 @@ export function getVisibleNavigation(visibility: NavigationVisibility) {
 }
 
 export const defaultSiteSettings: SiteSettings = {
+  updatedAt: "2026-07-28T00:00:00.000Z",
   brand: {
     name: BRAND_NAME,
     mark: BRAND_MARK,
@@ -40,13 +41,14 @@ export const defaultSiteSettings: SiteSettings = {
       "Films and photography for car launches, dealer campaigns, and events."
   },
   social: [
-    { label: "Instagram", href: "https://instagram.com" },
-    { label: "YouTube", href: "https://youtube.com" },
-    { label: "Vimeo", href: "https://vimeo.com" }
+    {
+      label: "Instagram",
+      href: "https://www.instagram.com/"
+    }
   ],
   contact: {
     email: "n.hagelberger@luxstudio.li",
-    phone: "+41 00 000 00 00",
+    phone: "",
     city: "Zurich / Milan / Monaco"
   },
   seo: {

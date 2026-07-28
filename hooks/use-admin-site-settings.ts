@@ -6,8 +6,11 @@ import { useForm } from "@/hooks/use-form";
 import { buildSiteSettingsDatabasePayload } from "@/lib/admin-persistence";
 import { toAdminOperationError } from "@/lib/admin-result";
 import {
+  removeAdminFiles,
+  removeUnreferencedAdminFiles,
   revalidateAdminPublicContent,
-  uploadAdminFile
+  uploadAdminFile,
+  uploadAdminFiles
 } from "@/lib/admin-storage";
 import type {
   AdminSaveReport,
@@ -20,6 +23,7 @@ import {
 } from "@/lib/admin-utils";
 import { defaultSiteSettings } from "@/lib/site-config";
 import { SITE_SETTINGS_ID, normalizeSiteSettingsRecord } from "@/lib/supabase";
+import { buildFrameItems } from "@/lib/project-images";
 
 type TeamImageFile = {
   index: number;
@@ -131,6 +135,7 @@ export function useAdminSiteSettings({
       event.preventDefault();
       setSaveReport(null);
       setWorking(true);
+      const newlyUploadedUrls: string[] = [];
 
       try {
         if (!supabase) {
@@ -151,6 +156,16 @@ export function useAdminSiteSettings({
           formState.aboutTeamGalleryText
         );
         const aboutTeamMembers = [...formState.aboutTeamMembers];
+        const previousMediaUrls = [
+          formState.heroVideoUrl,
+          ...buildFrameItems({
+            selectedFrames,
+            fallbackImages: [],
+            galleryImages: []
+          }).map((frame) => frame.image),
+          ...aboutTeamGallery,
+          ...formState.aboutTeamMembers.map((member) => member.image)
+        ].filter(Boolean);
         const totalFiles =
           (siteHeroVideoFile ? 1 : 0) +
           selectedFrameFiles.length +
@@ -169,54 +184,73 @@ export function useAdminSiteSettings({
             siteHeroVideoFile,
             "videos"
           );
+          newlyUploadedUrls.push(heroVideoUrl);
         }
 
         if (selectedFrameFiles.length > 0) {
-          const uploadedFrames: string[] = [];
-
-          for (const file of selectedFrameFiles) {
-            setUploadProgress({
-              current: ++uploadedCount,
-              total: totalFiles,
-              filename: file.name
-            });
-            uploadedFrames.push(
-              await uploadAdminFile(supabase, file, "selected-frames")
-            );
-          }
+          const progressOffset = uploadedCount;
+          const uploadedFrames = await uploadAdminFiles(
+            supabase,
+            selectedFrameFiles,
+            "selected-frames",
+            (completed, file, publicUrl) => {
+              uploadedCount = progressOffset + completed;
+              newlyUploadedUrls.push(publicUrl);
+              setUploadProgress({
+                current: uploadedCount,
+                total: totalFiles,
+                filename: file.name
+              });
+            }
+          );
 
           selectedFrames = [...selectedFrames, ...uploadedFrames];
         }
 
         if (aboutTeamGalleryFiles.length > 0) {
-          const uploadedTeamGallery: string[] = [];
-
-          for (const file of aboutTeamGalleryFiles) {
-            setUploadProgress({
-              current: ++uploadedCount,
-              total: totalFiles,
-              filename: file.name
-            });
-            uploadedTeamGallery.push(
-              await uploadAdminFile(supabase, file, "about-team-gallery")
-            );
-          }
+          const progressOffset = uploadedCount;
+          const uploadedTeamGallery = await uploadAdminFiles(
+            supabase,
+            aboutTeamGalleryFiles,
+            "about-team-gallery",
+            (completed, file, publicUrl) => {
+              uploadedCount = progressOffset + completed;
+              newlyUploadedUrls.push(publicUrl);
+              setUploadProgress({
+                current: uploadedCount,
+                total: totalFiles,
+                filename: file.name
+              });
+            }
+          );
 
           aboutTeamGallery = [...aboutTeamGallery, ...uploadedTeamGallery];
         }
 
         if (aboutTeamMemberImageFiles.length > 0) {
-          for (const item of aboutTeamMemberImageFiles) {
-            setUploadProgress({
-              current: ++uploadedCount,
-              total: totalFiles,
-              filename: item.file.name
-            });
+          const progressOffset = uploadedCount;
+          const uploadedTeamImages = await uploadAdminFiles(
+            supabase,
+            aboutTeamMemberImageFiles.map((item) => item.file),
+            "about-team",
+            (completed, file, publicUrl) => {
+              uploadedCount = progressOffset + completed;
+              newlyUploadedUrls.push(publicUrl);
+              setUploadProgress({
+                current: uploadedCount,
+                total: totalFiles,
+                filename: file.name
+              });
+            }
+          );
+
+          uploadedTeamImages.forEach((image, fileIndex) => {
+            const item = aboutTeamMemberImageFiles[fileIndex];
             aboutTeamMembers[item.index] = {
               ...aboutTeamMembers[item.index],
-              image: await uploadAdminFile(supabase, item.file, "about-team")
+              image
             };
-          }
+          });
         }
 
         setUploadProgress(null);
@@ -236,6 +270,7 @@ export function useAdminSiteSettings({
           .single();
 
         if (error) {
+          await removeAdminFiles(supabase, newlyUploadedUrls);
           showStatus(
             toAdminOperationError(
               error,
@@ -248,6 +283,20 @@ export function useAdminSiteSettings({
         const savedState = toSiteSettingsFormState(
           normalizeSiteSettingsRecord(data)
         );
+        const currentMediaUrls = [
+          heroVideoUrl,
+          ...buildFrameItems({
+            selectedFrames,
+            fallbackImages: [],
+            galleryImages: []
+          }).map((frame) => frame.image),
+          ...aboutTeamGallery,
+          ...aboutTeamMembers.map((member) => member.image)
+        ].filter(Boolean);
+        const replacedMediaUrls = previousMediaUrls.filter(
+          (url) => !currentMediaUrls.includes(url)
+        );
+        void removeUnreferencedAdminFiles(supabase, replacedMediaUrls);
         replaceForm(savedState);
         setSavedSnapshot(serializeSiteSettingsFormState(savedState));
         clearSiteSettingsMedia();
@@ -312,6 +361,9 @@ export function useAdminSiteSettings({
         });
       } catch (error) {
         setUploadProgress(null);
+        if (supabase && newlyUploadedUrls.length > 0) {
+          await removeAdminFiles(supabase, newlyUploadedUrls);
+        }
         showStatus(
           toAdminOperationError(error, "The site settings could not be saved.")
             .message

@@ -45,19 +45,12 @@ test("detects only published hospitality projects", () => {
   );
 });
 
-test("removes hospitality references when no project is published", () => {
+test("keeps CMS copy authoritative without hospitality projects", () => {
   const settings = adaptSiteSettingsToPublishedProjects(defaultSiteSettings, [
     carProject
   ]);
-  const serialized = JSON.stringify(settings).toLowerCase();
 
-  assert.equal(serialized.includes("hospitality"), false);
-  assert.equal(serialized.includes("hotel"), false);
-  assert.equal(settings.seo.title, "Lux Studio | Automotive Films & Campaign Stills");
-  assert.equal(
-    settings.hero.copy,
-    "We shoot launch films and stills for car brands and dealerships, built to hold up on a billboard, a product page, or a 15-second cut."
-  );
+  assert.equal(settings, defaultSiteSettings);
 });
 
 test("keeps configured copy unchanged when hospitality work exists", () => {

@@ -1,12 +1,15 @@
 import type { MetadataRoute } from "next";
 import { siteConfig } from "@/lib/site-config";
-import { getPublishedProjects } from "@/lib/supabase";
+import { getPublishedProjects, getSiteSettings } from "@/lib/supabase";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 300;
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = siteConfig.siteUrl;
-  const projects = await getPublishedProjects();
+  const [projects, settings] = await Promise.all([
+    getPublishedProjects(),
+    getSiteSettings()
+  ]);
   const routes = [
     "",
     "/work",
@@ -20,11 +23,11 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   return [
     ...routes.map((route) => ({
       url: `${baseUrl}${route}`,
-      lastModified: new Date()
+      lastModified: new Date(settings.updatedAt)
     })),
     ...projects.map((project) => ({
       url: `${baseUrl}/work/${project.slug}`,
-      lastModified: new Date(project.createdAt)
+      lastModified: new Date(project.updatedAt ?? project.createdAt)
     }))
   ];
 }

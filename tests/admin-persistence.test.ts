@@ -9,6 +9,15 @@ import {
   restoreProjectDraft
 } from "../lib/admin-persistence";
 import {
+  formatServicesText,
+  formatSocialLinksText,
+  formatValuesText,
+  parseServicesText,
+  parseSocialLinksText,
+  parseValuesText
+} from "../lib/admin-utils";
+import { normalizeMotionFrames } from "../lib/supabase";
+import {
   createEmptyProject,
   toSiteSettingsFormState
 } from "../lib/admin-utils";
@@ -123,6 +132,34 @@ test("serializes site settings and file limits", () => {
   assert.deepEqual(getOversizedFiles([{ size: 10 }, { size: 11 }], 10), [
     { size: 11 }
   ]);
+});
+
+test("persists an intentionally empty Frames in Motion selection", () => {
+  const formState = toSiteSettingsFormState(defaultSiteSettings);
+  formState.motionFramesText = "";
+  const payload = buildSiteSettingsDatabasePayload(formState);
+
+  assert.deepEqual(payload.motion_frames, []);
+  assert.deepEqual(normalizeMotionFrames(payload.motion_frames), []);
+});
+
+test("round-trips escaped delimiters in structured settings text", () => {
+  const social = [
+    { label: "Studio | Instagram", href: "https://example.com/a|b" }
+  ];
+  const values = [{ title: "Calm | Precise", copy: "Film | Photography" }];
+  const services = [
+    {
+      number: "01",
+      title: "Film | Stills",
+      description: "One shoot | multiple formats",
+      deliverables: ["Hero film", "Stills"]
+    }
+  ];
+
+  assert.deepEqual(parseSocialLinksText(formatSocialLinksText(social)), social);
+  assert.deepEqual(parseValuesText(formatValuesText(values)), values);
+  assert.deepEqual(parseServicesText(formatServicesText(services)), services);
 });
 
 test("builds remote and local save reports from queued media", () => {

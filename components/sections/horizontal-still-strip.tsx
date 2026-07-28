@@ -2,10 +2,12 @@
 
 import {
   type KeyboardEvent as ReactKeyboardEvent,
+  type PointerEvent as ReactPointerEvent,
   useEffect,
   useRef,
   useState
 } from "react";
+import Link from "next/link";
 import { FallbackImage } from "@/components/ui/fallback-image";
 import type { FrameItem } from "@/lib/project-images";
 import { cn } from "@/lib/utils";
@@ -51,6 +53,7 @@ export function HorizontalStillStrip({
   const trackRef = useRef<HTMLDivElement>(null);
   const dragOrigin = useRef<number | null>(null);
   const scrollOrigin = useRef<number>(0);
+  const activePointerId = useRef<number | null>(null);
   const frameItems: FrameItem[] = frames ?? images.map((image) => ({ image }));
 
   useEffect(() => {
@@ -84,6 +87,42 @@ export function HorizontalStillStrip({
   function endDrag() {
     dragOrigin.current = null;
     setPaused(false);
+  }
+
+  function handlePointerDown(event: ReactPointerEvent<HTMLDivElement>) {
+    if (event.pointerType === "mouse" && event.button !== 0) {
+      return;
+    }
+
+    activePointerId.current = event.pointerId;
+    startDrag(event.clientX);
+  }
+
+  function handlePointerMove(event: ReactPointerEvent<HTMLDivElement>) {
+    if (
+      activePointerId.current !== event.pointerId ||
+      dragOrigin.current === null
+    ) {
+      return;
+    }
+
+    if (
+      Math.abs(event.clientX - dragOrigin.current) > 6 &&
+      !event.currentTarget.hasPointerCapture(event.pointerId)
+    ) {
+      event.currentTarget.setPointerCapture(event.pointerId);
+    }
+
+    moveDrag(event.clientX);
+  }
+
+  function handlePointerEnd(event: ReactPointerEvent<HTMLDivElement>) {
+    if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+      event.currentTarget.releasePointerCapture(event.pointerId);
+    }
+
+    activePointerId.current = null;
+    endDrag();
   }
 
   function scrollByAmount(amount: number) {
@@ -152,12 +191,10 @@ export function HorizontalStillStrip({
         onMouseLeave={() => {
           endDrag();
         }}
-        onMouseDown={(e) => startDrag(e.clientX)}
-        onMouseMove={(e) => moveDrag(e.clientX)}
-        onMouseUp={endDrag}
-        onTouchStart={(e) => startDrag(e.touches[0].clientX)}
-        onTouchMove={(e) => moveDrag(e.touches[0].clientX)}
-        onTouchEnd={endDrag}
+        onPointerDown={handlePointerDown}
+        onPointerMove={handlePointerMove}
+        onPointerUp={handlePointerEnd}
+        onPointerCancel={handlePointerEnd}
       >
         <div
           className={cn(
@@ -169,43 +206,73 @@ export function HorizontalStillStrip({
             cursor: paused ? "grabbing" : "grab"
           }}
         >
-          {loop.map((frame, index) => (
-            <a
-              key={`${frame.image}-${index}`}
-              href={frame.href}
-              target={isExternalLink(frame.href) ? "_blank" : undefined}
-              rel={isExternalLink(frame.href) ? "noreferrer" : undefined}
-              data-project-frame-link={
-                frame.href?.startsWith("/work/") || undefined
-              }
-              aria-hidden={index >= frameItems.length}
-              aria-label={
-                index >= frameItems.length
-                  ? undefined
-                  : frame.href
-                    ? `Open ${imageAltPrefix.toLowerCase()} ${(index % frameItems.length) + 1}`
-                    : `${imageAltPrefix} ${(index % frameItems.length) + 1}`
-              }
-              tabIndex={frame.href && index < frameItems.length ? 0 : -1}
-              className="film-frame relative h-[245px] w-[340px] shrink-0 overflow-hidden rounded-[1.75rem] sm:h-[300px] sm:w-[480px] lg:h-[320px] lg:w-[520px]"
-            >
+          {loop.map((frame, index) => {
+            const isDuplicate = index >= frameItems.length;
+            const card = (
               <FallbackImage
                 src={frame.image}
                 fallbackSrc={
                   fallbackStripImages[index % fallbackStripImages.length]
                 }
                 alt={
-                  index >= frameItems.length
+                  isDuplicate
                     ? ""
-                    : `${imageAltPrefix} ${(index % frameItems.length) + 1}`
+                    : (frame.alt ??
+                      `${imageAltPrefix} ${(index % frameItems.length) + 1}`)
                 }
                 fill
                 sizes="(min-width: 1024px) 520px, (min-width: 640px) 480px, 340px"
-                unoptimized
-                className="object-cover"
+                draggable={false}
+                className="pointer-events-none object-cover"
               />
-            </a>
-          ))}
+            );
+            const sharedProps = {
+              "data-project-frame-link":
+                frame.href?.startsWith("/work/") || undefined,
+              "aria-hidden": isDuplicate || undefined,
+              "aria-label": isDuplicate
+                ? undefined
+                : frame.href
+                  ? `Open ${frame.projectTitle ?? `${imageAltPrefix} ${(index % frameItems.length) + 1}`}`
+                  : (frame.alt ??
+                    `${imageAltPrefix} ${(index % frameItems.length) + 1}`),
+              tabIndex: frame.href && !isDuplicate ? 0 : -1,
+              className:
+                "film-frame relative h-[245px] w-[340px] shrink-0 overflow-hidden rounded-[1.75rem] sm:h-[300px] sm:w-[480px] lg:h-[320px] lg:w-[520px]"
+            };
+
+            if (frame.href && !isExternalLink(frame.href)) {
+              return (
+                <Link
+                  key={`${frame.image}-${frame.href}-${index}`}
+                  href={frame.href}
+                  {...sharedProps}
+                >
+                  {card}
+                </Link>
+              );
+            }
+
+            if (frame.href) {
+              return (
+                <a
+                  key={`${frame.image}-${frame.href}-${index}`}
+                  href={frame.href}
+                  target="_blank"
+                  rel="noreferrer"
+                  {...sharedProps}
+                >
+                  {card}
+                </a>
+              );
+            }
+
+            return (
+              <div key={`${frame.image}-${index}`} {...sharedProps}>
+                {card}
+              </div>
+            );
+          })}
         </div>
       </div>
     </section>
