@@ -2,7 +2,9 @@
   "permissions": {
     "allow": [
       "Bash(npx tsc:*)",
-      "Bash(npm run:*)"
+      "Bash(npm run:*)",
+      "Bash(rm -rf .next node_modules/.cache)",
+      "Bash(npm run *)"
     ]
   }
 }
