@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useDeferredValue, useState } from "react";
 import dynamic from "next/dynamic";
 import { CheckCircle2, RefreshCw, Save } from "lucide-react";
 import type {
@@ -91,12 +91,13 @@ export function SiteSettingsPreview({
   const [page, setPage] = useState<PreviewPage>("general");
   const [previewWidth, setPreviewWidth] = useState<PreviewWidth>("desktop");
   const isGeneralPage = page === "general";
+  const deferredFormState = useDeferredValue(formState);
+  const previewFormState = isGeneralPage ? formState : deferredFormState;
 
   return (
     <form onSubmit={onSubmit} id="site-settings-form" className="space-y-5">
       <SiteSettingsToolbar
         isDirty={isDirty}
-        working={working}
         page={page}
         previewWidth={previewWidth}
         onPageChange={setPage}
@@ -125,7 +126,7 @@ export function SiteSettingsPreview({
             </div>
             {!isGeneralPage ? (
               <SiteSettingsPreviewHeader
-                formState={formState}
+                formState={previewFormState}
                 updateField={updateField}
                 page={page}
                 onPageChange={setPage}
@@ -135,7 +136,7 @@ export function SiteSettingsPreview({
               {isGeneralPage ? (
                 <div className="p-5 sm:p-7">
                   <SiteSettingsInspector
-                    formState={formState}
+                    formState={previewFormState}
                     updateField={updateField}
                     siteHeroVideoFile={siteHeroVideoFile}
                     setSiteHeroVideoFile={setSiteHeroVideoFile}
@@ -146,7 +147,7 @@ export function SiteSettingsPreview({
               {page === "home" ? (
                 <SiteSettingsHomePreview
                   projects={projects}
-                  formState={formState}
+                  formState={previewFormState}
                   updateField={updateField}
                   selectedFrameFiles={selectedFrameFiles}
                   addSelectedFrameFiles={addSelectedFrameFiles}
@@ -155,19 +156,19 @@ export function SiteSettingsPreview({
               ) : null}
               {page === "work" ? (
                 <SiteSettingsWorkPreview
-                  formState={formState}
+                  formState={previewFormState}
                   updateField={updateField}
                 />
               ) : null}
               {page === "services" ? (
                 <SiteSettingsServicesPreview
-                  formState={formState}
+                  formState={previewFormState}
                   updateField={updateField}
                 />
               ) : null}
               {page === "about" ? (
                 <SiteSettingsAboutPreview
-                  formState={formState}
+                  formState={previewFormState}
                   updateField={updateField}
                   aboutTeamGalleryFiles={aboutTeamGalleryFiles}
                   aboutTeamMemberImageFiles={aboutTeamMemberImageFiles}
@@ -178,14 +179,14 @@ export function SiteSettingsPreview({
               ) : null}
               {page === "contact" ? (
                 <SiteSettingsContactPreview
-                  formState={formState}
+                  formState={previewFormState}
                   updateField={updateField}
                 />
               ) : null}
             </main>
             {!isGeneralPage ? (
               <SiteSettingsPreviewFooter
-                formState={formState}
+                formState={previewFormState}
                 updateField={updateField}
               />
             ) : null}
@@ -193,7 +194,10 @@ export function SiteSettingsPreview({
         </div>
       </div>
 
-      <div className="sticky bottom-4 z-30 flex items-center justify-between gap-4 rounded-2xl border border-line bg-panel px-4 py-3 shadow-lg backdrop-blur-xl">
+      <div
+        data-admin-settings-actions
+        className="flex items-center justify-between gap-4 rounded-2xl border border-line bg-panel px-4 py-3 shadow-lg backdrop-blur-xl sm:sticky sm:bottom-4 sm:z-30"
+      >
         <p className="text-xs text-muted">
           {isDirty
             ? "Changes are visible in the preview and not yet published."

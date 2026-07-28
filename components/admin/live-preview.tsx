@@ -245,21 +245,23 @@ function EditablePreviewField({
     <div
       role="button"
       tabIndex={0}
-      onDoubleClick={openEditor}
+      onClick={openEditor}
       onKeyDown={(event) => {
         if (event.key === "Enter" || event.key === " ") {
           event.preventDefault();
           openEditor();
         }
       }}
-      title="Double-click to edit"
+      aria-label={`Edit ${placeholder}`}
+      title="Click to edit"
       className={cn(
-        "cursor-text rounded-xl border border-transparent transition-colors",
+        "group/edit relative cursor-text rounded-xl border border-transparent transition-colors",
         "hover:border-line/80 hover:bg-panel-secondary/60",
         "focus-visible:bg-panel-secondary/60 focus-visible:border-accent focus-visible:outline-none",
         wrapperClassName
       )}
     >
+      <PenSquare className="absolute right-2 top-2 h-3.5 w-3.5 text-accent opacity-0 transition-opacity group-hover/edit:opacity-100 group-focus-visible/edit:opacity-100" />
       <span
         className={cn(
           value ? "text-current" : "text-muted/75 italic",
@@ -336,8 +338,8 @@ export function LivePreview({
               Quick Preview
             </p>
             <p className="mt-1 text-xs leading-6 text-muted">
-              Double-click text to edit it. Double-click an image to open its
-              field in the editor.
+              Click text to edit it. Click an image to open its field in the
+              editor.
             </p>
           </div>
           <div className="flex items-center gap-2">
@@ -367,9 +369,9 @@ export function LivePreview({
           >
             <button
               type="button"
-              onDoubleClick={() => onNavigateToImageField("coverImage")}
+              onClick={() => onNavigateToImageField("coverImage")}
               className="absolute inset-0 block w-full cursor-pointer"
-              title="Double-click to open the cover image field"
+              title="Open the cover image field"
               aria-label="Open cover image field"
             >
               {coverPreviewSrc ? (
@@ -718,11 +720,11 @@ export function LivePreview({
                   <div className="flex gap-3">
                     <button
                       type="button"
-                      onDoubleClick={() =>
+                      onClick={() =>
                         onNavigateToImageField("gallery", index)
                       }
                       className="relative h-16 w-16 shrink-0 cursor-pointer overflow-hidden rounded-xl border border-line bg-panel-dark"
-                      title={`Double-click to open the path for frame ${index + 1}`}
+                      title={`Open the path for frame ${index + 1}`}
                       aria-label={`Open image path for frame ${index + 1}`}
                     >
                       <Image

@@ -8,7 +8,9 @@ import {
   useState
 } from "react";
 import Link from "next/link";
+import { Pause, Play } from "lucide-react";
 import { FallbackImage } from "@/components/ui/fallback-image";
+import { useHydratedReducedMotion } from "@/hooks/use-hydrated-reduced-motion";
 import type { FrameItem } from "@/lib/project-images";
 import { cn } from "@/lib/utils";
 
@@ -24,6 +26,7 @@ type HorizontalStillStripProps = {
 };
 
 const KEYBOARD_SCROLL_DISTANCE = 240;
+const MOTION_STRIP_PAUSE_STORAGE_KEY = "lux-studio:motion-strip-paused";
 const fallbackStripImages = [
   "/images/demo-car-02.jpg",
   "/images/demo-car-03.jpg",
@@ -47,8 +50,11 @@ export function HorizontalStillStrip({
   ariaLabel = "Selected frames. Use the left and right arrow keys to scroll through the image strip.",
   imageAltPrefix = "Selected still"
 }: HorizontalStillStripProps) {
-  const [paused, setPaused] = useState(false);
+  const shouldReduceMotion = useHydratedReducedMotion();
+  const [interactionPaused, setInteractionPaused] = useState(false);
+  const [userPaused, setUserPaused] = useState(false);
   const [inView, setInView] = useState(false);
+  const [pageVisible, setPageVisible] = useState(true);
   const sectionRef = useRef<HTMLElement>(null);
   const trackRef = useRef<HTMLDivElement>(null);
   const dragOrigin = useRef<number | null>(null);
@@ -67,6 +73,27 @@ export function HorizontalStillStrip({
     return () => observer.disconnect();
   }, []);
 
+  useEffect(() => {
+    try {
+      setUserPaused(
+        localStorage.getItem(MOTION_STRIP_PAUSE_STORAGE_KEY) === "true"
+      );
+    } catch {
+      // Keep the session default when browser storage is unavailable.
+    }
+  }, []);
+
+  useEffect(() => {
+    function handleVisibilityChange() {
+      setPageVisible(document.visibilityState === "visible");
+    }
+
+    handleVisibilityChange();
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    return () =>
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+  }, []);
+
   if (frameItems.length === 0) return null;
 
   /* ── Drag-to-scroll state ─────────────────────────────────────────── */
@@ -75,7 +102,7 @@ export function HorizontalStillStrip({
   function startDrag(clientX: number) {
     dragOrigin.current = clientX;
     scrollOrigin.current = trackRef.current?.scrollLeft ?? 0;
-    setPaused(true);
+    setInteractionPaused(true);
   }
 
   function moveDrag(clientX: number) {
@@ -86,7 +113,7 @@ export function HorizontalStillStrip({
 
   function endDrag() {
     dragOrigin.current = null;
-    setPaused(false);
+    setInteractionPaused(false);
   }
 
   function handlePointerDown(event: ReactPointerEvent<HTMLDivElement>) {
@@ -126,7 +153,10 @@ export function HorizontalStillStrip({
   }
 
   function scrollByAmount(amount: number) {
-    trackRef.current?.scrollBy({ left: amount, behavior: "smooth" });
+    trackRef.current?.scrollBy({
+      left: amount,
+      behavior: shouldReduceMotion ? "auto" : "smooth"
+    });
   }
 
   function handleKeyDown(event: ReactKeyboardEvent<HTMLDivElement>) {
@@ -136,38 +166,61 @@ export function HorizontalStillStrip({
 
     if (event.key === "ArrowLeft") {
       event.preventDefault();
-      setPaused(true);
+      setInteractionPaused(true);
       scrollByAmount(-KEYBOARD_SCROLL_DISTANCE);
       return;
     }
 
     if (event.key === "ArrowRight") {
       event.preventDefault();
-      setPaused(true);
+      setInteractionPaused(true);
       scrollByAmount(KEYBOARD_SCROLL_DISTANCE);
       return;
     }
 
     if (event.key === "Home") {
       event.preventDefault();
-      setPaused(true);
-      trackRef.current.scrollTo({ left: 0, behavior: "smooth" });
+      setInteractionPaused(true);
+      trackRef.current.scrollTo({
+        left: 0,
+        behavior: shouldReduceMotion ? "auto" : "smooth"
+      });
       return;
     }
 
     if (event.key === "End") {
       event.preventDefault();
-      setPaused(true);
+      setInteractionPaused(true);
       trackRef.current.scrollTo({
         left: trackRef.current.scrollWidth,
-        behavior: "smooth"
+        behavior: shouldReduceMotion ? "auto" : "smooth"
       });
     }
   }
 
+  function togglePlayback() {
+    const nextPaused = !userPaused;
+    setUserPaused(nextPaused);
+    try {
+      localStorage.setItem(
+        MOTION_STRIP_PAUSE_STORAGE_KEY,
+        String(nextPaused)
+      );
+    } catch {
+      // The in-memory preference still applies for the current page.
+    }
+  }
+
+  const isAnimationPaused =
+    shouldReduceMotion ||
+    userPaused ||
+    interactionPaused ||
+    !inView ||
+    !pageVisible;
+
   return (
     <section ref={sectionRef} className="section-space-medium overflow-hidden">
-      <div className="section-shell mb-8">
+      <div className="section-shell mb-8 flex flex-wrap items-end justify-between gap-5">
         <div>
           {eyebrow ? <p className="eyebrow mb-4">{eyebrow}</p> : null}
           <h2 className="font-[family-name:var(--font-display)] text-4xl uppercase leading-none sm:text-6xl">
@@ -175,6 +228,25 @@ export function HorizontalStillStrip({
             <span className="block pl-10 text-accent">{trail}</span>
           </h2>
         </div>
+        <button
+          type="button"
+          data-motion-strip-toggle
+          aria-pressed={shouldReduceMotion || userPaused}
+          onClick={togglePlayback}
+          disabled={shouldReduceMotion}
+          className="control-pill shrink-0 active:!scale-100 disabled:cursor-not-allowed disabled:opacity-60"
+        >
+          {shouldReduceMotion || userPaused ? (
+            <Play className="h-4 w-4" />
+          ) : (
+            <Pause className="h-4 w-4" />
+          )}
+          {shouldReduceMotion
+            ? "Motion reduced"
+            : userPaused
+              ? "Play strip"
+              : "Pause strip"}
+        </button>
       </div>
 
       <div
@@ -184,10 +256,10 @@ export function HorizontalStillStrip({
         aria-keyshortcuts="ArrowLeft ArrowRight Home End"
         tabIndex={0}
         className="no-scrollbar focus-visible:ring-accent/60 overflow-x-auto focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-background"
-        onFocus={() => setPaused(true)}
+        onFocus={() => setInteractionPaused(true)}
         onBlur={endDrag}
         onKeyDown={handleKeyDown}
-        onMouseEnter={() => setPaused(true)}
+        onMouseEnter={() => setInteractionPaused(true)}
         onMouseLeave={() => {
           endDrag();
         }}
@@ -202,8 +274,8 @@ export function HorizontalStillStrip({
             direction === "right" && "marquee-track-reverse"
           )}
           style={{
-            animationPlayState: paused || !inView ? "paused" : "running",
-            cursor: paused ? "grabbing" : "grab"
+            animationPlayState: isAnimationPaused ? "paused" : "running",
+            cursor: interactionPaused ? "grabbing" : "grab"
           }}
         >
           {loop.map((frame, index) => {

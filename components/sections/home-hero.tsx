@@ -5,6 +5,7 @@ import { motion, useReducedMotion } from "framer-motion";
 import { useEffect, useRef, useState } from "react";
 import { EmbeddedVideoConsent } from "@/components/legal/embedded-video-consent";
 import { LinkButton } from "@/components/ui/link-button";
+import { motionDuration, motionEase } from "@/lib/motion";
 import { SplitHeadline } from "@/components/ui/split-headline";
 import type { SiteSettings } from "@/lib/types";
 import { resolveVideoSource } from "@/lib/video";
@@ -101,9 +102,9 @@ export function HomeHero({ hero, copy }: HomeHeroProps) {
       />
       <div className="grid gap-7 sm:gap-10 lg:items-center xl:grid-cols-[0.95fr_1.05fr]">
         <motion.div
-          initial={{ opacity: 0, y: 28 }}
+          initial={{ opacity: 1, y: 28 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
+          transition={{ duration: motionDuration.hero, ease: motionEase }}
           onAnimationComplete={() => setHeroRevealed(true)}
           data-home-hero-copy
           className={
@@ -133,9 +134,13 @@ export function HomeHero({ hero, copy }: HomeHeroProps) {
         </motion.div>
 
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
+          initial={{ opacity: 1, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.9, delay: 0.1, ease: [0.22, 1, 0.36, 1] }}
+          transition={{
+            duration: motionDuration.hero,
+            delay: 0.08,
+            ease: motionEase
+          }}
           className="relative min-h-[360px] overflow-hidden rounded-[1.35rem] border border-white/25 bg-black text-white shadow-halo sm:min-h-[420px] sm:rounded-[1.75rem] lg:min-h-[560px]"
         >
           {fileVideoSrc ? (

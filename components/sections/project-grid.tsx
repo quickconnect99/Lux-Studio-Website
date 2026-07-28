@@ -11,9 +11,9 @@ import {
   projectBusinessToParam
 } from "@/lib/project-business";
 import type { Project, ProjectBusiness } from "@/lib/types";
+import { motionDuration, motionEase } from "@/lib/motion";
 import { cn } from "@/lib/utils";
 
-const PAGE_SIZE = 6;
 const ALL = "All";
 
 function normalizeFilterValue(value: string) {
@@ -56,12 +56,10 @@ export function ProjectGrid({
     ProjectBusiness | typeof ALL
   >(resolvedInitialBusiness ?? ALL);
   const [activeCategory, setActiveCategory] = useState(ALL);
-  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
 
   useEffect(() => {
     setActiveBusiness(resolvedInitialBusiness ?? ALL);
     setActiveCategory(ALL);
-    setVisibleCount(PAGE_SIZE);
   }, [resolvedInitialBusiness]);
 
   const businessFilteredProjects = useMemo(
@@ -90,9 +88,6 @@ export function ProjectGrid({
     [activeCategory, businessFilteredProjects]
   );
 
-  const visible = filteredProjects.slice(0, visibleCount);
-  const hasMore = visibleCount < filteredProjects.length;
-  const remaining = filteredProjects.length - visibleCount;
   const businessFilters: Array<ProjectBusiness | typeof ALL> = [
     ALL,
     ...availableBusinesses
@@ -123,23 +118,17 @@ export function ProjectGrid({
   function selectBusiness(business: ProjectBusiness | typeof ALL) {
     setActiveBusiness(business);
     setActiveCategory(ALL);
-    setVisibleCount(PAGE_SIZE);
     syncBusinessParam(business);
   }
 
   function selectCategory(category: string) {
     setActiveCategory(category);
-    setVisibleCount(PAGE_SIZE);
-  }
-
-  function loadMore() {
-    setVisibleCount((count) => count + PAGE_SIZE);
   }
 
   return (
     <section className="section-shell pb-14 sm:pb-20">
       {availableBusinesses.length > 1 ? (
-        <div className="no-scrollbar -mx-4 flex gap-2 overflow-x-auto border-y border-line px-4 py-4 sm:mx-0 sm:flex-wrap sm:gap-3 sm:px-0 sm:py-5">
+        <div className="mobile-scroll-affordance no-scrollbar -mx-4 flex gap-2 overflow-x-auto border-y border-line px-4 py-4 sm:mx-0 sm:flex-wrap sm:gap-3 sm:px-0 sm:py-5">
           {businessFilters.map((business) => (
             <motion.button
               key={business}
@@ -162,7 +151,7 @@ export function ProjectGrid({
         </div>
       ) : null}
 
-      <div className="no-scrollbar -mx-4 flex gap-2 overflow-x-auto px-4 py-4 sm:mx-0 sm:flex-wrap sm:gap-3 sm:px-0 sm:py-5">
+      <div className="mobile-scroll-affordance no-scrollbar -mx-4 flex gap-2 overflow-x-auto px-4 py-4 sm:mx-0 sm:flex-wrap sm:gap-3 sm:px-0 sm:py-5">
         {categories.map((category) => (
           <motion.button
             key={category}
@@ -184,9 +173,13 @@ export function ProjectGrid({
         ))}
       </div>
 
-      <p className="sr-only" role="status" aria-live="polite">
-        Showing {Math.min(visible.length, filteredProjects.length)} of{" "}
-        {filteredProjects.length} projects
+      <p
+        className="border-t border-line py-3 text-[0.68rem] font-medium uppercase tracking-meta text-muted sm:py-4"
+        role="status"
+        aria-live="polite"
+        data-work-result-status
+      >
+        Showing {filteredProjects.length} projects
         {activeBusiness === ALL ? "" : ` for ${activeBusiness}`}
         {activeCategory === ALL ? "" : ` in ${activeCategory}`}.
       </p>
@@ -222,21 +215,23 @@ export function ProjectGrid({
       ) : (
         <div className="grid gap-5 pt-5 sm:pt-8 md:grid-cols-2 xl:grid-cols-3">
           <AnimatePresence mode="popLayout">
-            {visible.map((project, index) => (
+            {filteredProjects.map((project, index) => (
               <motion.div
                 key={project.slug}
                 layout
-                initial={{ opacity: 0, y: 18 }}
+                initial={{ opacity: 1, y: 18 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: 18 }}
                 transition={{
-                  duration: 0.55,
-                  delay: index < PAGE_SIZE ? index * 0.04 : 0,
-                  ease: [0.22, 1, 0.36, 1]
+                  duration: motionDuration.state,
+                  delay: index < 6 ? index * 0.025 : 0,
+                  ease: motionEase
                 }}
+                className="[content-visibility:auto] [contain-intrinsic-block-size:600px]"
               >
                 <Link
                   href={`/work/${project.slug}${detailQuery}`}
+                  data-work-project={project.slug}
                   className="group block overflow-hidden rounded-[1.5rem] border border-line bg-panel-secondary shadow-card sm:rounded-[2rem]"
                 >
                   <div className="relative aspect-[4/3] overflow-hidden sm:aspect-[4/5]">
@@ -298,25 +293,6 @@ export function ProjectGrid({
               </motion.div>
             ))}
           </AnimatePresence>
-        </div>
-      )}
-
-      {hasMore && (
-        <div className="mt-12 flex justify-center">
-          <motion.button
-            type="button"
-            whileTap={{ scale: 0.96 }}
-            onClick={loadMore}
-            className={cn(
-              "inline-flex min-h-11 items-center gap-3 rounded-full border px-6 py-3",
-              "text-xs font-medium uppercase tracking-ui",
-              "border-line bg-panel-secondary text-foreground",
-              "transition-colors duration-150 hover:border-accent hover:bg-panel"
-            )}
-          >
-            Load more
-            <span className="metadata-number">{remaining}</span>
-          </motion.button>
         </div>
       )}
     </section>

@@ -36,6 +36,7 @@ import {
   isSupabaseConfigured
 } from "@/lib/supabase";
 import type {
+  AdminConfirmDialogState,
   AdminProjectListItem,
   AdminSaveReport,
   AdminTab,
@@ -51,6 +52,11 @@ const EMPTY_AUTH_FORM = { email: "", password: "" };
 const DEFAULT_STATUS_MESSAGE =
   "Two starter templates are always available. Editing one and saving creates a new project.";
 
+type PendingAdminWorkflow = {
+  run(): void | Promise<void>;
+  saveScope: "project" | "settings" | "both" | null;
+};
+
 export function useAdminData() {
   const supabase = createBrowserSupabaseClient();
   const templateProjects = projectTemplates;
@@ -65,6 +71,9 @@ export function useAdminData() {
   const [working, setWorking] = useState(false);
   const [uploadProgress, setUploadProgress] =
     useState<AdminUploadProgress | null>(null);
+  const [workflowConfirmDialog, setWorkflowConfirmDialog] =
+    useState<AdminConfirmDialogState | null>(null);
+  const pendingWorkflowRef = useRef<PendingAdminWorkflow | null>(null);
   const hasAppliedInitialProject = useRef(false);
 
   const {
@@ -121,7 +130,7 @@ export function useAdminData() {
     isTemplateProject,
     coverPreviewImage,
     slugValidation,
-    confirmDialog,
+    confirmDialog: projectConfirmDialog,
     updateField,
     updateCaption,
     applyProject,
@@ -130,13 +139,13 @@ export function useAdminData() {
     checkSlugAvailability,
     handleSlugBlur,
     applySuggestedSlug,
-    handleResetClick,
+    handleResetClick: handleProjectResetClick,
     openDeleteDialog,
-    closeConfirmDialog,
-    updateConfirmDialogInput,
+    closeConfirmDialog: closeProjectConfirmDialog,
+    updateConfirmDialogInput: updateProjectConfirmDialogInput,
     resolveConfirmDialogAction,
-    selectProject,
-    newProject,
+    selectProject: selectProjectImmediately,
+    newProject: newProjectImmediately,
     duplicateProject
   } = useAdminProjectWorkspace({
     supabase,
@@ -159,6 +168,7 @@ export function useAdminData() {
     isDirty: isSettingsDirty,
     load: loadSiteSettings,
     save: handleSaveSiteSettings,
+    reset: resetSiteSettings,
     updateField: updateSiteSettingsField
   } = useAdminSiteSettings({
     supabase,
@@ -175,9 +185,10 @@ export function useAdminData() {
   });
 
   const { clearDraft } = useAdminDraft({
-    enabled: !isSupabaseConfigured,
-    sessionEmail,
+    enabled: true,
+    projectKey: selectedProjectKey,
     formState,
+    isDirty,
     onRestore: restoreDraft
   });
 
@@ -218,10 +229,14 @@ export function useAdminData() {
   }, [applyProject, defaultTemplate]);
 
   const handleSignInSuccess = useCallback(() => {
-    clearDraft();
-  }, [clearDraft]);
+    // Project-scoped recovery drafts remain available after authentication.
+  }, []);
 
-  const { handleSignIn, handleSignOut, signInMessage } = useAdminSession({
+  const {
+    handleSignIn,
+    handleSignOut: handleSignOutImmediately,
+    signInMessage
+  } = useAdminSession({
     supabase,
     credentials: authFormState,
     setSessionEmail,
@@ -248,14 +263,16 @@ export function useAdminData() {
     return () => window.removeEventListener("keydown", onKeyDown);
   }, []);
 
-  async function handleSave(event?: { preventDefault(): void }) {
+  async function handleSave(
+    event?: { preventDefault(): void }
+  ): Promise<boolean> {
     event?.preventDefault();
 
     if (!isProjectComplete) {
       showStatus(
         `Project not saved. Complete these fields first: ${completionIssues.join(", ")}.`
       );
-      return;
+      return false;
     }
 
     const slugResult = await checkSlugAvailability(
@@ -264,7 +281,7 @@ export function useAdminData() {
     );
     if (!slugResult.ok) {
       showStatus("Project not saved. Resolve the slug conflict before saving.");
-      return;
+      return false;
     }
 
     const targetSlug = slugResult.slug;
@@ -349,7 +366,7 @@ export function useAdminData() {
         if (!saveResult.ok) {
           await removeAdminFiles(supabase, newlyUploadedUrls);
           showStatus(saveResult.error.message);
-          return;
+          return false;
         }
 
         const currentMediaUrls = [
@@ -417,6 +434,7 @@ export function useAdminData() {
 
       if (shouldClearQueuedMedia) clearMedia();
       setSaveReport(nextReport);
+      return true;
     } catch (error) {
       setUploadProgress(null);
       if (supabase && newlyUploadedUrls.length > 0) {
@@ -425,6 +443,7 @@ export function useAdminData() {
       showStatus(
         toAdminOperationError(error, "The project could not be saved.").message
       );
+      return false;
     } finally {
       setWorking(false);
     }
@@ -432,7 +451,14 @@ export function useAdminData() {
 
   useEffect(() => {
     handleSaveRef.current = () => {
-      if (!working && isProjectComplete) void handleSave();
+      if (working) return;
+
+      if (activeTab === "settings") {
+        if (isSettingsDirty) void handleSaveSiteSettings();
+        return;
+      }
+
+      if (isDirty && isProjectComplete) void handleSave();
     };
   });
 
@@ -509,11 +535,168 @@ export function useAdminData() {
     }
   }
 
+  function openWorkflowConfirmation({
+    title,
+    description,
+    confirmLabel = "Save and continue",
+    saveScope,
+    run
+  }: PendingAdminWorkflow & {
+    title: string;
+    description: string;
+    confirmLabel?: string;
+  }) {
+    pendingWorkflowRef.current = { run, saveScope };
+    setWorkflowConfirmDialog({
+      action: "workflow",
+      title,
+      description,
+      confirmLabel,
+      secondaryLabel: saveScope ? "Discard changes" : undefined,
+      tone: "default",
+      inputValue: ""
+    });
+  }
+
+  function closeConfirmDialog() {
+    if (working) return;
+
+    if (workflowConfirmDialog) {
+      pendingWorkflowRef.current = null;
+      setWorkflowConfirmDialog(null);
+      return;
+    }
+
+    closeProjectConfirmDialog();
+  }
+
+  function updateConfirmDialogInput(value: string) {
+    if (!workflowConfirmDialog) {
+      updateProjectConfirmDialogInput(value);
+    }
+  }
+
+  async function runPendingWorkflow() {
+    const pending = pendingWorkflowRef.current;
+    if (!pending) return;
+
+    if (
+      (pending.saveScope === "project" || pending.saveScope === "both") &&
+      isDirty
+    ) {
+      clearDraft(selectedProjectKey);
+    }
+    pendingWorkflowRef.current = null;
+    setWorkflowConfirmDialog(null);
+    await pending.run();
+  }
+
   async function confirmDialogAction() {
+    if (workflowConfirmDialog) {
+      const scope = pendingWorkflowRef.current?.saveScope;
+      let saved = true;
+
+      if ((scope === "project" || scope === "both") && isDirty) {
+        saved = await handleSave();
+      }
+      if (
+        saved &&
+        (scope === "settings" || scope === "both") &&
+        isSettingsDirty
+      ) {
+        saved = await handleSaveSiteSettings();
+      }
+
+      if (saved) {
+        await runPendingWorkflow();
+      }
+      return;
+    }
+
     if (resolveConfirmDialogAction() === "delete") {
       await performDelete();
     }
   }
+
+  async function secondaryDialogAction() {
+    if (workflowConfirmDialog) {
+      await runPendingWorkflow();
+    }
+  }
+
+  function selectProject(project: AdminProjectListItem) {
+    if (project.adminKey === selectedProjectKey) return;
+    if (!isDirty) {
+      selectProjectImmediately(project);
+      return;
+    }
+
+    openWorkflowConfirmation({
+      title: "Save project changes?",
+      description: `You have unsaved changes in "${formState.title}". Save them before opening "${project.title}", or discard them to continue without saving.`,
+      saveScope: "project",
+      run: () => selectProjectImmediately(project)
+    });
+  }
+
+  function newProject() {
+    if (!isDirty) {
+      newProjectImmediately();
+      return;
+    }
+
+    openWorkflowConfirmation({
+      title: "Save changes before starting a new project?",
+      description:
+        "The current project contains unsaved edits. Save them first, discard them, or cancel to stay in the editor.",
+      saveScope: "project",
+      run: newProjectImmediately
+    });
+  }
+
+  function handleResetClick() {
+    if (activeTab === "projects") {
+      handleProjectResetClick();
+      return;
+    }
+
+    if (!isSettingsDirty) {
+      resetSiteSettings();
+      return;
+    }
+
+    openWorkflowConfirmation({
+      title: "Reset site settings?",
+      description:
+        "This restores the last saved site settings and removes every unsaved text and media change from the preview.",
+      confirmLabel: "Reset settings",
+      saveScope: null,
+      run: resetSiteSettings
+    });
+  }
+
+  function handleSignOut() {
+    if (!isDirty && !isSettingsDirty) {
+      void handleSignOutImmediately();
+      return;
+    }
+
+    const saveScope =
+      isDirty && isSettingsDirty
+        ? "both"
+        : isDirty
+          ? "project"
+          : "settings";
+    openWorkflowConfirmation({
+      title: "Save changes before signing out?",
+      description:
+        "Signing out resets the current admin workspace. Save the outstanding changes first, discard them, or cancel to continue editing.",
+      saveScope,
+      run: handleSignOutImmediately
+    });
+  }
+
+  const confirmDialog = workflowConfirmDialog ?? projectConfirmDialog;
 
   return {
     activeTab,
@@ -563,6 +746,7 @@ export function useAdminData() {
     closeConfirmDialog,
     updateConfirmDialogInput,
     confirmDialogAction,
+    secondaryDialogAction,
     updateCaption,
     handleFileSelection,
     addGalleryFiles,

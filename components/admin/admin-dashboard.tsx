@@ -1,17 +1,20 @@
 "use client";
 
-import { useState } from "react";
+import { useDeferredValue, useState } from "react";
 import dynamic from "next/dynamic";
 import {
   AlertTriangle,
   CheckCircle2,
+  ExternalLink,
   FolderOpen,
   Info,
   Lock,
   LogIn,
   LogOut,
+  Monitor,
   PanelLeftClose,
   PanelLeftOpen,
+  Pencil,
   RefreshCw,
   Settings,
   UserRound
@@ -81,6 +84,9 @@ export function AdminDashboard() {
     null
   );
   const [isProjectSidebarVisible, setIsProjectSidebarVisible] = useState(true);
+  const [workspaceView, setWorkspaceView] = useState<
+    "projects" | "edit" | "preview"
+  >("edit");
 
   const {
     activeTab,
@@ -130,6 +136,7 @@ export function AdminDashboard() {
     closeConfirmDialog,
     updateConfirmDialogInput,
     confirmDialogAction,
+    secondaryDialogAction,
     updateCaption,
     handleFileSelection,
     addGalleryFiles,
@@ -149,6 +156,10 @@ export function AdminDashboard() {
   const liveProjectHref =
     formState.id && formState.published ? `/work/${formState.slug}` : null;
   const canEditCms = !isSupabaseConfigured || Boolean(sessionEmail);
+  const deferredPreviewFormState = useDeferredValue(formState);
+  const deferredPreviewGallery = useDeferredValue(galleryImageList);
+  const deferredPreviewCaptions = useDeferredValue(captionRawLines);
+  const deferredCoverPreview = useDeferredValue(coverPreviewImage);
 
   function renderSaveReportIcon(tone: "success" | "warning" | "info") {
     if (tone === "success") {
@@ -236,6 +247,7 @@ export function AdminDashboard() {
     field: "coverImage" | "gallery",
     galleryIndex?: number
   ) {
+    setWorkspaceView("edit");
     setActiveField(field);
 
     requestAnimationFrame(() => {
@@ -261,15 +273,40 @@ export function AdminDashboard() {
   }
 
   return (
-    <section className="section-shell space-y-6 pb-24">
-      {/* Tab bar + session controls */}
-      <div className="flex flex-wrap items-center justify-between gap-4">
-        <div className="flex flex-wrap items-center gap-3">
+    <section className="mx-auto w-full max-w-[1800px] space-y-5 px-3 pb-16 pt-3 sm:px-5 sm:pb-24 lg:px-7">
+      <header className="border-line/80 bg-background/95 -mx-3 border-b px-3 py-3 backdrop-blur-xl sm:-mx-5 sm:px-5 md:sticky md:top-0 md:z-40 lg:-mx-7 lg:px-7">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="flex flex-wrap items-center gap-3">
+            <a
+              href="/"
+              target="_blank"
+              rel="noreferrer"
+              className="group inline-flex min-h-11 items-center gap-3 rounded-full pr-2"
+              aria-label="Open Lux Studio website"
+            >
+              <span className="flex h-10 w-10 items-center justify-center rounded-full bg-foreground font-[family-name:var(--font-display)] text-lg text-background">
+                LX
+              </span>
+              <h1 className="sr-only sm:not-sr-only sm:block">
+                <span className="block text-xs font-medium uppercase tracking-eyebrow text-foreground">
+                  Lux Studio
+                </span>
+                <span className="block text-[0.7rem] text-muted">
+                  Admin workspace
+                </span>
+              </h1>
+            </a>
           {canEditCms ? (
-            <div className="inline-flex gap-1 rounded-full border border-line bg-panel-secondary p-1">
+            <div
+              role="tablist"
+              aria-label="Admin workspace"
+              className="inline-flex gap-1 rounded-full border border-line bg-panel-secondary p-1"
+            >
               <button
                 type="button"
                 onClick={() => setActiveTab("projects")}
+                role="tab"
+                aria-selected={activeTab === "projects"}
                 className={`inline-flex min-h-11 items-center gap-2 rounded-full px-4 py-2 text-xs uppercase tracking-eyebrow transition-colors ${
                   activeTab === "projects"
                     ? "bg-foreground text-background"
@@ -285,6 +322,8 @@ export function AdminDashboard() {
               <button
                 type="button"
                 onClick={() => setActiveTab("settings")}
+                role="tab"
+                aria-selected={activeTab === "settings"}
                 className={`inline-flex min-h-11 items-center gap-2 rounded-full px-4 py-2 text-xs uppercase tracking-eyebrow transition-colors ${
                   activeTab === "settings"
                     ? "bg-foreground text-background"
@@ -302,9 +341,18 @@ export function AdminDashboard() {
           <AdminThemeChip />
         </div>
 
-        <div className="flex flex-wrap items-center gap-3">
+        <div className="flex flex-wrap items-center justify-end gap-2">
+          <a
+            href="/"
+            target="_blank"
+            rel="noreferrer"
+            className="control-pill"
+          >
+            View site
+            <ExternalLink className="h-4 w-4" />
+          </a>
           {sessionEmail ? (
-            <div className="flex items-center gap-3 rounded-full border border-line bg-panel-secondary py-1.5 pl-2 pr-4 shadow-sm">
+            <div className="hidden items-center gap-3 rounded-full border border-line bg-panel-secondary py-1.5 pl-2 pr-4 shadow-sm lg:flex">
               <span className="relative flex h-9 w-9 items-center justify-center rounded-full bg-foreground text-background">
                 <UserRound className="h-4 w-4" />
                 <span
@@ -339,7 +387,7 @@ export function AdminDashboard() {
               className="control-pill"
             >
               <RefreshCw className="h-4 w-4" />
-              Reset Form
+              {activeTab === "projects" ? "Reset Project" : "Reset Settings"}
             </button>
           ) : null}
           {canEditCms && activeTab === "projects" ? (
@@ -348,7 +396,7 @@ export function AdminDashboard() {
               onClick={() =>
                 setIsProjectSidebarVisible((isVisible) => !isVisible)
               }
-              className="control-pill"
+              className="control-pill hidden xl:inline-flex"
               aria-pressed={!isProjectSidebarVisible}
             >
               {isProjectSidebarVisible ? (
@@ -360,7 +408,8 @@ export function AdminDashboard() {
             </button>
           ) : null}
         </div>
-      </div>
+        </div>
+      </header>
 
       {/* Supabase sign-in banner — shown prominently when not authenticated */}
       {isSupabaseConfigured && !sessionEmail ? (
@@ -432,144 +481,231 @@ export function AdminDashboard() {
         </div>
       ) : null}
 
-      {/* CMS status + Supabase access */}
+      {/* Compact activity and connection status */}
       {canEditCms ? (
-        <div
-          className={`grid gap-6 ${
-            sessionEmail ? "sm:grid-cols-[1fr_320px]" : "grid-cols-1"
-          }`}
-        >
-          <div className="panel-2xl admin-theme-surface p-6">
-            <p className="text-xs uppercase tracking-eyebrow text-muted">
-              CMS state
+        <div className="panel-2xl admin-theme-surface flex flex-wrap items-start justify-between gap-4 px-4 py-3.5 sm:px-5">
+          <div aria-live="polite" className="min-w-0 flex-1">
+            <p className="text-[0.72rem] font-medium uppercase tracking-eyebrow text-muted">
+              Activity
             </p>
-            <div aria-live="polite" className="mt-3">
-              {uploadProgress ? (
-                <p className="text-sm leading-7 text-muted">
-                  Uploading file {uploadProgress.current} of{" "}
-                  {uploadProgress.total}: {uploadProgress.filename}
-                </p>
-              ) : saveReport ? (
-                <div className="space-y-3">
-                  <p className="text-sm font-medium text-foreground">
-                    {saveReport.title}
-                  </p>
-                  <div className="space-y-2">
-                    {saveReport.items.map((item) => (
-                      <div
-                        key={item.id}
-                        className="flex items-start gap-3 rounded-[1rem] border border-line bg-panel-secondary px-3 py-2.5"
-                      >
-                        <span className="mt-0.5 shrink-0">
-                          {renderSaveReportIcon(item.tone)}
-                        </span>
-                        <div className="min-w-0">
-                          <p className="text-sm leading-6 text-foreground">
-                            {item.label}
-                          </p>
-                          {item.detail ? (
-                            <p className="text-xs uppercase tracking-meta text-muted">
-                              {item.detail}
-                            </p>
-                          ) : null}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              ) : (
-                <p className="text-sm leading-7 text-muted">{statusMessage}</p>
-              )}
-            </div>
-          </div>
-
-          {sessionEmail || !isSupabaseConfigured ? (
-            <div className="panel-2xl admin-theme-surface p-6">
-              <p className="text-xs uppercase tracking-eyebrow text-muted">
-                Supabase access
+            {uploadProgress ? (
+              <p className="mt-1 text-sm leading-6 text-foreground">
+                Uploading {uploadProgress.current} of {uploadProgress.total}:{" "}
+                {uploadProgress.filename}
               </p>
-              {isSupabaseConfigured && sessionEmail ? (
-                <div className="mt-4 space-y-3 text-sm leading-7 text-muted">
-                  <p>Signed in as {sessionEmail}</p>
-                  <p>Uploads target the `{SUPABASE_BUCKET}` storage bucket.</p>
+            ) : saveReport ? (
+              <details className="group mt-1">
+                <summary className="cursor-pointer text-sm font-medium text-foreground">
+                  {saveReport.title}
+                </summary>
+                <div className="mt-3 grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
+                  {saveReport.items.map((item) => (
+                    <div
+                      key={item.id}
+                      className="flex items-start gap-2.5 rounded-xl border border-line bg-panel-secondary px-3 py-2"
+                    >
+                      <span className="mt-0.5 shrink-0">
+                        {renderSaveReportIcon(item.tone)}
+                      </span>
+                      <div className="min-w-0">
+                        <p className="text-sm leading-5 text-foreground">
+                          {item.label}
+                        </p>
+                        {item.detail ? (
+                          <p className="text-[0.72rem] text-muted">
+                            {item.detail}
+                          </p>
+                        ) : null}
+                      </div>
+                    </div>
+                  ))}
                 </div>
-              ) : (
-                <p className="mt-4 text-sm leading-7 text-muted">
-                  Add `NEXT_PUBLIC_SUPABASE_URL`,
-                  `NEXT_PUBLIC_SUPABASE_ANON_KEY`, and
-                  `NEXT_PUBLIC_SUPABASE_STORAGE_BUCKET` to enable live CMS mode.
-                </p>
-              )}
-            </div>
+              </details>
+            ) : (
+              <p className="mt-1 text-sm leading-6 text-muted">
+                {statusMessage}
+              </p>
+            )}
+          </div>
+          <div className="flex shrink-0 items-center gap-2 rounded-full border border-line bg-panel-secondary px-3 py-2 text-xs text-muted">
+            <span
+              className={`h-2 w-2 rounded-full ${
+                isSupabaseConfigured && sessionEmail
+                  ? "bg-success"
+                  : "bg-warning"
+              }`}
+              aria-hidden
+            />
+            {isSupabaseConfigured && sessionEmail
+              ? `Supabase · ${SUPABASE_BUCKET}`
+              : "Local preview mode"}
+            {sessionEmail ? (
+              <span className="hidden max-w-44 truncate sm:inline">
+                · {sessionEmail}
+              </span>
+            ) : null}
+          </div>
+          {!isSupabaseConfigured ? (
+            <details className="w-full border-t border-line pt-3 text-sm text-muted">
+              <summary className="cursor-pointer text-xs uppercase tracking-eyebrow">
+                Connection setup
+              </summary>
+              <p className="mt-2 leading-6">
+                Add `NEXT_PUBLIC_SUPABASE_URL`,
+                `NEXT_PUBLIC_SUPABASE_ANON_KEY`, and
+                `NEXT_PUBLIC_SUPABASE_STORAGE_BUCKET` to enable live CMS mode.
+              </p>
+            </details>
           ) : null}
         </div>
       ) : null}
 
       {/* TAB: PROJECTS */}
       {canEditCms && activeTab === "projects" ? (
-        <div
-          className={`grid gap-6 ${
-            isProjectSidebarVisible
-              ? "lg:grid-cols-[1fr_320px] xl:grid-cols-[240px_minmax(0,1fr)_360px]"
-              : "lg:grid-cols-[minmax(0,1fr)_320px] xl:grid-cols-[minmax(0,1fr)_360px]"
-          }`}
-        >
-          {isProjectSidebarVisible ? (
+        <>
+          <div
+            role="tablist"
+            aria-label="Project workspace view"
+            className="grid grid-cols-3 gap-1 rounded-2xl border border-line bg-panel-secondary p-1 xl:hidden"
+          >
+            <button
+              type="button"
+              role="tab"
+              aria-selected={workspaceView === "projects"}
+              aria-controls="admin-project-list-pane"
+              data-admin-workspace-mode="projects"
+              onClick={() => setWorkspaceView("projects")}
+              className={`inline-flex min-h-11 items-center justify-center gap-2 rounded-xl px-3 text-xs uppercase tracking-eyebrow ${
+                workspaceView === "projects"
+                  ? "bg-foreground text-background"
+                  : "text-muted"
+              }`}
+            >
+              <FolderOpen className="h-4 w-4" />
+              Projects
+            </button>
+            <button
+              type="button"
+              role="tab"
+              aria-selected={workspaceView === "edit"}
+              aria-controls="admin-project-editor-pane"
+              data-admin-workspace-mode="edit"
+              onClick={() => setWorkspaceView("edit")}
+              className={`inline-flex min-h-11 items-center justify-center gap-2 rounded-xl px-3 text-xs uppercase tracking-eyebrow ${
+                workspaceView === "edit"
+                  ? "bg-foreground text-background"
+                  : "text-muted"
+              }`}
+            >
+              <Pencil className="h-4 w-4" />
+              Edit
+            </button>
+            <button
+              type="button"
+              role="tab"
+              aria-selected={workspaceView === "preview"}
+              aria-controls="admin-project-preview-pane"
+              data-admin-workspace-mode="preview"
+              onClick={() => setWorkspaceView("preview")}
+              className={`inline-flex min-h-11 items-center justify-center gap-2 rounded-xl px-3 text-xs uppercase tracking-eyebrow ${
+                workspaceView === "preview"
+                  ? "bg-foreground text-background"
+                  : "text-muted"
+              }`}
+            >
+              <Monitor className="h-4 w-4" />
+              Preview
+            </button>
+          </div>
+
+          <div
+            className={`grid gap-6 ${
+              isProjectSidebarVisible
+                ? "xl:grid-cols-[250px_minmax(0,1fr)_390px]"
+                : "xl:grid-cols-[minmax(0,1fr)_390px]"
+            }`}
+          >
+            <div
+              id="admin-project-list-pane"
+              role="tabpanel"
+              className={`${workspaceView === "projects" ? "block" : "hidden"} ${
+                isProjectSidebarVisible ? "xl:block" : "xl:hidden"
+              }`}
+            >
             <ProjectSidebar
               templates={templateProjects}
               projects={projects}
               selectedProjectKey={selectedProjectKey}
               isDirty={isDirty}
-              onSelect={selectProject}
-              onNew={newProject}
+                onSelect={(project) => {
+                  selectProject(project);
+                  setWorkspaceView("edit");
+                }}
+                onNew={() => {
+                  newProject();
+                  setWorkspaceView("edit");
+                }}
             />
-          ) : null}
-          <ProjectEditor
-            galleryKey={`${formState.id ?? formState.slug}-${saveCount}`}
-            formState={formState}
-            updateField={updateField}
-            handleFileSelection={handleFileSelection}
-            handleSave={handleSave}
-            handleDeleteClick={handleDeleteClick}
-            duplicateProject={duplicateProject}
-            addGalleryFiles={addGalleryFiles}
-            removeGalleryFile={removeGalleryFile}
-            coverFile={coverFile}
-            coverPreviewSrc={coverPreviewImage}
-            setCoverFile={setCoverFile}
-            videoFile={videoFile}
-            setVideoFile={setVideoFile}
-            galleryFiles={galleryFiles}
-            working={working}
-            isDirty={isDirty}
-            isTemplate={isTemplateProject}
-            completionIssues={completionIssues}
-            isProjectComplete={isProjectComplete}
-            galleryImageList={galleryImageList}
-            captionRawLines={captionRawLines}
-            uploadProgress={uploadProgress}
-            slugValidation={slugValidation}
-            onSlugBlur={handleSlugBlur}
-            onApplySuggestedSlug={applySuggestedSlug}
-            activeField={activeField}
-            onActiveFieldChange={setActiveField}
-          />
-          <LivePreview
-            formState={formState}
-            coverPreviewSrc={coverPreviewImage}
-            isDirty={isDirty}
-            galleryImageList={galleryImageList}
-            captionRawLines={captionRawLines}
-            activeField={activeField}
-            onActiveFieldChange={setActiveField}
-            onUpdateField={handlePreviewFieldUpdate}
-            onUpdateCaption={updateCaption}
-            onReplaceGalleryImage={handlePreviewGalleryImageUpdate}
-            onToggleField={handlePreviewToggle}
-            onNavigateToImageField={handlePreviewImageNavigate}
-            liveProjectHref={liveProjectHref}
-          />
-        </div>
+            </div>
+            <div
+              id="admin-project-editor-pane"
+              role="tabpanel"
+              className={`${workspaceView === "edit" ? "block" : "hidden"} min-w-0 xl:block`}
+            >
+              <ProjectEditor
+                galleryKey={`${formState.id ?? formState.slug}-${saveCount}`}
+                formState={formState}
+                updateField={updateField}
+                handleFileSelection={handleFileSelection}
+                handleSave={handleSave}
+                handleDeleteClick={handleDeleteClick}
+                duplicateProject={duplicateProject}
+                addGalleryFiles={addGalleryFiles}
+                removeGalleryFile={removeGalleryFile}
+                coverFile={coverFile}
+                coverPreviewSrc={coverPreviewImage}
+                setCoverFile={setCoverFile}
+                videoFile={videoFile}
+                setVideoFile={setVideoFile}
+                galleryFiles={galleryFiles}
+                working={working}
+                isDirty={isDirty}
+                isTemplate={isTemplateProject}
+                completionIssues={completionIssues}
+                isProjectComplete={isProjectComplete}
+                galleryImageList={galleryImageList}
+                captionRawLines={captionRawLines}
+                uploadProgress={uploadProgress}
+                slugValidation={slugValidation}
+                onSlugBlur={handleSlugBlur}
+                onApplySuggestedSlug={applySuggestedSlug}
+                activeField={activeField}
+                onActiveFieldChange={setActiveField}
+              />
+            </div>
+            <div
+              id="admin-project-preview-pane"
+              role="tabpanel"
+              className={`${workspaceView === "preview" ? "block" : "hidden"} min-w-0 xl:block`}
+            >
+              <LivePreview
+                formState={deferredPreviewFormState}
+                coverPreviewSrc={deferredCoverPreview}
+                isDirty={isDirty}
+                galleryImageList={deferredPreviewGallery}
+                captionRawLines={deferredPreviewCaptions}
+                activeField={activeField}
+                onActiveFieldChange={setActiveField}
+                onUpdateField={handlePreviewFieldUpdate}
+                onUpdateCaption={updateCaption}
+                onReplaceGalleryImage={handlePreviewGalleryImageUpdate}
+                onToggleField={handlePreviewToggle}
+                onNavigateToImageField={handlePreviewImageNavigate}
+                liveProjectHref={liveProjectHref}
+              />
+            </div>
+          </div>
+        </>
       ) : null}
 
       {/* TAB: SITE SETTINGS */}
@@ -600,6 +736,7 @@ export function AdminDashboard() {
         working={working}
         onClose={closeConfirmDialog}
         onConfirm={() => void confirmDialogAction()}
+        onSecondary={() => void secondaryDialogAction()}
         onInputChange={updateConfirmDialogInput}
       />
     </section>

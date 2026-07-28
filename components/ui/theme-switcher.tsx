@@ -31,7 +31,8 @@ export function ThemeSwitcher() {
         className={cn(
           "flex h-11 w-11 items-center justify-center rounded-full",
           "border border-line shadow-card backdrop-blur-xl",
-          "transition-all duration-200 hover:scale-110 active:scale-95"
+          "transition-[color,background-color,border-color,transform,opacity] duration-200",
+          "hover:scale-[1.06] active:scale-[0.97] motion-reduce:hover:scale-100 motion-reduce:active:scale-100"
         )}
         style={{ backgroundColor: "var(--panel)" }}
       >

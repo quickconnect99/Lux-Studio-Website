@@ -9,11 +9,11 @@
 
   /* ─── Form fields ──────────────────────────────────────────────────── */
   .input-field {
-    @apply min-h-11 w-full rounded-2xl border border-line bg-panel px-4 py-3 text-base text-foreground outline-none transition-all duration-200 ease-out focus:scale-[1.005] focus:border-accent focus:bg-panel;
+    @apply min-h-11 w-full rounded-2xl border border-line bg-panel px-4 py-3 text-base text-foreground outline-none transition-colors duration-200 ease-out focus:border-accent focus:bg-panel;
   }
 
   .textarea-field {
-    @apply w-full rounded-[1.5rem] border border-line bg-panel px-4 py-3 text-base text-foreground outline-none transition-all duration-200 ease-out focus:scale-[1.005] focus:border-accent focus:bg-panel;
+    @apply w-full rounded-[1.5rem] border border-line bg-panel px-4 py-3 text-base text-foreground outline-none transition-colors duration-200 ease-out focus:border-accent focus:bg-panel;
   }
 
   /* Error state – uses CSS variable so colour stays in the design system */
@@ -54,11 +54,11 @@
 
   /* ─── Buttons / pills ──────────────────────────────────────────────── */
   .control-pill {
-    @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-full border border-line bg-panel px-4 py-2 text-xs uppercase tracking-ui text-foreground;
+    @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-full border border-line bg-panel px-4 py-2 text-xs uppercase tracking-ui text-foreground transition-[color,background-color,border-color,transform,opacity] duration-150 ease-out active:scale-[0.97];
   }
 
   .action-button {
-    @apply inline-flex min-h-11 items-center justify-center gap-3 rounded-full border border-foreground bg-foreground px-5 py-3 text-xs uppercase tracking-ui text-background transition-all duration-150 ease-out hover:bg-accent hover:text-accent-contrast active:scale-95 disabled:opacity-70;
+    @apply inline-flex min-h-11 items-center justify-center gap-3 rounded-full border border-foreground bg-foreground px-5 py-3 text-xs uppercase tracking-ui text-background transition-[color,background-color,border-color,transform,opacity] duration-150 ease-out hover:bg-accent hover:text-accent-contrast active:scale-[0.97] disabled:opacity-70;
   }
 
   .muted-pill {
@@ -185,23 +185,6 @@ select {
     opacity 150ms ease;
 }
 
-/* Separate transform so it can have its own timing */
-a,
-button {
-  transition:
-    color 150ms ease,
-    background-color 150ms ease,
-    border-color 150ms ease,
-    opacity 150ms ease,
-    transform 200ms cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-/* Press feedback for all interactive elements */
-a:active,
-button:active {
-  transform: scale(0.96);
-}
-
 /* ─── Focus ring ───────────────────────────────────────────────────────── */
 a:focus-visible,
 button:focus-visible,
@@ -217,6 +200,24 @@ select:focus-visible {
 /* ─── Utilities ────────────────────────────────────────────────────────── */
 .texture-grid {
   position: relative;
+}
+
+@media (max-width: 639px) {
+  .mobile-scroll-affordance {
+    padding-right: 3.5rem;
+    -webkit-mask-image: linear-gradient(
+      to right,
+      #000 0,
+      #000 calc(100% - 2.75rem),
+      transparent 100%
+    );
+    mask-image: linear-gradient(
+      to right,
+      #000 0,
+      #000 calc(100% - 2.75rem),
+      transparent 100%
+    );
+  }
 }
 
 .texture-grid::before {
@@ -304,6 +305,50 @@ select:focus-visible {
 }
 
 /* Film frame – layered border for depth */
+[data-admin-workspace] .text-xs {
+  font-size: 0.8rem;
+  line-height: 1.25rem;
+}
+
+[data-admin-workspace] :is(
+    .text-\[0\.5rem\],
+    .text-\[0\.55rem\],
+    .text-\[0\.58rem\],
+    .text-\[0\.6rem\],
+    .text-\[0\.62rem\],
+    .text-\[0\.65rem\],
+    .text-\[0\.7rem\]
+  ) {
+  font-size: 0.75rem;
+  line-height: 1.15rem;
+}
+
+[data-admin-workspace] input[type="file"]:not(.sr-only) {
+  width: 100%;
+  cursor: pointer;
+  border: 1px dashed var(--line);
+  border-radius: 1rem;
+  background: var(--panel-secondary);
+  padding: 0.55rem;
+  color: var(--muted);
+  font-size: 0.8rem;
+  letter-spacing: normal;
+  text-transform: none;
+}
+
+[data-admin-workspace]
+  input[type="file"]:not(.sr-only)::file-selector-button {
+  min-height: 2.5rem;
+  cursor: pointer;
+  margin-right: 0.75rem;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--panel);
+  padding: 0.5rem 0.9rem;
+  color: var(--foreground);
+  font: inherit;
+}
+
 .film-frame {
   position: relative;
   overflow: hidden;
@@ -474,12 +519,18 @@ select:focus-visible {
     transform: translateX(0%);
   }
 
+  .shake,
+  .animate-pulse {
+    animation: none;
+  }
+
   .split-trail-underline::after {
     transition: none;
   }
 
-  a:active,
-  button:active {
+  .control-pill:active,
+  .action-button:active,
+  .pressable:active {
     transform: none;
   }
 }

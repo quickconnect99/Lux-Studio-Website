@@ -9,6 +9,7 @@ import { useEffect, useRef, useState } from "react";
 import type { SiteSettings } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { getVisibleNavigation } from "@/lib/site-config";
+import { motionDuration, motionEase } from "@/lib/motion";
 import { ThemeSwitcher } from "@/components/ui/theme-switcher";
 
 type SiteHeaderProps = {
@@ -128,7 +129,7 @@ export function SiteHeader({ settings }: SiteHeaderProps) {
                     {item.label}
                     <span
                       className={cn(
-                        "absolute -bottom-2 left-0 h-px bg-accent transition-all duration-300",
+                        "absolute -bottom-2 left-0 h-px bg-accent transition-[width] duration-300",
                         active ? "w-full" : "w-0 group-hover:w-full"
                       )}
                     />
@@ -151,7 +152,7 @@ export function SiteHeader({ settings }: SiteHeaderProps) {
               className={cn(
                 "inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full",
                 "border border-line bg-panel text-foreground lg:hidden",
-                "transition-all duration-200 hover:border-accent hover:bg-panel-secondary"
+                "transition-colors duration-200 hover:border-accent hover:bg-panel-secondary"
               )}
             >
               <AnimatePresence mode="wait" initial={false}>
@@ -161,7 +162,7 @@ export function SiteHeader({ settings }: SiteHeaderProps) {
                     initial={{ rotate: -90, opacity: 0 }}
                     animate={{ rotate: 0, opacity: 1 }}
                     exit={{ rotate: 90, opacity: 0 }}
-                    transition={{ duration: 0.18 }}
+                    transition={{ duration: motionDuration.micro }}
                   >
                     <X className="h-4 w-4" />
                   </motion.span>
@@ -171,7 +172,7 @@ export function SiteHeader({ settings }: SiteHeaderProps) {
                     initial={{ rotate: 90, opacity: 0 }}
                     animate={{ rotate: 0, opacity: 1 }}
                     exit={{ rotate: -90, opacity: 0 }}
-                    transition={{ duration: 0.18 }}
+                    transition={{ duration: motionDuration.micro }}
                   >
                     <Menu className="h-4 w-4" />
                   </motion.span>
@@ -194,7 +195,10 @@ export function SiteHeader({ settings }: SiteHeaderProps) {
             initial={{ opacity: 0, y: -8 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -8 }}
-            transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
+            transition={{
+              duration: motionDuration.state,
+              ease: motionEase
+            }}
             className="bg-background/95 fixed inset-x-0 bottom-0 top-[4.5rem] overflow-y-auto border-t border-line shadow-card backdrop-blur-2xl sm:top-[5.5rem] lg:hidden"
           >
             <div className="section-shell flex min-h-full flex-col py-5">

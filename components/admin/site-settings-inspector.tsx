@@ -51,6 +51,7 @@ export function SiteSettingsInspector({
             <button
               key={item.key}
               type="button"
+              data-site-navigation={item.key}
               onClick={() => updateField(item.key, !item.value)}
               aria-pressed={item.value}
               className={cn(

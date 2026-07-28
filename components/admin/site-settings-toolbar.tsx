@@ -6,8 +6,6 @@ import {
   ExternalLink,
   Monitor,
   Pencil,
-  RefreshCw,
-  Save,
   Smartphone
 } from "lucide-react";
 import type {
@@ -18,14 +16,12 @@ import { cn } from "@/lib/utils";
 
 export function SiteSettingsToolbar({
   isDirty,
-  working,
   page,
   previewWidth,
   onPageChange,
   onPreviewWidthChange
 }: {
   isDirty: boolean;
-  working: boolean;
   page: PreviewPage;
   previewWidth: PreviewWidth;
   onPageChange(page: PreviewPage): void;
@@ -56,7 +52,11 @@ export function SiteSettingsToolbar({
         </p>
       </div>
       <div className="flex flex-wrap items-center gap-2">
-        <div className="flex flex-wrap rounded-full border border-line bg-panel-secondary p-1">
+        <div
+          role="tablist"
+          aria-label="Site settings preview page"
+          className="no-scrollbar flex max-w-full overflow-x-auto rounded-full border border-line bg-panel-secondary p-1"
+        >
           {(
             [
               ["general", "00 General"],
@@ -70,6 +70,8 @@ export function SiteSettingsToolbar({
             <button
               key={previewPage}
               type="button"
+              role="tab"
+              aria-selected={page === previewPage}
               onClick={() => onPageChange(previewPage)}
               className={cn(
                 "min-h-11 rounded-full px-3 py-2 text-[0.58rem] uppercase tracking-ui",
@@ -88,6 +90,7 @@ export function SiteSettingsToolbar({
               type="button"
               onClick={() => onPreviewWidthChange("desktop")}
               aria-label="Desktop preview"
+              aria-pressed={previewWidth === "desktop"}
               className={cn(
                 "flex h-11 w-11 items-center justify-center rounded-full",
                 previewWidth === "desktop"
@@ -101,6 +104,7 @@ export function SiteSettingsToolbar({
               type="button"
               onClick={() => onPreviewWidthChange("mobile")}
               aria-label="Mobile preview"
+              aria-pressed={previewWidth === "mobile"}
               className={cn(
                 "flex h-11 w-11 items-center justify-center rounded-full",
                 previewWidth === "mobile"
@@ -116,14 +120,6 @@ export function SiteSettingsToolbar({
           Live site
           <ExternalLink className="h-3.5 w-3.5" />
         </a>
-        <button type="submit" disabled={working} className="action-button">
-          {working ? (
-            <RefreshCw className="h-4 w-4 animate-spin" />
-          ) : (
-            <Save className="h-4 w-4" />
-          )}
-          Save
-        </button>
       </div>
     </div>
   );

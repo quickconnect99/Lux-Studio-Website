@@ -2,7 +2,7 @@
 
 import { useEffect, useId, useMemo, useRef, useState } from "react";
 import Image from "next/image";
-import { GripVertical, Plus, X } from "lucide-react";
+import { ChevronDown, ChevronUp, GripVertical, Plus, X } from "lucide-react";
 import {
   DndContext,
   KeyboardSensor,
@@ -55,6 +55,10 @@ type SortableItemProps = {
   captionPlaceholder: string;
   showCaption: boolean;
   itemLabel: string;
+  canMoveUp: boolean;
+  canMoveDown: boolean;
+  onMoveUp: () => void;
+  onMoveDown: () => void;
   onRemove: () => void;
   onImageChange: (value: string) => void;
   onCaptionChange: (value: string) => void;
@@ -68,6 +72,10 @@ function SortableItem({
   captionPlaceholder,
   showCaption,
   itemLabel,
+  canMoveUp,
+  canMoveDown,
+  onMoveUp,
+  onMoveDown,
   onRemove,
   onImageChange,
   onCaptionChange
@@ -98,12 +106,13 @@ function SortableItem({
   return (
     <div
       ref={setNodeRef}
+      data-gallery-item
       style={{
         transform: CSS.Transform.toString(transform),
         transition
       }}
       className={cn(
-        "grid grid-cols-[44px_68px_minmax(0,1fr)_44px] items-start gap-2 rounded-[1.25rem] border border-line bg-panel-secondary p-3 sm:gap-3",
+        "grid grid-cols-[44px_minmax(0,1fr)_44px] items-start gap-2 rounded-[1.25rem] border border-line bg-panel-secondary p-3 sm:grid-cols-[44px_68px_minmax(0,1fr)_44px] sm:gap-3",
         isDragging && "z-50 opacity-75 shadow-lg"
       )}
     >
@@ -133,7 +142,7 @@ function SortableItem({
       </div>
 
       {/* Image path and caption */}
-      <div className="space-y-2">
+      <div className="col-span-3 row-start-2 space-y-2 sm:col-span-1 sm:row-start-auto">
         <div className="flex flex-wrap items-center gap-2">
           <p className="text-[0.58rem] uppercase tracking-[0.28em] text-muted">
             {itemLabel} {String(displayIndex + 1).padStart(2, "0")}
@@ -143,6 +152,26 @@ function SortableItem({
           </span>
         </div>
         <p className="text-[0.7rem] leading-5 text-muted">{roleDescription}</p>
+        <div className="flex gap-2 sm:hidden">
+          <button
+            type="button"
+            onClick={onMoveUp}
+            disabled={!canMoveUp}
+            className="control-pill min-h-10 flex-1 justify-center disabled:opacity-40"
+          >
+            <ChevronUp className="h-4 w-4" />
+            Move up
+          </button>
+          <button
+            type="button"
+            onClick={onMoveDown}
+            disabled={!canMoveDown}
+            className="control-pill min-h-10 flex-1 justify-center disabled:opacity-40"
+          >
+            <ChevronDown className="h-4 w-4" />
+            Move down
+          </button>
+        </div>
         <input
           data-gallery-image-index={displayIndex}
           value={imageDraft}
@@ -178,7 +207,7 @@ function SortableItem({
       <button
         type="button"
         onClick={onRemove}
-        className="flex h-11 w-11 items-center justify-center rounded-xl text-muted transition-colors hover:bg-panel hover:text-error"
+        className="col-start-3 row-start-1 flex h-11 w-11 items-center justify-center rounded-xl text-muted transition-colors hover:bg-panel hover:text-error sm:col-start-auto sm:row-start-auto"
         aria-label={`Remove ${itemLabel.toLowerCase()} ${displayIndex + 1}`}
       >
         <X className="h-4 w-4" />
@@ -291,6 +320,14 @@ export function GalleryEditor({
     emit(next);
   }
 
+  function handleMove(index: number, direction: -1 | 1) {
+    const targetIndex = index + direction;
+    if (targetIndex < 0 || targetIndex >= items.length) return;
+    const next = arrayMove(items, index, targetIndex);
+    setItems(next);
+    emit(next);
+  }
+
   // ── Caption ──────────────────────────────────────────────────────────────
   function handleCaptionChange(id: string, caption: string) {
     const next = items.map((item) =>
@@ -355,6 +392,10 @@ export function GalleryEditor({
                       captionPlaceholder={captionPlaceholder(displayIndex)}
                       showCaption={showCaptions}
                       itemLabel={itemLabel}
+                      canMoveUp={displayIndex > 0}
+                      canMoveDown={displayIndex < items.length - 1}
+                      onMoveUp={() => handleMove(displayIndex, -1)}
+                      onMoveDown={() => handleMove(displayIndex, 1)}
                       onRemove={() => handleRemove(item.id)}
                       onImageChange={(value) =>
                         handleImageChange(item.id, value)

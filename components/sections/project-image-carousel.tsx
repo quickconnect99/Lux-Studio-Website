@@ -5,6 +5,7 @@ import { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { ChevronLeft, ChevronRight, Maximize2 } from "lucide-react";
 import { Lightbox } from "@/components/ui/lightbox";
+import { motionDuration, motionEase } from "@/lib/motion";
 import { cn } from "@/lib/utils";
 
 type ProjectImageCarouselProps = {
@@ -57,13 +58,16 @@ export function ProjectImageCarousel({
         <div className="space-y-3">
           <div className="film-frame relative overflow-hidden rounded-[1.25rem] sm:rounded-[1.5rem]">
             <div className="aspect-[4/3] sm:aspect-[16/9]" />
-            <AnimatePresence mode="wait">
+            <AnimatePresence initial={false} mode="sync">
               <motion.div
                 key={activeImage}
                 initial={{ opacity: 0, scale: 1.015 }}
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.985 }}
-                transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+                transition={{
+                  duration: motionDuration.state,
+                  ease: motionEase
+                }}
                 className="absolute inset-0"
               >
                 <Image
@@ -155,7 +159,7 @@ export function ProjectImageCarousel({
                   aria-label={`Show image ${index + 1}`}
                   aria-current={activeIndex === index ? "true" : undefined}
                   className={cn(
-                    "relative w-28 shrink-0 overflow-hidden rounded-[1rem] border transition-all duration-150 sm:w-auto sm:rounded-[1.1rem]",
+                    "relative w-28 shrink-0 overflow-hidden rounded-[1rem] border transition-[border-color,box-shadow,opacity] duration-150 sm:w-auto sm:rounded-[1.1rem]",
                     activeIndex === index
                       ? "ring-accent/25 border-accent ring-2"
                       : "hover:border-foreground/35 border-line opacity-70 hover:opacity-100"

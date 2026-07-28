@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { useForm } from "@/hooks/use-form";
 import { buildSiteSettingsDatabasePayload } from "@/lib/admin-persistence";
@@ -70,6 +70,9 @@ export function useAdminSiteSettings({
   const form = useForm<SiteSettingsFormState>(
     toSiteSettingsFormState(defaultSiteSettings)
   );
+  const savedFormStateRef = useRef(
+    toSiteSettingsFormState(defaultSiteSettings)
+  );
   const [savedSnapshot, setSavedSnapshot] = useState(() =>
     serializeSiteSettingsFormState(toSiteSettingsFormState(defaultSiteSettings))
   );
@@ -127,12 +130,13 @@ export function useAdminSiteSettings({
       : toSiteSettingsFormState(defaultSiteSettings);
 
     replaceForm(state);
+    savedFormStateRef.current = state;
     setSavedSnapshot(serializeSiteSettingsFormState(state));
   }, [replaceForm, showStatus, supabase]);
 
   const save = useCallback(
-    async (event: { preventDefault(): void }) => {
-      event.preventDefault();
+    async (event?: { preventDefault(): void }): Promise<boolean> => {
+      event?.preventDefault();
       setSaveReport(null);
       setWorking(true);
       const newlyUploadedUrls: string[] = [];
@@ -142,12 +146,12 @@ export function useAdminSiteSettings({
           showStatus(
             "Connect Supabase to persist global links and contact details. Static fallback still lives in lib/site-config.ts."
           );
-          return;
+          return false;
         }
 
         if (!sessionEmail) {
           showStatus("Sign in to save global site settings.");
-          return;
+          return false;
         }
 
         let heroVideoUrl = formState.heroVideoUrl;
@@ -277,7 +281,7 @@ export function useAdminSiteSettings({
               "The site settings could not be saved."
             ).message
           );
-          return;
+          return false;
         }
 
         const savedState = toSiteSettingsFormState(
@@ -298,6 +302,7 @@ export function useAdminSiteSettings({
         );
         void removeUnreferencedAdminFiles(supabase, replacedMediaUrls);
         replaceForm(savedState);
+        savedFormStateRef.current = savedState;
         setSavedSnapshot(serializeSiteSettingsFormState(savedState));
         clearSiteSettingsMedia();
         showStatus("Global site settings saved to Supabase.");
@@ -359,6 +364,7 @@ export function useAdminSiteSettings({
               : [])
           ]
         });
+        return true;
       } catch (error) {
         setUploadProgress(null);
         if (supabase && newlyUploadedUrls.length > 0) {
@@ -368,6 +374,7 @@ export function useAdminSiteSettings({
           toAdminOperationError(error, "The site settings could not be saved.")
             .message
         );
+        return false;
       } finally {
         setWorking(false);
       }
@@ -389,11 +396,24 @@ export function useAdminSiteSettings({
     ]
   );
 
+  const reset = useCallback(() => {
+    replaceForm(savedFormStateRef.current);
+    clearSiteSettingsMedia();
+    setSaveReport(null);
+    showStatus("Site settings restored to the last saved state.");
+  }, [
+    clearSiteSettingsMedia,
+    replaceForm,
+    setSaveReport,
+    showStatus
+  ]);
+
   return {
     formState,
     isDirty,
     load,
     save,
+    reset,
     updateField
   };
 }

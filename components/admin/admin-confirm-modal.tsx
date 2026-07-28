@@ -10,6 +10,7 @@ type AdminConfirmModalProps = {
   working: boolean;
   onClose: () => void;
   onConfirm: () => void;
+  onSecondary?: () => void;
   onInputChange: (value: string) => void;
 };
 
@@ -18,6 +19,7 @@ export function AdminConfirmModal({
   working,
   onClose,
   onConfirm,
+  onSecondary,
   onInputChange
 }: AdminConfirmModalProps) {
   const modalRef = useRef<HTMLDivElement>(null);
@@ -179,6 +181,16 @@ export function AdminConfirmModal({
           >
             Cancel
           </button>
+          {dialog.secondaryLabel && onSecondary ? (
+            <button
+              type="button"
+              onClick={onSecondary}
+              disabled={working}
+              className="control-pill border-warning/35 text-warning hover:border-warning/60"
+            >
+              {dialog.secondaryLabel}
+            </button>
+          ) : null}
           <button
             type="button"
             onClick={onConfirm}

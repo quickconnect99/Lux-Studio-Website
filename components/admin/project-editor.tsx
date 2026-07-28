@@ -108,7 +108,7 @@ function FieldHelpTooltip({ fieldKey }: { fieldKey: AdminProjectFieldKey }) {
       <button
         ref={buttonRef}
         type="button"
-        className="inline-flex h-8 w-8 items-center justify-center rounded-full text-muted hover:bg-panel hover:text-foreground"
+        className="inline-flex h-10 w-10 items-center justify-center rounded-full text-muted hover:bg-panel hover:text-foreground"
         aria-label={`Where is ${meta.label} shown?`}
         aria-describedby={open ? tooltipId : undefined}
         onClick={() => setOpen(true)}
@@ -288,6 +288,13 @@ export function ProjectEditor({
     updateField("galleryCaptionsText", captions.join("\n"));
   }
 
+  function navigateToField(field: AdminProjectFieldKey) {
+    onActiveFieldChange(field);
+    document
+      .querySelector<HTMLElement>(`[data-admin-editor-field="${field}"]`)
+      ?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+
   const canViewOnSite = Boolean(formState.id) && formState.published;
 
   return (
@@ -343,35 +350,6 @@ export function ProjectEditor({
               <Copy className="h-4 w-4" />
               {isTemplate ? "Start Copy" : "Duplicate"}
             </button>
-            {formState.id && !isTemplate ? (
-              <button
-                type="button"
-                onClick={handleDeleteClick}
-                disabled={working}
-                className="control-pill hover:border-error/40 text-error"
-              >
-                <Trash2 className="h-4 w-4" />
-                Delete
-              </button>
-            ) : null}
-            <button
-              type="submit"
-              disabled={working || !isProjectComplete}
-              className="action-button"
-            >
-              {working ? (
-                <RefreshCw className="h-4 w-4 animate-spin" />
-              ) : (
-                <CloudUpload className="h-4 w-4" />
-              )}
-              {isTemplate
-                ? isDirty
-                  ? "Create Project"
-                  : "Use Template"
-                : isDirty
-                  ? "Save Changes"
-                  : "Save Project"}
-            </button>
           </div>
         </div>
         {isTemplate ? (
@@ -381,8 +359,42 @@ export function ProjectEditor({
           </p>
         ) : null}
 
+        <nav
+          aria-label="Project editor sections"
+          className="no-scrollbar mt-5 flex gap-2 overflow-x-auto border-y border-line py-3"
+        >
+          {[
+            ["title", "01 Basics"],
+            ["shortDescription", "02 Copy"],
+            ["coverImage", "03 Media"],
+            ["gallery", "04 Gallery"],
+            ["published", "05 Publishing"]
+          ].map(([field, label]) => (
+            <button
+              key={field}
+              type="button"
+              onClick={() => navigateToField(field as AdminProjectFieldKey)}
+              className="min-h-10 shrink-0 rounded-full border border-line bg-panel-secondary px-3 text-xs uppercase tracking-eyebrow text-muted transition-colors hover:border-accent hover:text-foreground"
+            >
+              {label}
+            </button>
+          ))}
+        </nav>
+
+        <div
+          data-admin-editor-section="basics"
+          className="mt-6 border-l-2 border-accent pl-3"
+        >
+          <p className="text-xs font-medium uppercase tracking-eyebrow text-foreground">
+            01 · Basics
+          </p>
+          <p className="mt-1 text-sm text-muted">
+            Project identity, URL and primary metadata.
+          </p>
+        </div>
+
         {/* Title + Slug */}
-        <div className="mt-6 grid gap-4 sm:grid-cols-2">
+        <div className="mt-4 grid gap-4 sm:grid-cols-2">
           <EditorFieldShell
             fieldKey="title"
             activeField={activeField}
@@ -391,6 +403,7 @@ export function ProjectEditor({
             <label className="space-y-2 text-sm text-muted">
               <FieldLabel fieldKey="title" required />
               <input
+                data-admin-project-title
                 required
                 value={formState.title}
                 onChange={(e) => {
@@ -557,6 +570,18 @@ export function ProjectEditor({
         </div>
 
         {/* Descriptions */}
+        <div
+          data-admin-editor-section="copy"
+          className="mt-8 border-l-2 border-accent pl-3"
+        >
+          <p className="text-xs font-medium uppercase tracking-eyebrow text-foreground">
+            02 · Copy
+          </p>
+          <p className="mt-1 text-sm text-muted">
+            Card summary, project description and behind-the-scenes notes.
+          </p>
+        </div>
+
         <EditorFieldShell
           fieldKey="shortDescription"
           activeField={activeField}
@@ -606,6 +631,18 @@ export function ProjectEditor({
         </EditorFieldShell>
 
         {/* Cover image */}
+        <div
+          data-admin-editor-section="media"
+          className="mt-8 border-l-2 border-accent pl-3"
+        >
+          <p className="text-xs font-medium uppercase tracking-eyebrow text-foreground">
+            03 · Media
+          </p>
+          <p className="mt-1 text-sm text-muted">
+            Cover image and project video sources.
+          </p>
+        </div>
+
         <EditorFieldShell
           fieldKey="coverImage"
           activeField={activeField}
@@ -614,9 +651,9 @@ export function ProjectEditor({
         >
           <div className="space-y-2 text-sm text-muted">
             <FieldLabel fieldKey="coverImage" required />
-            <div className="flex gap-4">
+            <div className="flex flex-col gap-4 sm:flex-row">
               {coverPreviewSrc ? (
-                <div className="relative h-20 w-20 shrink-0 overflow-hidden rounded-[1rem] border border-line bg-panel-dark">
+                <div className="relative h-32 w-full shrink-0 overflow-hidden rounded-[1rem] border border-line bg-panel-dark sm:h-20 sm:w-20">
                   <Image
                     src={coverPreviewSrc}
                     alt="Cover preview"
@@ -659,6 +696,18 @@ export function ProjectEditor({
         </EditorFieldShell>
 
         {/* Gallery — visual grid editor */}
+        <div
+          data-admin-editor-section="gallery"
+          className="mt-8 border-l-2 border-accent pl-3"
+        >
+          <p className="text-xs font-medium uppercase tracking-eyebrow text-foreground">
+            04 · Gallery
+          </p>
+          <p className="mt-1 text-sm text-muted">
+            Reorder project stills and maintain their captions.
+          </p>
+        </div>
+
         <EditorFieldShell
           fieldKey="gallery"
           activeField={activeField}
@@ -748,6 +797,18 @@ export function ProjectEditor({
         </div>
 
         {/* Publish settings */}
+        <div
+          data-admin-editor-section="publishing"
+          className="mt-8 border-l-2 border-accent pl-3"
+        >
+          <p className="text-xs font-medium uppercase tracking-eyebrow text-foreground">
+            05 · Publishing
+          </p>
+          <p className="mt-1 text-sm text-muted">
+            Control release date, homepage placement and public visibility.
+          </p>
+        </div>
+
         <div className="mt-4 grid gap-4 sm:grid-cols-3">
           {/* Datepicker for createdAt */}
           <EditorFieldShell
@@ -824,7 +885,10 @@ export function ProjectEditor({
       </form>
 
       {/* Sticky save bar */}
-      <div className="sticky bottom-4 z-20 mt-4">
+      <div
+        data-admin-project-actions
+        className="mt-4 sm:sticky sm:bottom-4 sm:z-20"
+      >
         <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-line bg-panel px-4 py-3 shadow-lg backdrop-blur-md">
           <div className="flex flex-wrap items-center gap-4">
             <p className="text-xs leading-6 text-muted">

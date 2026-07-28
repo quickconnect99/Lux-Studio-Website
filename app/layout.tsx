@@ -2,8 +2,6 @@ import type { Metadata, Viewport } from "next";
 import { Barlow_Condensed, Bodoni_Moda, IBM_Plex_Mono } from "next/font/google";
 import Script from "next/script";
 import "@/app/globals.css";
-import { SiteFooter } from "@/components/layout/site-footer";
-import { SiteHeader } from "@/components/layout/site-header";
 import { ThemeProvider } from "@/components/ui/theme-provider";
 import { adaptSiteSettingsToPublishedProjects } from "@/lib/public-portfolio";
 import {
@@ -130,13 +128,7 @@ export default async function RootLayout({
           }}
         />
 
-        <ThemeProvider>
-          <div className="texture-grid min-h-screen">
-            <SiteHeader settings={settings} />
-            {children}
-            <SiteFooter settings={settings} />
-          </div>
-        </ThemeProvider>
+        <ThemeProvider>{children}</ThemeProvider>
       </body>
     </html>
   );

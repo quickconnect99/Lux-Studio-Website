@@ -121,10 +121,11 @@ export type AdminUploadProgress = {
 };
 
 export type AdminConfirmDialogState = {
-  action: "delete" | "reset";
+  action: "delete" | "reset" | "workflow";
   title: string;
   description: string;
   confirmLabel: string;
+  secondaryLabel?: string;
   tone: "default" | "danger";
   requireMatchText?: string;
   inputLabel?: string;

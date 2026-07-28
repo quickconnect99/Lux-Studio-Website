@@ -93,6 +93,48 @@ test("project description follows metadata and remains readable", async ({
   expect(layout.horizontalOverflow).toBeLessThanOrEqual(0);
 });
 
+test("work shows every filtered project without a load-more action", async ({
+  page
+}, testInfo) => {
+  test.skip(testInfo.project.name !== "desktop-1440");
+  await page.goto("/work", { waitUntil: "networkidle" });
+
+  await expect(
+    page.getByRole("button", { name: /load more/i })
+  ).toHaveCount(0);
+
+  const projects = page.locator("[data-work-project]");
+  const status = page.locator("[data-work-result-status]");
+  await expect(status).toBeVisible();
+  const announcedCount = Number(
+    (await status.textContent())?.match(/Showing\s+(\d+)\s+projects/)?.[1]
+  );
+
+  expect(announcedCount).toBeGreaterThan(0);
+  await expect(projects).toHaveCount(announcedCount);
+});
+
+test("mobile work filters communicate horizontal scrolling", async ({
+  page
+}, testInfo) => {
+  test.skip(testInfo.project.name !== "mobile-320");
+  await page.goto("/work", { waitUntil: "networkidle" });
+
+  const categoryFilters = page.locator(".mobile-scroll-affordance").last();
+  await expect(categoryFilters).toBeVisible();
+
+  const filterLayout = await categoryFilters.evaluate((element) => {
+    const styles = getComputedStyle(element);
+    return {
+      overflows: element.scrollWidth > element.clientWidth,
+      maskImage: styles.maskImage || styles.webkitMaskImage
+    };
+  });
+
+  expect(filterLayout.overflows).toBe(true);
+  expect(filterLayout.maskImage).not.toBe("none");
+});
+
 test("reduced motion hydrates without hiding content", async ({
   page
 }, testInfo) => {
@@ -257,6 +299,33 @@ test("Frames in Motion opens the related project in the same tab", async ({
   await expect(visibleProjectLink).not.toHaveAttribute("target", "_blank");
   await visibleProjectLink.click();
   await expect(page).toHaveURL(/\/work\/[^/?#]+$/);
+});
+
+test("Frames in Motion offers a persistent playback control", async ({
+  page
+}, testInfo) => {
+  test.skip(testInfo.project.name !== "desktop-1440");
+  await page.goto("/", { waitUntil: "networkidle" });
+
+  const strip = page.getByRole("region", {
+    name: /Frames in Motion projects/
+  });
+  const track = strip.locator(".marquee-track");
+  const playbackButton = page.locator("[data-motion-strip-toggle]");
+
+  await strip.scrollIntoViewIfNeeded();
+  await expect(playbackButton).toHaveAccessibleName("Pause strip");
+  await playbackButton.click();
+  await expect(playbackButton).toHaveAttribute("aria-pressed", "true");
+  await expect(playbackButton).toHaveAccessibleName("Play strip");
+  await expect(track).toHaveCSS("animation-play-state", "paused");
+
+  await page.reload({ waitUntil: "networkidle" });
+  const restoredPlayButton = page.locator("[data-motion-strip-toggle]");
+  await expect(restoredPlayButton).toHaveAccessibleName("Play strip");
+  await expect(restoredPlayButton).toHaveAttribute("aria-pressed", "true");
+  await restoredPlayButton.click();
+  await expect(restoredPlayButton).toHaveAttribute("aria-pressed", "false");
 });
 
 test("Shot With Intent and Frames in Motion use the same heading size", async ({
@@ -564,6 +633,87 @@ test("admin field help remains inside the mobile viewport", async ({
   expect(bounds.bottom).toBeLessThanOrEqual(bounds.viewportHeight);
 });
 
+test("admin uses its own workspace chrome", async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name !== "desktop-1440");
+  await page.goto("/admin", { waitUntil: "networkidle" });
+
+  await expect(page.locator("main[data-admin-workspace]")).toBeVisible();
+  await expect(page.locator("header img[data-company-logo]")).toHaveCount(0);
+  await expect(page.locator("footer")).toHaveCount(0);
+  await expect(
+    page.getByRole("heading", { name: /Lux Studio Admin workspace/i })
+  ).toBeVisible();
+});
+
+test("admin mobile workspace switches between projects editor and preview", async ({
+  page
+}, testInfo) => {
+  test.skip(testInfo.project.name !== "mobile-390");
+  await page.goto("/admin", { waitUntil: "networkidle" });
+
+  const projectsMode = page.locator(
+    '[data-admin-workspace-mode="projects"]'
+  );
+  const editMode = page.locator('[data-admin-workspace-mode="edit"]');
+  const previewMode = page.locator('[data-admin-workspace-mode="preview"]');
+  const projectPane = page.locator("#admin-project-list-pane");
+  const editorPane = page.locator("#admin-project-editor-pane");
+  const previewPane = page.locator("#admin-project-preview-pane");
+
+  await expect(editMode).toHaveAttribute("aria-selected", "true");
+  await expect(editorPane).toBeVisible();
+  await expect(projectPane).toBeHidden();
+  await expect(previewPane).toBeHidden();
+
+  await projectsMode.click();
+  await expect(projectPane).toBeVisible();
+  await expect(editorPane).toBeHidden();
+
+  await previewMode.click();
+  await expect(previewPane).toBeVisible();
+  await expect(
+    previewPane.getByText("Quick Preview", { exact: true })
+  ).toBeVisible();
+
+  const overflow = await page.evaluate(
+    () => document.documentElement.scrollWidth - window.innerWidth
+  );
+  expect(overflow).toBeLessThanOrEqual(0);
+});
+
+test("admin mobile gallery cards expose non-drag reorder controls", async ({
+  page
+}, testInfo) => {
+  test.skip(testInfo.project.name !== "mobile-390");
+  await page.goto("/admin", { waitUntil: "networkidle" });
+
+  const firstGalleryItem = page.locator("[data-gallery-item]").first();
+  await firstGalleryItem.scrollIntoViewIfNeeded();
+  await expect(
+    firstGalleryItem.getByRole("button", { name: "Move up" })
+  ).toBeVisible();
+  await expect(
+    firstGalleryItem.getByRole("button", { name: "Move down" })
+  ).toBeVisible();
+});
+
+test("admin live preview opens text editing with one click", async ({
+  page
+}, testInfo) => {
+  test.skip(testInfo.project.name !== "desktop-1440");
+  await page.goto("/admin", { waitUntil: "networkidle" });
+
+  const previewPane = page.locator("#admin-project-preview-pane");
+  const projectTitle = previewPane.getByRole("button", {
+    name: "Edit Project title"
+  });
+
+  await projectTitle.click();
+  await expect(previewPane.getByRole("textbox")).toBeVisible();
+  await page.keyboard.press("Escape");
+  await expect(projectTitle).toBeVisible();
+});
+
 test("admin switches to the lazy-loaded settings workspace", async ({
   page
 }, testInfo) => {
@@ -571,7 +721,7 @@ test("admin switches to the lazy-loaded settings workspace", async ({
   const errors = collectBrowserErrors(page);
   await page.goto("/admin", { waitUntil: "networkidle" });
 
-  await page.getByRole("button", { name: /Site Settings/ }).click();
+  await page.getByRole("tab", { name: /Site Settings/ }).click();
 
   const settingsForm = page.locator("#site-settings-form");
   await expect(settingsForm).toBeVisible();
@@ -579,7 +729,7 @@ test("admin switches to the lazy-loaded settings workspace", async ({
     settingsForm.getByText("Live site editor", { exact: true })
   ).toBeVisible();
 
-  await settingsForm.getByRole("button", { name: "04 About" }).click();
+  await settingsForm.getByRole("tab", { name: "04 About" }).click();
   await expect(
     settingsForm.getByText("Team Gallery", { exact: true })
   ).toBeVisible();
@@ -587,7 +737,7 @@ test("admin switches to the lazy-loaded settings workspace", async ({
     settingsForm.getByRole("button", { name: "Upload Files" })
   ).toBeVisible();
 
-  await page.getByRole("button", { name: /^Projects/ }).click();
+  await page.getByRole("tab", { name: /^Projects/ }).click();
   await expect(settingsForm).toBeHidden();
   expect(errors).toEqual([]);
 });
@@ -598,9 +748,9 @@ test("admin exposes independent homepage frame collections", async ({
   test.skip(testInfo.project.name !== "desktop-1440");
   await page.goto("/admin", { waitUntil: "networkidle" });
 
-  await page.getByRole("button", { name: /Site Settings/ }).click();
+  await page.getByRole("tab", { name: /Site Settings/ }).click();
   const settingsForm = page.locator("#site-settings-form");
-  await settingsForm.getByRole("button", { name: "01 Home" }).click();
+  await settingsForm.getByRole("tab", { name: "01 Home" }).click();
 
   await expect(
     settingsForm.getByText("Shot With Intent", { exact: true })
@@ -609,4 +759,103 @@ test("admin exposes independent homepage frame collections", async ({
     settingsForm.getByText("Frames in Motion", { exact: true })
   ).toBeVisible();
   await expect(settingsForm.getByText(/no eight-image limit/i)).toBeVisible();
+});
+
+test("admin protects unsaved project changes before creating a new project", async ({
+  page
+}, testInfo) => {
+  test.skip(testInfo.project.name !== "desktop-1440");
+  await page.goto("/admin", { waitUntil: "networkidle" });
+
+  const title = page.locator("[data-admin-project-title]");
+  await expect(title).toBeVisible();
+  await title.fill("Unsaved recovery test");
+  await page.getByRole("button", { name: "New project" }).click();
+
+  await expect(
+    page.getByRole("heading", {
+      name: "Save changes before starting a new project?"
+    })
+  ).toBeVisible();
+  await expect(title).toHaveValue("Unsaved recovery test");
+
+  await page.getByRole("button", { name: "Cancel" }).click();
+  await expect(title).toHaveValue("Unsaved recovery test");
+
+  await page.getByRole("button", { name: "New project" }).click();
+  await page.getByRole("button", { name: "Discard changes" }).click();
+  await expect(title).toHaveValue("New Project");
+});
+
+test("admin restores an unsaved project draft after reload", async ({
+  page
+}, testInfo) => {
+  test.skip(testInfo.project.name !== "desktop-1440");
+  await page.goto("/admin", { waitUntil: "networkidle" });
+
+  const title = page.locator("[data-admin-project-title]");
+  await title.fill("Recovered after reload");
+  await expect
+    .poll(() =>
+      page.evaluate(() =>
+        Object.keys(localStorage).some((key) =>
+          key.startsWith("admin-project-draft:")
+        )
+      )
+    )
+    .toBe(true);
+
+  await page.reload({ waitUntil: "networkidle" });
+  await expect(page.locator("[data-admin-project-title]")).toHaveValue(
+    "Recovered after reload"
+  );
+  await expect(page.getByText(/Unsaved draft from .* restored\./)).toBeVisible();
+});
+
+test("admin save shortcut and reset follow the active settings tab", async ({
+  page
+}, testInfo) => {
+  test.skip(testInfo.project.name !== "desktop-1440");
+  await page.goto("/admin", { waitUntil: "networkidle" });
+  await page.getByRole("tab", { name: /Site Settings/ }).click();
+
+  const settingsForm = page.locator("#site-settings-form");
+  const workVisibility = settingsForm.locator(
+    '[data-site-navigation="navigationWork"]'
+  );
+  await expect(workVisibility).toHaveAttribute("aria-pressed", "true");
+  await workVisibility.click();
+  await expect(workVisibility).toHaveAttribute("aria-pressed", "false");
+
+  await page.keyboard.press("Control+s");
+  await expect(
+    page.getByText(/Connect Supabase to persist global links/)
+  ).toBeVisible();
+
+  await page.getByRole("button", { name: "Reset Settings" }).click();
+  await expect(
+    page.getByRole("heading", { name: "Reset site settings?" })
+  ).toBeVisible();
+  await page
+    .getByRole("dialog")
+    .getByRole("button", { name: "Reset settings", exact: true })
+    .click();
+  await expect(workVisibility).toHaveAttribute("aria-pressed", "true");
+});
+
+test("admin action bars do not cover mobile form fields", async ({
+  page
+}, testInfo) => {
+  test.skip(testInfo.project.name !== "mobile-320");
+  await page.goto("/admin", { waitUntil: "networkidle" });
+
+  await expect(page.locator("[data-admin-project-actions]")).toHaveCSS(
+    "position",
+    "static"
+  );
+  await page.getByRole("tab", { name: /Site Settings/ }).click();
+  await expect(page.locator("[data-admin-settings-actions]")).toHaveCSS(
+    "position",
+    "static"
+  );
 });

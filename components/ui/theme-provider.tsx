@@ -5,8 +5,9 @@ import {
   useContext,
   useState,
   useSyncExternalStore,
-  type ReactNode,
+  type ReactNode
 } from "react";
+import { MotionConfig } from "framer-motion";
 import { type ThemeId, DEFAULT_THEME, resolveTheme, isThemeId } from "@/lib/themes";
 
 interface ThemeContextValue {
@@ -18,7 +19,7 @@ interface ThemeContextValue {
 const ThemeContext = createContext<ThemeContextValue>({
   theme: DEFAULT_THEME,
   mounted: false,
-  setTheme: () => {},
+  setTheme: () => {}
 });
 
 export function useTheme() {
@@ -60,7 +61,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
 
   return (
     <ThemeContext.Provider value={{ theme, mounted, setTheme }}>
-      {children}
+      <MotionConfig reducedMotion="user">{children}</MotionConfig>
     </ThemeContext.Provider>
   );
 }

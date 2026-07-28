@@ -7,6 +7,7 @@ import { ChevronLeft, ChevronRight, Expand } from "lucide-react";
 import { Lightbox } from "@/components/ui/lightbox";
 import { FallbackImage } from "@/components/ui/fallback-image";
 import { Reveal } from "@/components/ui/reveal";
+import { motionDuration, motionEase } from "@/lib/motion";
 import type { FrameItem } from "@/lib/project-images";
 import { cn } from "@/lib/utils";
 
@@ -103,7 +104,7 @@ export function SelectedFrames({ frames, label }: SelectedFramesProps) {
         }}
         className={cn(
           "group absolute top-[30%] z-10 w-[78vw] opacity-90 focus-visible:outline-none sm:w-[46%]",
-          "transition-all duration-500 ease-out",
+          "transition-[opacity,transform] duration-500 ease-out",
           position === "left" && "-left-[47vw] sm:left-0 lg:left-0",
           position === "right" && "-right-[47vw] sm:right-0 lg:right-0"
         )}
@@ -133,8 +134,8 @@ export function SelectedFrames({ frames, label }: SelectedFramesProps) {
                     }
               }
               transition={{
-                duration: shouldReduceMotion ? 0 : 0.46,
-                ease: [0.22, 1, 0.36, 1]
+                duration: shouldReduceMotion ? 0 : motionDuration.content,
+                ease: motionEase
               }}
               className="absolute inset-0"
               style={{ willChange: "transform, opacity" }}
@@ -197,8 +198,8 @@ export function SelectedFrames({ frames, label }: SelectedFramesProps) {
                     }
               }
               transition={{
-                duration: shouldReduceMotion ? 0 : 0.58,
-                ease: [0.22, 1, 0.36, 1]
+                duration: shouldReduceMotion ? 0 : motionDuration.hero,
+                ease: motionEase
               }}
               className="absolute inset-0"
               style={{ willChange: "transform, opacity" }}
@@ -230,8 +231,8 @@ export function SelectedFrames({ frames, label }: SelectedFramesProps) {
               opacity: [0, 0.62, 0]
             }}
             transition={{
-              duration: shouldReduceMotion ? 0 : 0.72,
-              ease: [0.22, 1, 0.36, 1]
+              duration: shouldReduceMotion ? 0 : motionDuration.hero,
+              ease: motionEase
             }}
             className="pointer-events-none absolute inset-y-0 z-10 w-[42%] bg-gradient-to-r from-transparent via-white/20 to-transparent mix-blend-screen"
             style={{ willChange: "transform, opacity" }}

@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { AdminDashboard } from "@/components/admin/admin-dashboard";
 import { AdminErrorBoundary } from "@/components/admin/admin-error-boundary";
-import { PageHeader } from "@/components/sections/page-header";
 
 export const metadata: Metadata = {
   title: "Admin",
@@ -28,16 +27,13 @@ export default function AdminPage() {
   }
 
   return (
-    <>
-      <PageHeader
-        eyebrow="Project management"
-        lead="Admin"
-        trail="Workspace"
-        copy="A simple Supabase-ready CMS surface for editing project metadata, swapping media, and controlling publish state."
-      />
+    <main
+      data-admin-workspace
+      className="admin-theme-surface min-h-screen bg-background"
+    >
       <AdminErrorBoundary>
         <AdminDashboard />
       </AdminErrorBoundary>
-    </>
+    </main>
   );
 }

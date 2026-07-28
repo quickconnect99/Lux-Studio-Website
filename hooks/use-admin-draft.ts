@@ -5,51 +5,155 @@ import type { ProjectFormState } from "@/lib/admin-types";
 import { restoreProjectDraft } from "@/lib/admin-persistence";
 import { DRAFT_STORAGE_KEY } from "@/lib/admin-utils";
 
+type StoredProjectDraft = {
+  version: 1;
+  projectKey: string;
+  baseSnapshot: string;
+  updatedAt: string;
+  formState: ProjectFormState;
+};
+
+function getProjectDraftStorageKey(projectKey: string) {
+  return `${DRAFT_STORAGE_KEY}:${encodeURIComponent(projectKey)}`;
+}
+
+function parseStoredDraft(value: string | null): StoredProjectDraft | null {
+  if (!value) return null;
+
+  try {
+    const parsed = JSON.parse(value) as Partial<StoredProjectDraft>;
+    const formState = restoreProjectDraft(parsed.formState);
+    if (
+      parsed.version !== 1 ||
+      typeof parsed.projectKey !== "string" ||
+      typeof parsed.baseSnapshot !== "string" ||
+      typeof parsed.updatedAt !== "string" ||
+      !formState
+    ) {
+      return null;
+    }
+
+    return {
+      version: 1,
+      projectKey: parsed.projectKey,
+      baseSnapshot: parsed.baseSnapshot,
+      updatedAt: parsed.updatedAt,
+      formState
+    };
+  } catch {
+    return null;
+  }
+}
+
 export function useAdminDraft({
   enabled,
-  sessionEmail,
+  projectKey,
   formState,
+  isDirty,
   onRestore
 }: {
   enabled: boolean;
-  sessionEmail: string | null;
+  projectKey: string;
   formState: ProjectFormState;
-  onRestore(draft: ProjectFormState): void;
+  isDirty: boolean;
+  onRestore(
+    draft: ProjectFormState,
+    projectKey: string,
+    updatedAt: string
+  ): void;
 }) {
   const onRestoreRef = useRef(onRestore);
+  const formStateRef = useRef(formState);
+  const lastCleanSnapshotRef = useRef(JSON.stringify(formState));
+  const skipCleanRemovalForKeyRef = useRef<string | null>(null);
   onRestoreRef.current = onRestore;
+  formStateRef.current = formState;
 
   useEffect(() => {
     if (!enabled) return;
 
     try {
-      const raw = localStorage.getItem(DRAFT_STORAGE_KEY);
-      if (!raw) return;
+      const currentSnapshot = JSON.stringify(formStateRef.current);
+      lastCleanSnapshotRef.current = currentSnapshot;
+      const storageKey = getProjectDraftStorageKey(projectKey);
+      const stored = parseStoredDraft(localStorage.getItem(storageKey));
 
-      const restoredDraft = restoreProjectDraft(JSON.parse(raw));
-      if (restoredDraft) onRestoreRef.current(restoredDraft);
+      if (
+        stored &&
+        stored.projectKey === projectKey &&
+        stored.baseSnapshot === currentSnapshot &&
+        JSON.stringify(stored.formState) !== currentSnapshot
+      ) {
+        skipCleanRemovalForKeyRef.current = projectKey;
+        onRestoreRef.current(
+          stored.formState,
+          projectKey,
+          stored.updatedAt
+        );
+        return;
+      }
+
+      localStorage.removeItem(storageKey);
+
+      const legacyRaw = localStorage.getItem(DRAFT_STORAGE_KEY);
+      const legacyDraft = restoreProjectDraft(
+        legacyRaw ? JSON.parse(legacyRaw) : null
+      );
+      if (legacyDraft) {
+        skipCleanRemovalForKeyRef.current = projectKey;
+        onRestoreRef.current(
+          legacyDraft,
+          projectKey,
+          new Date().toISOString()
+        );
+        localStorage.removeItem(DRAFT_STORAGE_KEY);
+      }
     } catch {
       // Ignore malformed or unavailable browser storage.
     }
-  }, [enabled]);
+  }, [enabled, projectKey]);
 
   useEffect(() => {
-    if (sessionEmail) return;
+    if (!enabled) return;
 
     try {
-      localStorage.setItem(DRAFT_STORAGE_KEY, JSON.stringify(formState));
+      const storageKey = getProjectDraftStorageKey(projectKey);
+      const currentSnapshot = JSON.stringify(formState);
+
+      if (!isDirty) {
+        lastCleanSnapshotRef.current = currentSnapshot;
+        if (skipCleanRemovalForKeyRef.current === projectKey) {
+          skipCleanRemovalForKeyRef.current = null;
+          return;
+        }
+        localStorage.removeItem(storageKey);
+        return;
+      }
+
+      const draft: StoredProjectDraft = {
+        version: 1,
+        projectKey,
+        baseSnapshot: lastCleanSnapshotRef.current,
+        updatedAt: new Date().toISOString(),
+        formState
+      };
+      localStorage.setItem(storageKey, JSON.stringify(draft));
     } catch {
       // Ignore unavailable browser storage.
     }
-  }, [formState, sessionEmail]);
+  }, [enabled, formState, isDirty, projectKey]);
 
-  const clearDraft = useCallback(() => {
-    try {
-      localStorage.removeItem(DRAFT_STORAGE_KEY);
-    } catch {
-      // Ignore unavailable browser storage.
-    }
-  }, []);
+  const clearDraft = useCallback(
+    (targetProjectKey = projectKey) => {
+      try {
+        localStorage.removeItem(getProjectDraftStorageKey(targetProjectKey));
+        localStorage.removeItem(DRAFT_STORAGE_KEY);
+      } catch {
+        // Ignore unavailable browser storage.
+      }
+    },
+    [projectKey]
+  );
 
   return { clearDraft };
 }

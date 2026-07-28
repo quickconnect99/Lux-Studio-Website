@@ -1,7 +1,6 @@
 "use client";
 
 import Image from "next/image";
-import { motion } from "framer-motion";
 import { LinkButton } from "@/components/ui/link-button";
 import { Reveal } from "@/components/ui/reveal";
 import { cn } from "@/lib/utils";
@@ -19,16 +18,8 @@ export function FeaturedProjects({ projects }: FeaturedProjectsProps) {
       <div className="section-shell">
         <div className="divide-y divide-line">
           {projects.map((project, index) => (
-            <motion.article
+            <article
               key={project.slug}
-              initial={{ opacity: 0, y: 40 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: "0px 0px -12% 0px" }}
-              transition={{
-                duration: 0.65,
-                delay: index * 0.03,
-                ease: [0.22, 1, 0.36, 1]
-              }}
               className="py-8 sm:py-10 lg:py-14"
             >
               <div className="grid items-center gap-6 sm:gap-8 lg:grid-cols-[0.9fr_1.1fr] lg:gap-10">
@@ -107,7 +98,7 @@ export function FeaturedProjects({ projects }: FeaturedProjectsProps) {
                   </div>
                 </Reveal>
               </div>
-            </motion.article>
+            </article>
           ))}
         </div>
       </div>

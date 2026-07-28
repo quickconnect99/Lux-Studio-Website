@@ -3,6 +3,7 @@
 import { motion } from "framer-motion";
 import { useState } from "react";
 import { useHydratedReducedMotion } from "@/hooks/use-hydrated-reduced-motion";
+import { motionDuration, motionEase } from "@/lib/motion";
 import { cn } from "@/lib/utils";
 
 /**
@@ -27,9 +28,9 @@ type RevealProps = {
 };
 
 const variantConfig: Record<RevealVariant, { offset: number; duration: number }> = {
-  subtle: { offset: 18, duration: 0.55 },
-  default: { offset: 36, duration: 0.8 },
-  bold: { offset: 60, duration: 1.0 }
+  subtle: { offset: 18, duration: motionDuration.content },
+  default: { offset: 30, duration: 0.48 },
+  bold: { offset: 44, duration: 0.55 }
 };
 
 function buildOffset(direction: "up" | "left" | "right", offset: number) {
@@ -62,10 +63,10 @@ export function Reveal({
 
   return (
     <motion.div
-      initial={{ opacity: 0, ...initialOffset }}
+      initial={{ opacity: 1, ...initialOffset }}
       whileInView={{ opacity: 1, x: 0, y: 0 }}
       viewport={{ once: true, margin: "0px 0px 18% 0px" }}
-      transition={{ duration, delay, ease: [0.22, 1, 0.36, 1] }}
+      transition={{ duration, delay, ease: motionEase }}
       onAnimationComplete={() => setRevealed(true)}
       className={cn(revealed && "group-reveal", className)}
     >

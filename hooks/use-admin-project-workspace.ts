@@ -13,7 +13,6 @@ import type {
 import {
   buildUniqueSlugSuggestion,
   createEmptyProject,
-  getAdminProjectKey,
   getProjectCompletionIssues,
   parseMultilineInput,
   slugify,
@@ -152,7 +151,6 @@ export function useAdminProjectWorkspace({
 
   const selectProject = useCallback(
     (project: AdminProjectListItem) => {
-      if (isDirty) showStatus("Previous unsaved changes were discarded.");
       applyProject(project);
       if (project.isTemplate) {
         showStatus(
@@ -160,13 +158,12 @@ export function useAdminProjectWorkspace({
         );
       }
     },
-    [applyProject, isDirty, showStatus]
+    [applyProject, showStatus]
   );
 
   const newProject = useCallback(() => {
-    if (isDirty) showStatus("Previous unsaved changes were discarded.");
     resetToNewProject();
-  }, [isDirty, resetToNewProject, showStatus]);
+  }, [resetToNewProject]);
 
   const duplicateProject = useCallback(() => {
     const baseSlug = formState.slug.endsWith("-copy")
@@ -407,19 +404,18 @@ export function useAdminProjectWorkspace({
   }, [confirmDialog, resetCurrentSelection, showStatus]);
 
   const restoreDraft = useCallback(
-    (restoredDraft: ProjectFormState) => {
+    (
+      restoredDraft: ProjectFormState,
+      projectKey: string,
+      updatedAt: string
+    ) => {
       replaceForm(restoredDraft);
-      setSelectedProjectKey(
-        restoredDraft.templateBusiness
-          ? getAdminProjectKey({
-              slug: restoredDraft.slug,
-              isTemplate: true,
-              templateBusiness: restoredDraft.templateBusiness
-            })
-          : DRAFT_PROJECT_KEY
-      );
-      setSavedFormSnapshot(JSON.stringify(restoredDraft));
-      showStatus("Draft restored from browser storage.");
+      setSelectedProjectKey(projectKey);
+      const restoredTime = new Intl.DateTimeFormat("en", {
+        hour: "2-digit",
+        minute: "2-digit"
+      }).format(new Date(updatedAt));
+      showStatus(`Unsaved draft from ${restoredTime} restored.`);
     },
     [replaceForm, showStatus]
   );
