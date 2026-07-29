@@ -1,6 +1,24 @@
 # Supabase database operations
 
-Stand: 29. Juli 2026
+Stand: 30. Juli 2026
+
+## Production migration status
+
+The linked production project is synchronized through migration
+`20260729000200`.
+
+- On 30 July 2026, the existing baseline objects were verified through the
+  remote schema linter and core-table inspection. Migration
+  `20260601000100` was then marked as applied without executing its SQL.
+- `20260729000100_storage_bucket_limits.sql` and
+  `20260729000200_data_integrity_constraints.sql` were reviewed in a linked
+  dry run and applied successfully.
+- The three new integrity constraints remain `NOT VALID`. PostgreSQL enforces
+  them for new and updated rows; historical-row validation still follows the
+  audit procedure below.
+- The Supabase backup API reported no physical backup and PITR disabled at
+  rollout time. Enable and verify a restorable backup before any future
+  destructive production migration.
 
 ## Sources of truth
 
