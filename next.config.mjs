@@ -54,16 +54,27 @@ const securityHeaders = [
     value: "max-age=63072000; includeSubDomains; preload"
   }
 ];
+const repositoryMediaCacheHeaders = [
+  {
+    key: "Cache-Control",
+    value: "public, max-age=3600, stale-while-revalidate=86400"
+  }
+];
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   distDir: process.env.NEXT_DIST_DIR?.trim() || ".next",
   async headers() {
-    return [{ source: "/(.*)", headers: securityHeaders }];
+    return [
+      { source: "/(.*)", headers: securityHeaders },
+      { source: "/images/:path*", headers: repositoryMediaCacheHeaders },
+      { source: "/media/:path*", headers: repositoryMediaCacheHeaders }
+    ];
   },
   images: {
     dangerouslyAllowSVG: true,
     contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
+    qualities: [75, 90, 95],
     remotePatterns
   }
 };

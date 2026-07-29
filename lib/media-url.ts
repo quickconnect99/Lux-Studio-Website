@@ -7,6 +7,10 @@ const LOCAL_PATH_PATTERNS = [
   /^\\\\/
 ];
 
+/**
+ * Detects machine-local paths that must never be emitted into public markup or
+ * persisted as if they were web-accessible media.
+ */
 export function isLocalFileReference(value: string | null | undefined) {
   const source = value?.trim();
 
@@ -22,6 +26,10 @@ export function isLocalFileReference(value: string | null | undefined) {
   }
 }
 
+/**
+ * Returns a trimmed public media reference or the supplied fallback when the
+ * value is blank or points to a local filesystem.
+ */
 export function normalizePublicMediaUrl(
   value: string | null | undefined,
   fallback = ""
@@ -35,12 +43,11 @@ export function normalizePublicMediaUrl(
   return source;
 }
 
+/** Normalizes a list and removes every blank or unsafe local media reference. */
 export function filterPublicMediaUrls(values: string[] | null | undefined) {
   if (!Array.isArray(values)) {
     return [];
   }
 
-  return values
-    .map((value) => normalizePublicMediaUrl(value))
-    .filter(Boolean);
+  return values.map((value) => normalizePublicMediaUrl(value)).filter(Boolean);
 }

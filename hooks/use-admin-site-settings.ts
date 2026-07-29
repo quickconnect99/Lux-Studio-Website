@@ -1,16 +1,23 @@
 "use client";
 
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { useForm } from "@/hooks/use-form";
 import { buildSiteSettingsDatabasePayload } from "@/lib/admin-persistence";
+import { serializeSiteSettingsFormState } from "@/lib/admin-form-snapshots";
+import { buildSiteSettingsSaveReport } from "@/lib/admin-save-report";
 import { toAdminOperationError } from "@/lib/admin-result";
 import {
+  clearSiteSettingsDraft,
+  persistSiteSettingsDraft,
+  readSiteSettingsDraft
+} from "@/lib/admin-site-settings-draft";
+import { saveAdminSiteSettingsRecord } from "@/lib/admin-site-settings-repository";
+import {
+  createAdminUploadSession,
   removeAdminFiles,
   removeUnreferencedAdminFiles,
-  revalidateAdminPublicContent,
-  uploadAdminFile,
-  uploadAdminFiles
+  revalidateAdminPublicContent
 } from "@/lib/admin-storage";
 import type {
   AdminSaveReport,
@@ -44,16 +51,18 @@ type UseAdminSiteSettingsOptions = {
   showStatus(message: string): void;
 };
 
-export function serializeSiteSettingsFormState(
-  formState: SiteSettingsFormState
-) {
-  return JSON.stringify(
-    toSiteSettingsFormState(
-      normalizeSiteSettingsRecord(buildSiteSettingsDatabasePayload(formState))
-    )
-  );
-}
-
+/**
+ * Manages loading, editing, draft recovery, and saving of global Site Settings.
+ *
+ * Text values live in `SiteSettingsFormState`; newly selected media remains in
+ * separate `File` queues until `save` uploads it. A successful save replaces
+ * the clean snapshot, removes only media that is no longer referenced, clears
+ * the recovery draft, and requests public cache revalidation.
+ *
+ * @param options - Supabase access, pending media, and shared admin status
+ * callbacks.
+ * @returns The form state, dirty flag, and load/save/reset/update operations.
+ */
 export function useAdminSiteSettings({
   supabase,
   sessionEmail,
@@ -73,6 +82,8 @@ export function useAdminSiteSettings({
   const savedFormStateRef = useRef(
     toSiteSettingsFormState(defaultSiteSettings)
   );
+  const hasPersistedSettingsRef = useRef(false);
+  const [hasLoaded, setHasLoaded] = useState(false);
   const [savedSnapshot, setSavedSnapshot] = useState(() =>
     serializeSiteSettingsFormState(toSiteSettingsFormState(defaultSiteSettings))
   );
@@ -89,6 +100,27 @@ export function useAdminSiteSettings({
     selectedFrameFiles.length > 0 ||
     aboutTeamGalleryFiles.length > 0 ||
     aboutTeamMemberImageFiles.length > 0;
+  const hasPendingFiles =
+    Boolean(siteHeroVideoFile) ||
+    selectedFrameFiles.length > 0 ||
+    aboutTeamGalleryFiles.length > 0 ||
+    aboutTeamMemberImageFiles.length > 0;
+
+  useEffect(() => {
+    if (!hasLoaded) return;
+
+    const currentSnapshot = serializeSiteSettingsFormState(formState);
+    if (currentSnapshot === savedSnapshot) {
+      clearSiteSettingsDraft();
+      return;
+    }
+
+    persistSiteSettingsDraft({
+      baseSnapshot: savedSnapshot,
+      formState,
+      hadPendingFiles: hasPendingFiles
+    });
+  }, [formState, hasLoaded, hasPendingFiles, savedSnapshot]);
 
   const updateField = useCallback(
     <K extends keyof SiteSettingsFormState>(
@@ -104,8 +136,16 @@ export function useAdminSiteSettings({
   const load = useCallback(async () => {
     if (!supabase) {
       const state = toSiteSettingsFormState(defaultSiteSettings);
-      replaceForm(state);
-      setSavedSnapshot(serializeSiteSettingsFormState(state));
+      const baseSnapshot = serializeSiteSettingsFormState(state);
+      const draft = readSiteSettingsDraft(baseSnapshot);
+      replaceForm(draft?.formState ?? state);
+      savedFormStateRef.current = state;
+      hasPersistedSettingsRef.current = false;
+      setSavedSnapshot(baseSnapshot);
+      setHasLoaded(true);
+      if (draft) {
+        showStatus("Unsaved site settings draft restored.");
+      }
       return;
     }
 
@@ -128,10 +168,21 @@ export function useAdminSiteSettings({
     const state = data
       ? toSiteSettingsFormState(normalizeSiteSettingsRecord(data))
       : toSiteSettingsFormState(defaultSiteSettings);
+    const baseSnapshot = serializeSiteSettingsFormState(state);
+    const draft = readSiteSettingsDraft(baseSnapshot);
 
-    replaceForm(state);
+    replaceForm(draft?.formState ?? state);
     savedFormStateRef.current = state;
-    setSavedSnapshot(serializeSiteSettingsFormState(state));
+    hasPersistedSettingsRef.current = Boolean(data);
+    setSavedSnapshot(baseSnapshot);
+    setHasLoaded(true);
+    if (draft) {
+      showStatus(
+        draft.hadPendingFiles
+          ? "Unsaved site settings draft restored. Local media files must be selected again."
+          : "Unsaved site settings draft restored."
+      );
+    }
   }, [replaceForm, showStatus, supabase]);
 
   const save = useCallback(
@@ -175,77 +226,39 @@ export function useAdminSiteSettings({
           selectedFrameFiles.length +
           aboutTeamGalleryFiles.length +
           aboutTeamMemberImageFiles.length;
-        let uploadedCount = 0;
+        const uploads = createAdminUploadSession({
+          supabase,
+          totalFiles,
+          onProgress: setUploadProgress,
+          onUploaded: (publicUrl) => newlyUploadedUrls.push(publicUrl)
+        });
 
         if (siteHeroVideoFile) {
-          setUploadProgress({
-            current: ++uploadedCount,
-            total: totalFiles,
-            filename: siteHeroVideoFile.name
-          });
-          heroVideoUrl = await uploadAdminFile(
-            supabase,
-            siteHeroVideoFile,
-            "videos"
-          );
-          newlyUploadedUrls.push(heroVideoUrl);
+          heroVideoUrl = await uploads.uploadFile(siteHeroVideoFile, "videos");
         }
 
         if (selectedFrameFiles.length > 0) {
-          const progressOffset = uploadedCount;
-          const uploadedFrames = await uploadAdminFiles(
-            supabase,
+          const uploadedFrames = await uploads.uploadFiles(
             selectedFrameFiles,
-            "selected-frames",
-            (completed, file, publicUrl) => {
-              uploadedCount = progressOffset + completed;
-              newlyUploadedUrls.push(publicUrl);
-              setUploadProgress({
-                current: uploadedCount,
-                total: totalFiles,
-                filename: file.name
-              });
-            }
+            "selected-frames"
           );
 
           selectedFrames = [...selectedFrames, ...uploadedFrames];
         }
 
         if (aboutTeamGalleryFiles.length > 0) {
-          const progressOffset = uploadedCount;
-          const uploadedTeamGallery = await uploadAdminFiles(
-            supabase,
+          const uploadedTeamGallery = await uploads.uploadFiles(
             aboutTeamGalleryFiles,
-            "about-team-gallery",
-            (completed, file, publicUrl) => {
-              uploadedCount = progressOffset + completed;
-              newlyUploadedUrls.push(publicUrl);
-              setUploadProgress({
-                current: uploadedCount,
-                total: totalFiles,
-                filename: file.name
-              });
-            }
+            "about-team-gallery"
           );
 
           aboutTeamGallery = [...aboutTeamGallery, ...uploadedTeamGallery];
         }
 
         if (aboutTeamMemberImageFiles.length > 0) {
-          const progressOffset = uploadedCount;
-          const uploadedTeamImages = await uploadAdminFiles(
-            supabase,
+          const uploadedTeamImages = await uploads.uploadFiles(
             aboutTeamMemberImageFiles.map((item) => item.file),
-            "about-team",
-            (completed, file, publicUrl) => {
-              uploadedCount = progressOffset + completed;
-              newlyUploadedUrls.push(publicUrl);
-              setUploadProgress({
-                current: uploadedCount,
-                total: totalFiles,
-                filename: file.name
-              });
-            }
+            "about-team"
           );
 
           uploadedTeamImages.forEach((image, fileIndex) => {
@@ -257,7 +270,7 @@ export function useAdminSiteSettings({
           });
         }
 
-        setUploadProgress(null);
+        uploads.finish();
 
         const nextFormState: SiteSettingsFormState = {
           ...formState,
@@ -267,25 +280,25 @@ export function useAdminSiteSettings({
           aboutTeamMembers
         };
         const payload = buildSiteSettingsDatabasePayload(nextFormState);
-        const { data, error } = await supabase
-          .from("site_settings")
-          .upsert(payload, { onConflict: "id" })
-          .select("*")
-          .single();
+        const saveResult = await saveAdminSiteSettingsRecord(
+          supabase,
+          payload,
+          {
+            recordExists: hasPersistedSettingsRef.current,
+            expectedUpdatedAt: hasPersistedSettingsRef.current
+              ? formState.updatedAt
+              : undefined
+          }
+        );
 
-        if (error) {
+        if (!saveResult.ok) {
           await removeAdminFiles(supabase, newlyUploadedUrls);
-          showStatus(
-            toAdminOperationError(
-              error,
-              "The site settings could not be saved."
-            ).message
-          );
+          showStatus(saveResult.error.message);
           return false;
         }
 
         const savedState = toSiteSettingsFormState(
-          normalizeSiteSettingsRecord(data)
+          normalizeSiteSettingsRecord(saveResult.data)
         );
         const currentMediaUrls = [
           heroVideoUrl,
@@ -300,70 +313,29 @@ export function useAdminSiteSettings({
         const replacedMediaUrls = previousMediaUrls.filter(
           (url) => !currentMediaUrls.includes(url)
         );
-        void removeUnreferencedAdminFiles(supabase, replacedMediaUrls);
+        const [cleanupCompleted, publicRefreshCompleted] = await Promise.all([
+          removeUnreferencedAdminFiles(supabase, replacedMediaUrls),
+          revalidateAdminPublicContent(supabase)
+        ]);
         replaceForm(savedState);
         savedFormStateRef.current = savedState;
+        hasPersistedSettingsRef.current = true;
         setSavedSnapshot(serializeSiteSettingsFormState(savedState));
         clearSiteSettingsMedia();
+        clearSiteSettingsDraft();
         showStatus("Global site settings saved to Supabase.");
-        void revalidateAdminPublicContent(supabase);
-        setSaveReport({
-          title: "Site settings saved",
-          items: [
-            {
-              id: "site-settings",
-              label: "Global site settings saved",
-              detail: "Supabase",
-              tone: "success"
-            },
-            ...(siteHeroVideoFile
-              ? [
-                  {
-                    id: "hero-video",
-                    label: "Hero reel uploaded",
-                    detail: siteHeroVideoFile.name,
-                    tone: "success" as const
-                  }
-                ]
-              : []),
-            ...(selectedFrameFiles.length > 0
-              ? [
-                  {
-                    id: "selected-frames",
-                    label: `${selectedFrameFiles.length} selected frame${
-                      selectedFrameFiles.length === 1 ? "" : "s"
-                    } uploaded`,
-                    detail: "Selected frames",
-                    tone: "success" as const
-                  }
-                ]
-              : []),
-            ...(aboutTeamMemberImageFiles.length > 0
-              ? [
-                  {
-                    id: "about-team-member-images",
-                    label: `${aboutTeamMemberImageFiles.length} team portrait${
-                      aboutTeamMemberImageFiles.length === 1 ? "" : "s"
-                    } uploaded`,
-                    detail: "About team",
-                    tone: "success" as const
-                  }
-                ]
-              : []),
-            ...(aboutTeamGalleryFiles.length > 0
-              ? [
-                  {
-                    id: "about-team-gallery",
-                    label: `${aboutTeamGalleryFiles.length} team gallery image${
-                      aboutTeamGalleryFiles.length === 1 ? "" : "s"
-                    } uploaded`,
-                    detail: "About team gallery",
-                    tone: "success" as const
-                  }
-                ]
-              : [])
-          ]
-        });
+        setSaveReport(
+          buildSiteSettingsSaveReport({
+            heroVideoFile: siteHeroVideoFile,
+            selectedFrameFiles,
+            aboutTeamGalleryFiles,
+            aboutTeamMemberImageFiles: aboutTeamMemberImageFiles.map(
+              (item) => item.file
+            ),
+            cleanupCompleted,
+            publicRefreshCompleted
+          })
+        );
         return true;
       } catch (error) {
         setUploadProgress(null);
@@ -399,14 +371,10 @@ export function useAdminSiteSettings({
   const reset = useCallback(() => {
     replaceForm(savedFormStateRef.current);
     clearSiteSettingsMedia();
+    clearSiteSettingsDraft();
     setSaveReport(null);
     showStatus("Site settings restored to the last saved state.");
-  }, [
-    clearSiteSettingsMedia,
-    replaceForm,
-    setSaveReport,
-    showStatus
-  ]);
+  }, [clearSiteSettingsMedia, replaceForm, setSaveReport, showStatus]);
 
   return {
     formState,

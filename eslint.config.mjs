@@ -1,35 +1,12 @@
-import { FlatCompat } from "@eslint/eslintrc";
-import typescriptEslint from "@typescript-eslint/eslint-plugin";
-import typescriptParser from "@typescript-eslint/parser";
+import { defineConfig, globalIgnores } from "eslint/config";
+import nextVitals from "eslint-config-next/core-web-vitals";
+import nextTypescript from "eslint-config-next/typescript";
 
-const compat = new FlatCompat({
-  baseDirectory: import.meta.dirname
-});
-
-const config = [
-  {
-    ignores: [
-      ".next/**",
-      "node_modules/**",
-      "public/**",
-      "car pictures/**",
-      "_Test Material/**",
-      "*.tsbuildinfo"
-    ]
-  },
-  ...compat.extends("next/core-web-vitals"),
+const config = defineConfig([
+  ...nextVitals,
+  ...nextTypescript,
   {
     files: ["**/*.{ts,tsx}"],
-    plugins: {
-      "@typescript-eslint": typescriptEslint
-    },
-    languageOptions: {
-      parser: typescriptParser,
-      parserOptions: {
-        project: "./tsconfig.json",
-        tsconfigRootDir: import.meta.dirname
-      }
-    },
     rules: {
       "@typescript-eslint/consistent-type-imports": [
         "error",
@@ -39,7 +16,17 @@ const config = [
         }
       ]
     }
-  }
-];
+  },
+  globalIgnores([
+    ".next/**",
+    "node_modules/**",
+    "public/**",
+    "car pictures/**",
+    "_Test Material/**",
+    "*.tsbuildinfo",
+    "playwright-report/**",
+    "test-results/**"
+  ])
+]);
 
 export default config;

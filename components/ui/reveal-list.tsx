@@ -49,7 +49,11 @@ export function RevealList<T>({
           delay={index * stagger}
           variant={variant}
           direction={direction}
-          className={typeof itemClassName === "function" ? itemClassName(item, index) : itemClassName}
+          className={
+            typeof itemClassName === "function"
+              ? itemClassName(item, index)
+              : itemClassName
+          }
         >
           {render(item, index)}
         </Reveal>

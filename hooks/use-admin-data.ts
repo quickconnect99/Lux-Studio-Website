@@ -1,6 +1,12 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useEffectEvent,
+  useRef,
+  useState
+} from "react";
 import { useAdminDraft } from "@/hooks/use-admin-draft";
 import { useAdminMedia } from "@/hooks/use-admin-media";
 import { useAdminProjectWorkspace } from "@/hooks/use-admin-project-workspace";
@@ -22,14 +28,14 @@ import {
 import { toAdminOperationError } from "@/lib/admin-result";
 import {
   buildLocalProjectSaveReport,
-  buildRemoteProjectSaveReport
+  buildRemoteProjectSaveReport,
+  withAdminSaveWarnings
 } from "@/lib/admin-save-report";
 import {
+  createAdminUploadSession,
   removeAdminFiles,
   removeUnreferencedAdminFiles,
-  revalidateAdminPublicContent,
-  uploadAdminFile,
-  uploadAdminFiles
+  revalidateAdminPublicContent
 } from "@/lib/admin-storage";
 import {
   createBrowserSupabaseClient,
@@ -57,6 +63,20 @@ type PendingAdminWorkflow = {
   saveScope: "project" | "settings" | "both" | null;
 };
 
+/**
+ * Composes the complete admin workspace from smaller, focused hooks.
+ *
+ * This is the orchestration layer between the dashboard UI and persistence:
+ * it loads projects, coordinates project and Site Settings state, uploads
+ * queued media before database writes, protects dirty work during navigation,
+ * and refreshes the public cache after successful mutations.
+ *
+ * Components should consume the returned state and callbacks instead of
+ * talking to Supabase directly. Database mapping belongs in the repository and
+ * persistence modules, while visual components remain render layers.
+ *
+ * @returns All state and actions required by `AdminDashboard`.
+ */
 export function useAdminData() {
   const supabase = createBrowserSupabaseClient();
   const templateProjects = projectTemplates;
@@ -250,12 +270,22 @@ export function useAdminData() {
     showStatus
   });
 
-  const handleSaveRef = useRef<(() => void) | null>(null);
+  const handleKeyboardSave = useEffectEvent(() => {
+    if (working) return;
+
+    if (activeTab === "settings") {
+      if (isSettingsDirty) void handleSaveSiteSettings();
+      return;
+    }
+
+    if (isDirty && isProjectComplete) void handleSave();
+  });
+
   useEffect(() => {
     function onKeyDown(event: KeyboardEvent) {
       if ((event.ctrlKey || event.metaKey) && event.key === "s") {
         event.preventDefault();
-        handleSaveRef.current?.();
+        handleKeyboardSave();
       }
     }
 
@@ -263,9 +293,9 @@ export function useAdminData() {
     return () => window.removeEventListener("keydown", onKeyDown);
   }, []);
 
-  async function handleSave(
-    event?: { preventDefault(): void }
-  ): Promise<boolean> {
+  async function handleSave(event?: {
+    preventDefault(): void;
+  }): Promise<boolean> {
     event?.preventDefault();
 
     if (!isProjectComplete) {
@@ -301,6 +331,9 @@ export function useAdminData() {
       let nextReport: AdminSaveReport | null = null;
 
       if (supabase && sessionEmail) {
+        // Upload first, write the new references second, and only then remove
+        // replaced files. This order keeps the currently published project
+        // intact if either an upload or the database mutation fails.
         const previousMediaUrls = [
           formState.coverImage,
           ...parseMultilineInput(formState.galleryImagesText),
@@ -308,47 +341,26 @@ export function useAdminData() {
         ].filter(Boolean);
         const totalFiles =
           (coverFile ? 1 : 0) + (videoFile ? 1 : 0) + galleryFiles.length;
-        let uploadedCount = 0;
+        const uploads = createAdminUploadSession({
+          supabase,
+          totalFiles,
+          onProgress: setUploadProgress,
+          onUploaded: (publicUrl) => newlyUploadedUrls.push(publicUrl)
+        });
 
         if (coverFile) {
-          setUploadProgress({
-            current: ++uploadedCount,
-            total: totalFiles,
-            filename: coverFile.name
-          });
-          coverImage = await uploadAdminFile(supabase, coverFile, "covers");
-          newlyUploadedUrls.push(coverImage);
+          coverImage = await uploads.uploadFile(coverFile, "covers");
         }
 
         if (videoFile) {
-          setUploadProgress({
-            current: ++uploadedCount,
-            total: totalFiles,
-            filename: videoFile.name
-          });
-          uploadedVideo = await uploadAdminFile(supabase, videoFile, "videos");
-          newlyUploadedUrls.push(uploadedVideo);
+          uploadedVideo = await uploads.uploadFile(videoFile, "videos");
         }
 
         if (galleryFiles.length > 0) {
-          const progressOffset = uploadedCount;
-          const uploaded = await uploadAdminFiles(
-            supabase,
-            galleryFiles,
-            "gallery",
-            (completed, file, publicUrl) => {
-              uploadedCount = progressOffset + completed;
-              newlyUploadedUrls.push(publicUrl);
-              setUploadProgress({
-                current: uploadedCount,
-                total: totalFiles,
-                filename: file.name
-              });
-            }
-          );
+          const uploaded = await uploads.uploadFiles(galleryFiles, "gallery");
           galleryImages = [...galleryImages, ...uploaded];
         }
-        setUploadProgress(null);
+        uploads.finish();
 
         const media = getProjectMediaState(formState, {
           coverImage,
@@ -361,7 +373,9 @@ export function useAdminData() {
           slug: targetSlug,
           media
         });
-        const saveResult = await saveAdminProjectRecord(supabase, payload);
+        const saveResult = await saveAdminProjectRecord(supabase, payload, {
+          expectedUpdatedAt: formState.id ? formState.updatedAt : undefined
+        });
 
         if (!saveResult.ok) {
           await removeAdminFiles(supabase, newlyUploadedUrls);
@@ -377,7 +391,10 @@ export function useAdminData() {
         const replacedMediaUrls = previousMediaUrls.filter(
           (url) => !currentMediaUrls.includes(url)
         );
-        void removeUnreferencedAdminFiles(supabase, replacedMediaUrls);
+        const [cleanupCompleted, publicRefreshCompleted] = await Promise.all([
+          removeUnreferencedAdminFiles(supabase, replacedMediaUrls),
+          revalidateAdminPublicContent(supabase)
+        ]);
 
         const saved = saveResult.data;
         setProjects(
@@ -391,13 +408,15 @@ export function useAdminData() {
             ? "New project created from template and saved to Supabase."
             : "Project saved to Supabase."
         );
-        void revalidateAdminPublicContent(supabase);
-        nextReport = buildRemoteProjectSaveReport({
-          isTemplateSource,
-          coverFile,
-          galleryFiles,
-          videoFile
-        });
+        nextReport = withAdminSaveWarnings(
+          buildRemoteProjectSaveReport({
+            isTemplateSource,
+            coverFile,
+            galleryFiles,
+            videoFile
+          }),
+          { cleanupCompleted, publicRefreshCompleted }
+        );
       } else {
         const media = getProjectMediaState(formState, {
           coverImage,
@@ -450,19 +469,6 @@ export function useAdminData() {
   }
 
   useEffect(() => {
-    handleSaveRef.current = () => {
-      if (working) return;
-
-      if (activeTab === "settings") {
-        if (isSettingsDirty) void handleSaveSiteSettings();
-        return;
-      }
-
-      if (isDirty && isProjectComplete) void handleSave();
-    };
-  });
-
-  useEffect(() => {
     const handler = (event: BeforeUnloadEvent) => {
       if (isDirty || isSettingsDirty) event.preventDefault();
     };
@@ -487,6 +493,9 @@ export function useAdminData() {
     setWorking(true);
 
     try {
+      let cleanupCompleted = true;
+      let publicRefreshCompleted = true;
+
       if (supabase && sessionEmail) {
         const deletedMediaUrls = [
           formState.coverImage,
@@ -495,14 +504,17 @@ export function useAdminData() {
         ].filter(Boolean);
         const deleteResult = await deleteAdminProjectRecord(
           supabase,
-          formState.id
+          formState.id,
+          formState.updatedAt
         );
         if (!deleteResult.ok) {
           showStatus(deleteResult.error.message);
           return;
         }
-        void removeUnreferencedAdminFiles(supabase, deletedMediaUrls);
-        void revalidateAdminPublicContent(supabase);
+        [cleanupCompleted, publicRefreshCompleted] = await Promise.all([
+          removeUnreferencedAdminFiles(supabase, deletedMediaUrls),
+          revalidateAdminPublicContent(supabase)
+        ]);
       }
 
       const next = removeAdminProjectFromList(projects, formState.id);
@@ -513,18 +525,23 @@ export function useAdminData() {
           ? "Project deleted from Supabase."
           : "Project removed from session."
       );
-      setSaveReport({
-        title: "Project deleted",
-        items: [
+      setSaveReport(
+        withAdminSaveWarnings(
           {
-            id: "delete",
-            label: sessionEmail
-              ? "Project removed from Supabase"
-              : "Project removed from the current session",
-            tone: "success"
-          }
-        ]
-      });
+            title: "Project deleted",
+            items: [
+              {
+                id: "delete",
+                label: sessionEmail
+                  ? "Project removed from Supabase"
+                  : "Project removed from the current session",
+                tone: "success"
+              }
+            ]
+          },
+          { cleanupCompleted, publicRefreshCompleted }
+        )
+      );
     } catch (error) {
       showStatus(
         toAdminOperationError(error, "The project could not be deleted.")
@@ -682,11 +699,7 @@ export function useAdminData() {
     }
 
     const saveScope =
-      isDirty && isSettingsDirty
-        ? "both"
-        : isDirty
-          ? "project"
-          : "settings";
+      isDirty && isSettingsDirty ? "both" : isDirty ? "project" : "settings";
     openWorkflowConfirmation({
       title: "Save changes before signing out?",
       description:

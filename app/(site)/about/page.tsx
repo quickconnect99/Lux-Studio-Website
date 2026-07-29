@@ -1,13 +1,16 @@
 import type { Metadata } from "next";
+import Script from "next/script";
 import { HorizontalStillStrip } from "@/components/sections/horizontal-still-strip";
 import { PageHeader } from "@/components/sections/page-header";
 import { TeamTabs } from "@/components/sections/team-tabs";
 import { Reveal } from "@/components/ui/reveal";
+import { serializeJsonLd } from "@/lib/json-ld";
 import { adaptSiteSettingsToPublishedProjects } from "@/lib/public-portfolio";
 import {
   buildSharingMetadata,
   resolveSharingImage
 } from "@/lib/sharing-metadata";
+import { buildPageStructuredData } from "@/lib/site-structured-data";
 import { getPublishedProjects, getSiteSettings } from "@/lib/supabase";
 
 const pageTitle = "About";
@@ -57,9 +60,20 @@ export default async function AboutPage() {
   const teamMembers = publicSettings.about.teamMembers;
 
   const { about } = publicSettings;
+  const structuredData = buildPageStructuredData({
+    name: pageTitle,
+    description: pageDescription,
+    path: "/about",
+    type: "AboutPage"
+  });
 
   return (
     <>
+      <Script
+        id="schema-about-page"
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: serializeJsonLd(structuredData) }}
+      />
       <PageHeader
         eyebrow={publicSettings.copy.about.eyebrow}
         lead={publicSettings.copy.about.headlineLead}
@@ -86,7 +100,7 @@ export default async function AboutPage() {
                 delay={index * 0.06}
                 className="rounded-[1.5rem] border border-line bg-panel-secondary p-6 sm:rounded-[2rem] sm:p-8"
               >
-                <p className="text-xs uppercase tracking-eyebrow text-accent">
+                <p className="text-xs uppercase tracking-eyebrow text-accent-text">
                   {value.title}
                 </p>
                 <p className="mt-4 text-base leading-8 text-muted">

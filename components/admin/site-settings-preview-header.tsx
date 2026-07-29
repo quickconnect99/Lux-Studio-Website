@@ -73,7 +73,7 @@ export function SiteSettingsPreviewHeader({
                     : "text-muted hover:bg-panel-secondary hover:text-foreground"
                 )}
               >
-                <span className="font-[family-name:var(--font-mono)] mr-1.5 text-accent">
+                <span className="mr-1.5 font-[family-name:var(--font-mono)] text-accent-text">
                   0{index + 1}
                 </span>
                 {item.label}

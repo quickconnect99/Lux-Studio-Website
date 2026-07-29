@@ -49,9 +49,17 @@ export function useFilteredPagination<T extends Record<string, unknown>>(
     setVisibleCount((n) => n + pageSize);
   }
 
-  const visible   = filtered.slice(0, visibleCount);
-  const hasMore   = visibleCount < filtered.length;
+  const visible = filtered.slice(0, visibleCount);
+  const hasMore = visibleCount < filtered.length;
   const remaining = filtered.length - visibleCount;
 
-  return { categories, activeCategory, selectCategory, visible, hasMore, remaining, loadMore };
+  return {
+    categories,
+    activeCategory,
+    selectCategory,
+    visible,
+    hasMore,
+    remaining,
+    loadMore
+  };
 }

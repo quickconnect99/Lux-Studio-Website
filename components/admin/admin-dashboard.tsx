@@ -20,6 +20,7 @@ import {
   UserRound
 } from "lucide-react";
 import { AdminThemeChip } from "@/components/admin/admin-theme-chip";
+import { AdminErrorBoundary } from "@/components/admin/admin-error-boundary";
 import { isSupabaseConfigured, SUPABASE_BUCKET } from "@/lib/supabase";
 import { useAdminData } from "@/hooks/use-admin-data";
 import { AdminConfirmModal } from "@/components/admin/admin-confirm-modal";
@@ -78,6 +79,14 @@ const SiteSettingsForm = dynamic(
   }
 );
 
+/**
+ * Top-level render layer for the admin workspace.
+ *
+ * `useAdminData` owns business state and persistence. This component chooses
+ * the active editor/preview layout, distributes that state to child
+ * components, and keeps responsive navigation concerns local to the UI.
+ * Heavy editor modules are loaded dynamically so the login shell stays small.
+ */
 export function AdminDashboard() {
   const data = useAdminData();
   const [activeField, setActiveField] = useState<AdminProjectFieldKey | null>(
@@ -163,14 +172,14 @@ export function AdminDashboard() {
 
   function renderSaveReportIcon(tone: "success" | "warning" | "info") {
     if (tone === "success") {
-      return <CheckCircle2 className="h-4 w-4 text-success" />;
+      return <CheckCircle2 className="h-4 w-4 text-success-text" />;
     }
 
     if (tone === "warning") {
-      return <AlertTriangle className="h-4 w-4 text-warning" />;
+      return <AlertTriangle className="h-4 w-4 text-warning-text" />;
     }
 
-    return <Info className="h-4 w-4 text-accent" />;
+    return <Info className="h-4 w-4 text-accent-text" />;
   }
 
   function handlePreviewFieldUpdate(
@@ -296,118 +305,118 @@ export function AdminDashboard() {
                 </span>
               </h1>
             </a>
-          {canEditCms ? (
-            <div
-              role="tablist"
-              aria-label="Admin workspace"
-              className="inline-flex gap-1 rounded-full border border-line bg-panel-secondary p-1"
-            >
-              <button
-                type="button"
-                onClick={() => setActiveTab("projects")}
-                role="tab"
-                aria-selected={activeTab === "projects"}
-                className={`inline-flex min-h-11 items-center gap-2 rounded-full px-4 py-2 text-xs uppercase tracking-eyebrow transition-colors ${
-                  activeTab === "projects"
-                    ? "bg-foreground text-background"
-                    : "text-muted hover:text-foreground"
-                }`}
+            {canEditCms ? (
+              <div
+                role="tablist"
+                aria-label="Admin workspace"
+                className="inline-flex gap-1 rounded-full border border-line bg-panel-secondary p-1"
               >
-                <FolderOpen className="h-3.5 w-3.5" />
-                Projects
-                {isDirty && activeTab !== "projects" ? (
-                  <span className="h-1.5 w-1.5 rounded-full bg-warning" />
-                ) : null}
-              </button>
-              <button
-                type="button"
-                onClick={() => setActiveTab("settings")}
-                role="tab"
-                aria-selected={activeTab === "settings"}
-                className={`inline-flex min-h-11 items-center gap-2 rounded-full px-4 py-2 text-xs uppercase tracking-eyebrow transition-colors ${
-                  activeTab === "settings"
-                    ? "bg-foreground text-background"
-                    : "text-muted hover:text-foreground"
-                }`}
-              >
-                <Settings className="h-3.5 w-3.5" />
-                Site Settings
-                {isSettingsDirty && activeTab !== "settings" ? (
-                  <span className="h-1.5 w-1.5 rounded-full bg-warning" />
-                ) : null}
-              </button>
-            </div>
-          ) : null}
-          <AdminThemeChip />
-        </div>
+                <button
+                  type="button"
+                  onClick={() => setActiveTab("projects")}
+                  role="tab"
+                  aria-selected={activeTab === "projects"}
+                  className={`inline-flex min-h-11 items-center gap-2 rounded-full px-4 py-2 text-xs uppercase tracking-eyebrow transition-colors ${
+                    activeTab === "projects"
+                      ? "bg-foreground text-background"
+                      : "text-muted hover:text-foreground"
+                  }`}
+                >
+                  <FolderOpen className="h-3.5 w-3.5" />
+                  Projects
+                  {isDirty && activeTab !== "projects" ? (
+                    <span className="h-1.5 w-1.5 rounded-full bg-warning" />
+                  ) : null}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setActiveTab("settings")}
+                  role="tab"
+                  aria-selected={activeTab === "settings"}
+                  className={`inline-flex min-h-11 items-center gap-2 rounded-full px-4 py-2 text-xs uppercase tracking-eyebrow transition-colors ${
+                    activeTab === "settings"
+                      ? "bg-foreground text-background"
+                      : "text-muted hover:text-foreground"
+                  }`}
+                >
+                  <Settings className="h-3.5 w-3.5" />
+                  Site Settings
+                  {isSettingsDirty && activeTab !== "settings" ? (
+                    <span className="h-1.5 w-1.5 rounded-full bg-warning" />
+                  ) : null}
+                </button>
+              </div>
+            ) : null}
+            <AdminThemeChip />
+          </div>
 
-        <div className="flex flex-wrap items-center justify-end gap-2">
-          <a
-            href="/"
-            target="_blank"
-            rel="noreferrer"
-            className="control-pill"
-          >
-            View site
-            <ExternalLink className="h-4 w-4" />
-          </a>
-          {sessionEmail ? (
-            <div className="hidden items-center gap-3 rounded-full border border-line bg-panel-secondary py-1.5 pl-2 pr-4 shadow-sm lg:flex">
-              <span className="relative flex h-9 w-9 items-center justify-center rounded-full bg-foreground text-background">
-                <UserRound className="h-4 w-4" />
-                <span
-                  className="absolute bottom-0 right-0 h-2.5 w-2.5 rounded-full border-2 border-panel bg-success"
-                  aria-hidden
-                />
-              </span>
-              <span className="min-w-0">
-                <span className="block text-[0.58rem] uppercase tracking-eyebrow text-muted">
-                  Signed in
-                </span>
-                <span className="block max-w-52 truncate text-sm font-medium text-foreground">
-                  {sessionEmail}
-                </span>
-              </span>
-            </div>
-          ) : null}
-          {sessionEmail ? (
-            <button
-              type="button"
-              onClick={handleSignOut}
+          <div className="flex flex-wrap items-center justify-end gap-2">
+            <a
+              href="/"
+              target="_blank"
+              rel="noreferrer"
               className="control-pill"
             >
-              <LogOut className="h-4 w-4" />
-              Sign Out
-            </button>
-          ) : null}
-          {canEditCms ? (
-            <button
-              type="button"
-              onClick={handleResetClick}
-              className="control-pill"
-            >
-              <RefreshCw className="h-4 w-4" />
-              {activeTab === "projects" ? "Reset Project" : "Reset Settings"}
-            </button>
-          ) : null}
-          {canEditCms && activeTab === "projects" ? (
-            <button
-              type="button"
-              onClick={() =>
-                setIsProjectSidebarVisible((isVisible) => !isVisible)
-              }
-              className="control-pill hidden xl:inline-flex"
-              aria-pressed={!isProjectSidebarVisible}
-            >
-              {isProjectSidebarVisible ? (
-                <PanelLeftClose className="h-4 w-4" />
-              ) : (
-                <PanelLeftOpen className="h-4 w-4" />
-              )}
-              {isProjectSidebarVisible ? "Hide Projects" : "Show Projects"}
-            </button>
-          ) : null}
-        </div>
+              View site
+              <ExternalLink className="h-4 w-4" />
+            </a>
+            {sessionEmail ? (
+              <div className="hidden items-center gap-3 rounded-full border border-line bg-panel-secondary py-1.5 pl-2 pr-4 shadow-sm lg:flex">
+                <span className="relative flex h-9 w-9 items-center justify-center rounded-full bg-foreground text-background">
+                  <UserRound className="h-4 w-4" />
+                  <span
+                    className="absolute bottom-0 right-0 h-2.5 w-2.5 rounded-full border-2 border-panel bg-success"
+                    aria-hidden
+                  />
+                </span>
+                <span className="min-w-0">
+                  <span className="block text-[0.58rem] uppercase tracking-eyebrow text-muted">
+                    Signed in
+                  </span>
+                  <span className="block max-w-52 truncate text-sm font-medium text-foreground">
+                    {sessionEmail}
+                  </span>
+                </span>
+              </div>
+            ) : null}
+            {sessionEmail ? (
+              <button
+                type="button"
+                onClick={handleSignOut}
+                className="control-pill"
+              >
+                <LogOut className="h-4 w-4" />
+                Sign Out
+              </button>
+            ) : null}
+            {canEditCms ? (
+              <button
+                type="button"
+                onClick={handleResetClick}
+                className="control-pill"
+              >
+                <RefreshCw className="h-4 w-4" />
+                {activeTab === "projects" ? "Reset Project" : "Reset Settings"}
+              </button>
+            ) : null}
+            {canEditCms && activeTab === "projects" ? (
+              <button
+                type="button"
+                onClick={() =>
+                  setIsProjectSidebarVisible((isVisible) => !isVisible)
+                }
+                className="control-pill hidden xl:inline-flex"
+                aria-pressed={!isProjectSidebarVisible}
+              >
+                {isProjectSidebarVisible ? (
+                  <PanelLeftClose className="h-4 w-4" />
+                ) : (
+                  <PanelLeftOpen className="h-4 w-4" />
+                )}
+                {isProjectSidebarVisible ? "Hide Projects" : "Show Projects"}
+              </button>
+            ) : null}
+          </div>
         </div>
       </header>
 
@@ -416,7 +425,7 @@ export function AdminDashboard() {
         <div className="panel-2xl admin-theme-surface border-accent/50 border-2 p-6 sm:p-8">
           <div className="flex flex-col gap-5 sm:flex-row sm:items-start">
             <div className="bg-accent/10 shrink-0 rounded-2xl p-3.5">
-              <Lock className="h-7 w-7 text-accent" />
+              <Lock className="h-7 w-7 text-accent-text" />
             </div>
             <div className="flex-1">
               <p className="text-lg font-semibold tracking-tight text-foreground">
@@ -464,8 +473,8 @@ export function AdminDashboard() {
                   aria-live="polite"
                   className={`mt-3 flex items-center gap-2 text-sm ${
                     signInMessage.tone === "error"
-                      ? "text-error"
-                      : "text-success"
+                      ? "text-error-text"
+                      : "text-success-text"
                   }`}
                 >
                   {signInMessage.tone === "error" ? (
@@ -551,9 +560,9 @@ export function AdminDashboard() {
                 Connection setup
               </summary>
               <p className="mt-2 leading-6">
-                Add `NEXT_PUBLIC_SUPABASE_URL`,
-                `NEXT_PUBLIC_SUPABASE_ANON_KEY`, and
-                `NEXT_PUBLIC_SUPABASE_STORAGE_BUCKET` to enable live CMS mode.
+                Add `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`,
+                and `NEXT_PUBLIC_SUPABASE_STORAGE_BUCKET` to enable live CMS
+                mode.
               </p>
             </details>
           ) : null}
@@ -632,11 +641,11 @@ export function AdminDashboard() {
                 isProjectSidebarVisible ? "xl:block" : "xl:hidden"
               }`}
             >
-            <ProjectSidebar
-              templates={templateProjects}
-              projects={projects}
-              selectedProjectKey={selectedProjectKey}
-              isDirty={isDirty}
+              <ProjectSidebar
+                templates={templateProjects}
+                projects={projects}
+                selectedProjectKey={selectedProjectKey}
+                isDirty={isDirty}
                 onSelect={(project) => {
                   selectProject(project);
                   setWorkspaceView("edit");
@@ -645,64 +654,74 @@ export function AdminDashboard() {
                   newProject();
                   setWorkspaceView("edit");
                 }}
-            />
+              />
             </div>
             <div
               id="admin-project-editor-pane"
               role="tabpanel"
               className={`${workspaceView === "edit" ? "block" : "hidden"} min-w-0 xl:block`}
             >
-              <ProjectEditor
-                galleryKey={`${formState.id ?? formState.slug}-${saveCount}`}
-                formState={formState}
-                updateField={updateField}
-                handleFileSelection={handleFileSelection}
-                handleSave={handleSave}
-                handleDeleteClick={handleDeleteClick}
-                duplicateProject={duplicateProject}
-                addGalleryFiles={addGalleryFiles}
-                removeGalleryFile={removeGalleryFile}
-                coverFile={coverFile}
-                coverPreviewSrc={coverPreviewImage}
-                setCoverFile={setCoverFile}
-                videoFile={videoFile}
-                setVideoFile={setVideoFile}
-                galleryFiles={galleryFiles}
-                working={working}
-                isDirty={isDirty}
-                isTemplate={isTemplateProject}
-                completionIssues={completionIssues}
-                isProjectComplete={isProjectComplete}
-                galleryImageList={galleryImageList}
-                captionRawLines={captionRawLines}
-                uploadProgress={uploadProgress}
-                slugValidation={slugValidation}
-                onSlugBlur={handleSlugBlur}
-                onApplySuggestedSlug={applySuggestedSlug}
-                activeField={activeField}
-                onActiveFieldChange={setActiveField}
-              />
+              <AdminErrorBoundary
+                panelLabel="project editor"
+                hasUnsavedChanges={isDirty}
+              >
+                <ProjectEditor
+                  galleryKey={`${formState.id ?? formState.slug}-${saveCount}`}
+                  formState={formState}
+                  updateField={updateField}
+                  handleFileSelection={handleFileSelection}
+                  handleSave={handleSave}
+                  handleDeleteClick={handleDeleteClick}
+                  duplicateProject={duplicateProject}
+                  addGalleryFiles={addGalleryFiles}
+                  removeGalleryFile={removeGalleryFile}
+                  coverFile={coverFile}
+                  coverPreviewSrc={coverPreviewImage}
+                  setCoverFile={setCoverFile}
+                  videoFile={videoFile}
+                  setVideoFile={setVideoFile}
+                  galleryFiles={galleryFiles}
+                  working={working}
+                  isDirty={isDirty}
+                  isTemplate={isTemplateProject}
+                  completionIssues={completionIssues}
+                  isProjectComplete={isProjectComplete}
+                  galleryImageList={galleryImageList}
+                  captionRawLines={captionRawLines}
+                  uploadProgress={uploadProgress}
+                  slugValidation={slugValidation}
+                  onSlugBlur={handleSlugBlur}
+                  onApplySuggestedSlug={applySuggestedSlug}
+                  activeField={activeField}
+                  onActiveFieldChange={setActiveField}
+                />
+              </AdminErrorBoundary>
             </div>
             <div
               id="admin-project-preview-pane"
               role="tabpanel"
               className={`${workspaceView === "preview" ? "block" : "hidden"} min-w-0 xl:block`}
             >
-              <LivePreview
-                formState={deferredPreviewFormState}
-                coverPreviewSrc={deferredCoverPreview}
-                isDirty={isDirty}
-                galleryImageList={deferredPreviewGallery}
-                captionRawLines={deferredPreviewCaptions}
-                activeField={activeField}
-                onActiveFieldChange={setActiveField}
-                onUpdateField={handlePreviewFieldUpdate}
-                onUpdateCaption={updateCaption}
-                onReplaceGalleryImage={handlePreviewGalleryImageUpdate}
-                onToggleField={handlePreviewToggle}
-                onNavigateToImageField={handlePreviewImageNavigate}
-                liveProjectHref={liveProjectHref}
-              />
+              <AdminErrorBoundary
+                panelLabel="live preview"
+                hasUnsavedChanges={isDirty}
+              >
+                <LivePreview
+                  formState={deferredPreviewFormState}
+                  coverPreviewSrc={deferredCoverPreview}
+                  isDirty={isDirty}
+                  galleryImageList={deferredPreviewGallery}
+                  captionRawLines={deferredPreviewCaptions}
+                  activeField={activeField}
+                  onActiveFieldChange={setActiveField}
+                  onUpdateField={handlePreviewFieldUpdate}
+                  onUpdateCaption={updateCaption}
+                  onReplaceGalleryImage={handlePreviewGalleryImageUpdate}
+                  onToggleField={handlePreviewToggle}
+                  onNavigateToImageField={handlePreviewImageNavigate}
+                  liveProjectHref={liveProjectHref}
+                />
+              </AdminErrorBoundary>
             </div>
           </div>
         </>
@@ -710,25 +729,30 @@ export function AdminDashboard() {
 
       {/* TAB: SITE SETTINGS */}
       {canEditCms && activeTab === "settings" ? (
-        <SiteSettingsForm
-          projects={projects}
-          formState={siteSettingsFormState}
-          isDirty={isSettingsDirty}
-          updateField={updateSiteSettingsField}
-          onSubmit={handleSaveSiteSettings}
-          working={working}
-          siteHeroVideoFile={siteHeroVideoFile}
-          selectedFrameFiles={selectedFrameFiles}
-          aboutTeamGalleryFiles={aboutTeamGalleryFiles}
-          aboutTeamMemberImageFiles={aboutTeamMemberImageFiles}
-          setSiteHeroVideoFile={setSiteHeroVideoFile}
-          addSelectedFrameFiles={addSelectedFrameFiles}
-          removeSelectedFrameFile={removeSelectedFrameFile}
-          addAboutTeamGalleryFiles={addAboutTeamGalleryFiles}
-          removeAboutTeamGalleryFile={removeAboutTeamGalleryFile}
-          setAboutTeamMemberImageFile={setAboutTeamMemberImageFile}
-          handleFileSelection={handleFileSelection}
-        />
+        <AdminErrorBoundary
+          panelLabel="site settings"
+          hasUnsavedChanges={isSettingsDirty}
+        >
+          <SiteSettingsForm
+            projects={projects}
+            formState={siteSettingsFormState}
+            isDirty={isSettingsDirty}
+            updateField={updateSiteSettingsField}
+            onSubmit={handleSaveSiteSettings}
+            working={working}
+            siteHeroVideoFile={siteHeroVideoFile}
+            selectedFrameFiles={selectedFrameFiles}
+            aboutTeamGalleryFiles={aboutTeamGalleryFiles}
+            aboutTeamMemberImageFiles={aboutTeamMemberImageFiles}
+            setSiteHeroVideoFile={setSiteHeroVideoFile}
+            addSelectedFrameFiles={addSelectedFrameFiles}
+            removeSelectedFrameFile={removeSelectedFrameFile}
+            addAboutTeamGalleryFiles={addAboutTeamGalleryFiles}
+            removeAboutTeamGalleryFile={removeAboutTeamGalleryFile}
+            setAboutTeamMemberImageFile={setAboutTeamMemberImageFile}
+            handleFileSelection={handleFileSelection}
+          />
+        </AdminErrorBoundary>
       ) : null}
 
       <AdminConfirmModal

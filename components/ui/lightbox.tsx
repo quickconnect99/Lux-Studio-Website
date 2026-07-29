@@ -7,8 +7,9 @@ import {
   type PointerEvent as ReactPointerEvent
 } from "react";
 import { X, ChevronLeft, ChevronRight } from "lucide-react";
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence, m } from "framer-motion";
 import { FallbackImage } from "@/components/ui/fallback-image";
+import { useFocusTrapDialog } from "@/hooks/use-focus-trap-dialog";
 import { motionDuration, motionEase } from "@/lib/motion";
 import { cn } from "@/lib/utils";
 
@@ -36,59 +37,28 @@ export function Lightbox({
   const closeButtonRef = useRef<HTMLButtonElement>(null);
   const pointerOriginX = useRef<number | null>(null);
   const actionsRef = useRef({ onClose, onPrev, onNext });
-  actionsRef.current = { onClose, onPrev, onNext };
+
+  useEffect(() => {
+    actionsRef.current = { onClose, onPrev, onNext };
+  }, [onClose, onNext, onPrev]);
+
+  useFocusTrapDialog({
+    active: isOpen,
+    containerRef: dialogRef,
+    initialFocusRef: closeButtonRef,
+    onClose
+  });
 
   useEffect(() => {
     if (!isOpen) return;
 
-    const previouslyFocused =
-      document.activeElement instanceof HTMLElement
-        ? document.activeElement
-        : null;
-    const previousOverflow = document.body.style.overflow;
-
     function handleKey(e: KeyboardEvent) {
-      if (e.key === "Escape") actionsRef.current.onClose();
       if (e.key === "ArrowLeft") actionsRef.current.onPrev();
       if (e.key === "ArrowRight") actionsRef.current.onNext();
-
-      if (e.key !== "Tab" || !dialogRef.current) {
-        return;
-      }
-
-      const focusable = Array.from(
-        dialogRef.current.querySelectorAll<HTMLElement>(
-          'button:not([disabled]), a[href], [tabindex]:not([tabindex="-1"])'
-        )
-      ).filter((element) => !element.hasAttribute("aria-hidden"));
-
-      if (focusable.length === 0) {
-        e.preventDefault();
-        dialogRef.current.focus();
-        return;
-      }
-
-      const first = focusable[0];
-      const last = focusable[focusable.length - 1];
-
-      if (e.shiftKey && document.activeElement === first) {
-        e.preventDefault();
-        last.focus();
-      } else if (!e.shiftKey && document.activeElement === last) {
-        e.preventDefault();
-        first.focus();
-      }
     }
 
     document.addEventListener("keydown", handleKey);
-    document.body.style.overflow = "hidden";
-    window.requestAnimationFrame(() => closeButtonRef.current?.focus());
-
-    return () => {
-      document.removeEventListener("keydown", handleKey);
-      document.body.style.overflow = previousOverflow;
-      previouslyFocused?.focus();
-    };
+    return () => document.removeEventListener("keydown", handleKey);
   }, [isOpen]);
 
   useEffect(() => {
@@ -144,7 +114,7 @@ export function Lightbox({
   return (
     <AnimatePresence>
       {isOpen && activeIndex !== null && (
-        <motion.div
+        <m.div
           ref={dialogRef}
           key="lightbox-backdrop"
           initial={{ opacity: 0 }}
@@ -160,7 +130,7 @@ export function Lightbox({
         >
           {/* Image */}
           <AnimatePresence initial={false} mode="sync">
-            <motion.div
+            <m.div
               key={activeIndex}
               initial={{ opacity: 0, scale: 0.985 }}
               animate={{ opacity: 1, scale: 1 }}
@@ -240,11 +210,15 @@ export function Lightbox({
                 ) : null}
 
                 {/* Counter */}
-                <p className="absolute bottom-3 left-1/2 z-30 -translate-x-1/2 rounded-full border border-white/15 bg-black/55 px-4 py-2 text-center text-xs uppercase tracking-meta text-white/70 backdrop-blur sm:bottom-4">
+                <p
+                  aria-live="polite"
+                  aria-atomic="true"
+                  className="absolute bottom-3 left-1/2 z-30 -translate-x-1/2 rounded-full border border-white/15 bg-black/55 px-4 py-2 text-center text-xs uppercase tracking-meta text-white/70 backdrop-blur sm:bottom-4"
+                >
                   {activeIndex + 1} / {images.length}
                 </p>
               </div>
-            </motion.div>
+            </m.div>
           </AnimatePresence>
 
           {/* Close */}
@@ -265,7 +239,7 @@ export function Lightbox({
           >
             <X className="h-4 w-4" />
           </button>
-        </motion.div>
+        </m.div>
       )}
     </AnimatePresence>
   );

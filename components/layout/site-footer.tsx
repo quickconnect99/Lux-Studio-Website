@@ -41,7 +41,7 @@ export function SiteFooter({ settings }: SiteFooterProps) {
               <Link
                 key={item.href}
                 href={item.href}
-                className="inline-flex min-h-11 w-fit items-center transition-colors duration-150 hover:text-accent"
+                className="inline-flex min-h-11 w-fit items-center transition-colors duration-150 hover:text-accent-text"
               >
                 {item.label}
               </Link>
@@ -63,18 +63,18 @@ export function SiteFooter({ settings }: SiteFooterProps) {
         <div className="flex flex-wrap items-center gap-4">
           <Link
             href="/impressum"
-            className="inline-flex min-h-11 items-center transition-colors duration-150 hover:text-accent"
+            className="inline-flex min-h-11 items-center transition-colors duration-150 hover:text-accent-text"
           >
             Legal Notice
           </Link>
           <Link
             href="/datenschutz"
-            className="inline-flex min-h-11 items-center transition-colors duration-150 hover:text-accent"
+            className="inline-flex min-h-11 items-center transition-colors duration-150 hover:text-accent-text"
           >
             Privacy Policy
           </Link>
         </div>
-        <p className="text-muted/80 max-w-sm text-[0.62rem] leading-5 tracking-[0.18em] sm:text-right sm:text-[0.68rem] sm:tracking-[0.22em]">
+        <p className="max-w-sm text-[0.62rem] leading-5 tracking-[0.18em] text-muted sm:text-right sm:text-[0.68rem] sm:tracking-[0.22em]">
           {settings.copy.footer.mediaNotice}
         </p>
       </div>

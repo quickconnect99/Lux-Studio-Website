@@ -30,6 +30,7 @@ export const businesses: ProjectBusiness[] = projectBusinesses;
 
 const currentYear = new Date().getFullYear();
 
+/** Returns the stable React/admin identity for a template or persisted project. */
 export function getAdminProjectKey(project: {
   id?: string;
   slug: string;
@@ -43,14 +44,21 @@ export function getAdminProjectKey(project: {
   return `project:${project.id ?? project.slug}`;
 }
 
+/**
+ * Converts a human title into the lowercase, ASCII URL segment used by project
+ * routes and database uniqueness checks.
+ */
 export function slugify(value: string): string {
   return value
+    .normalize("NFKD")
+    .replace(/[\u0300-\u036f]/g, "")
     .toLowerCase()
     .trim()
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/(^-|-$)/g, "");
 }
 
+/** Appends the first available numeric suffix when a slug is already taken. */
 export function buildUniqueSlugSuggestion(
   value: string,
   existingSlugs: string[],
@@ -96,6 +104,12 @@ export function parseMultilineInput(value: string): string[] {
     .filter(Boolean);
 }
 
+/**
+ * Lists missing or invalid fields that block a project save.
+ *
+ * Queued local files count as media even though their public URLs do not exist
+ * until the save workflow uploads them.
+ */
 export function getProjectCompletionIssues(
   state: ProjectFormState,
   context: CompletionContext
@@ -123,6 +137,10 @@ export function getProjectCompletionIssues(
   return issues;
 }
 
+/**
+ * Converts a public project into the string-friendly state used by form
+ * controls. Parallel gallery text keeps blank caption positions intact.
+ */
 export function toFormState(
   project: Project & {
     isTemplate?: boolean;
@@ -149,6 +167,7 @@ export function toFormState(
     featured: project.featured,
     published: project.published,
     createdAt: project.createdAt,
+    updatedAt: project.updatedAt,
     behindTheScenes: project.behindTheScenes ?? ""
   };
 }
@@ -160,6 +179,12 @@ export function toAdminProjectListItem(project: Project): AdminProjectListItem {
   };
 }
 
+/**
+ * Creates an immutable starter project for one business line.
+ *
+ * Templates have stable admin keys but no database ID; saving one therefore
+ * creates a new project instead of modifying the template.
+ */
 export function createProjectTemplate(
   business: ProjectBusiness
 ): AdminProjectListItem {
@@ -331,17 +356,24 @@ export function parseServicesText(value: string): Service[] {
     .filter((s) => s.title);
 }
 
+/**
+ * Deep-copies public Site Settings into editable form state.
+ *
+ * Copies prevent an input mutation from changing the last saved public object,
+ * which would make Dirty State comparisons unreliable.
+ */
 export function toSiteSettingsFormState(
   settings: SiteSettings
 ): SiteSettingsFormState {
   return {
+    updatedAt: settings.updatedAt,
     brandName: settings.brand.name,
     brandMark: settings.brand.mark,
     brandStrapline: settings.brand.strapline,
     contactEmail: settings.contact.email,
     contactPhone: settings.contact.phone,
     contactCity: settings.contact.city,
-    socialLinksText: formatSocialLinksText(settings.social),
+    socialLinks: settings.social.map((link) => ({ ...link })),
     seoTitle: settings.seo.title,
     seoDescription: settings.seo.description,
     heroEyebrow: settings.hero.eyebrow,
@@ -353,8 +385,11 @@ export function toSiteSettingsFormState(
     aboutPositioning: settings.about.positioning,
     aboutTeamMembers: settings.about.teamMembers,
     aboutTeamGalleryText: settings.about.teamGallery.join("\n"),
-    aboutValuesText: formatValuesText(settings.about.values),
-    servicesText: formatServicesText(settings.services),
+    aboutValues: settings.about.values.map((value) => ({ ...value })),
+    services: settings.services.map((service) => ({
+      ...service,
+      deliverables: [...service.deliverables]
+    })),
     selectedFramesText: settings.selectedFrames.join("\n"),
     motionFramesText: settings.motionFrames.join("\n"),
     navigationHome: settings.navigation.home,
@@ -366,6 +401,7 @@ export function toSiteSettingsFormState(
   };
 }
 
+/** Returns safe defaults for a brand-new unpublished project draft. */
 export function createEmptyProject(): ProjectFormState {
   return {
     templateBusiness: undefined,
@@ -386,6 +422,7 @@ export function createEmptyProject(): ProjectFormState {
     featured: false,
     published: false,
     createdAt: new Date().toISOString(),
+    updatedAt: undefined,
     behindTheScenes: ""
   };
 }

@@ -9,11 +9,11 @@
 
   /* ─── Form fields ──────────────────────────────────────────────────── */
   .input-field {
-    @apply min-h-11 w-full rounded-2xl border border-line bg-panel px-4 py-3 text-base text-foreground outline-none transition-colors duration-200 ease-out focus:border-accent focus:bg-panel;
+    @apply min-h-11 w-full rounded-2xl border border-line bg-panel px-4 py-3 text-base text-foreground outline-none transition-colors duration-200 ease-out focus:border-focus-ring focus:bg-panel;
   }
 
   .textarea-field {
-    @apply w-full rounded-[1.5rem] border border-line bg-panel px-4 py-3 text-base text-foreground outline-none transition-colors duration-200 ease-out focus:border-accent focus:bg-panel;
+    @apply w-full rounded-[1.5rem] border border-line bg-panel px-4 py-3 text-base text-foreground outline-none transition-colors duration-200 ease-out focus:border-focus-ring focus:bg-panel;
   }
 
   /* Error state – uses CSS variable so colour stays in the design system */
@@ -49,7 +49,7 @@
   /* Monospace number / index styling (project numbers, year, tech metadata) */
   .metadata-number {
     font-family: var(--font-mono);
-    @apply text-[0.65rem] uppercase tracking-meta text-accent;
+    @apply text-[0.65rem] uppercase tracking-meta text-accent-text;
   }
 
   /* ─── Buttons / pills ──────────────────────────────────────────────── */
@@ -106,6 +106,7 @@
      for buttons/borders/fills; themes whose --accent fails WCAG as text
      override this one value instead of the whole accent. */
   --accent-text: var(--accent);
+  --focus-ring: var(--accent);
 
   /* Panels – three standardised opacity levels */
   --panel: rgba(255, 255, 255, 0.8); /* primary panels */
@@ -119,8 +120,11 @@
 
   /* Semantic colours (kept in system so components can reference vars) */
   --error: #ef4444;
+  --error-text: var(--error);
   --success: #10b981;
+  --success-text: var(--success);
   --warning: #f59e0b;
+  --warning-text: var(--warning);
 
   /* Theming helpers */
   --header-bg: rgba(244, 241, 234, 0.82);
@@ -194,7 +198,7 @@ select:focus-visible {
   outline: none;
   box-shadow:
     0 0 0 1.5px var(--background),
-    0 0 0 3px var(--accent);
+    0 0 0 3px var(--focus-ring);
 }
 
 /* ─── Utilities ────────────────────────────────────────────────────────── */
@@ -310,7 +314,8 @@ select:focus-visible {
   line-height: 1.25rem;
 }
 
-[data-admin-workspace] :is(
+[data-admin-workspace]
+  :is(
     .text-\[0\.5rem\],
     .text-\[0\.55rem\],
     .text-\[0\.58rem\],
@@ -336,8 +341,7 @@ select:focus-visible {
   text-transform: none;
 }
 
-[data-admin-workspace]
-  input[type="file"]:not(.sr-only)::file-selector-button {
+[data-admin-workspace] input[type="file"]:not(.sr-only)::file-selector-button {
   min-height: 2.5rem;
   cursor: pointer;
   margin-right: 0.75rem;
@@ -548,15 +552,19 @@ select:focus-visible {
 [data-theme="vintage-light"] {
   --background: #f3eadb;
   --foreground: #1e493d;
-  --muted: #6d6a61;
+  --muted: #625f57;
   --muted-warm: #7b685c;
   --accent: #ec824d;
-  --accent-contrast: #f7efe2;
+  --accent-contrast: #101917;
   --accent-soft: rgba(236, 130, 77, 0.2);
   --accent-blue: #1e493d;
   /* #ec824d on this theme's #f3eadb background measures ~2.24:1 (WCAG AA
      needs 3:1 even for large text) — this darker terracotta measures ~4.7:1. */
   --accent-text: #ad4815;
+  --focus-ring: #ad4815;
+  --error-text: #b91c1c;
+  --success-text: #047857;
+  --warning-text: #92400e;
   --panel: rgba(250, 244, 233, 0.84);
   --panel-secondary: rgba(245, 236, 222, 0.78);
   --panel-subtle: rgba(30, 73, 61, 0.09);
@@ -578,7 +586,7 @@ select:focus-visible {
 }
 [data-theme="vintage-light"] ::selection {
   background: rgba(236, 130, 77, 0.35);
-  color: #1e493d;
+  color: #101917;
 }
 
 /* Vintage Noir - warm noir with terracotta and racing green */
@@ -589,7 +597,7 @@ select:focus-visible {
   --muted: #b7aa97;
   --muted-warm: #c98f72;
   --accent: #ec824d;
-  --accent-contrast: #1e493d;
+  --accent-contrast: #101917;
   --accent-soft: rgba(236, 130, 77, 0.22);
   --accent-blue: #1e493d;
   --panel: rgba(23, 41, 36, 0.78);
@@ -618,5 +626,5 @@ select:focus-visible {
 }
 [data-theme="gpt-vintage"] ::selection {
   background: rgba(236, 130, 77, 0.42);
-  color: #1e493d;
+  color: #101917;
 }

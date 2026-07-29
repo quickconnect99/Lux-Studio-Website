@@ -36,7 +36,12 @@ for (const route of routes) {
     await expect(page.locator("h1")).toHaveCount(1);
 
     await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
-    await page.waitForTimeout(250);
+    await page.evaluate(
+      () =>
+        new Promise<void>((resolve) => {
+          requestAnimationFrame(() => requestAnimationFrame(() => resolve()));
+        })
+    );
 
     const diagnostics = await page.evaluate(() => ({
       horizontalOverflow:
@@ -93,15 +98,27 @@ test("project description follows metadata and remains readable", async ({
   expect(layout.horizontalOverflow).toBeLessThanOrEqual(0);
 });
 
+test("repository media uses a bounded browser cache", async ({
+  request
+}, testInfo) => {
+  test.skip(testInfo.project.name !== "desktop-1440");
+
+  const response = await request.head("/media/hero-showreel.mp4");
+  const cacheControl = response.headers()["cache-control"] ?? "";
+
+  expect(response.ok()).toBe(true);
+  expect(cacheControl).toContain("max-age=3600");
+  expect(cacheControl).toContain("stale-while-revalidate=86400");
+  expect(cacheControl).not.toContain("immutable");
+});
+
 test("work shows every filtered project without a load-more action", async ({
   page
 }, testInfo) => {
   test.skip(testInfo.project.name !== "desktop-1440");
   await page.goto("/work", { waitUntil: "networkidle" });
 
-  await expect(
-    page.getByRole("button", { name: /load more/i })
-  ).toHaveCount(0);
+  await expect(page.getByRole("button", { name: /load more/i })).toHaveCount(0);
 
   const projects = page.locator("[data-work-project]");
   const status = page.locator("[data-work-result-status]");
@@ -154,6 +171,73 @@ test("reduced motion hydrates without hiding content", async ({
   await expect(frame.locator("[data-selected-frame-image]")).toHaveCount(1);
 
   expect(errors).toEqual([]);
+});
+
+test("skip link is the first keyboard target and focuses the content", async ({
+  page
+}, testInfo) => {
+  test.skip(testInfo.project.name !== "desktop-1440");
+  await page.goto("/", { waitUntil: "networkidle" });
+
+  const skipLink = page.getByRole("link", { name: "Skip to content" });
+  await page.keyboard.press("Tab");
+  await expect(skipLink).toBeFocused();
+
+  await page.keyboard.press("Enter");
+  await expect(page.locator("#main-content")).toBeFocused();
+});
+
+test("unknown routes keep the public shell and stay out of search results", async ({
+  page
+}, testInfo) => {
+  test.skip(testInfo.project.name !== "desktop-1440");
+
+  for (const route of ["/missing-route", "/work/missing-project"]) {
+    const response = await page.goto(route, { waitUntil: "networkidle" });
+
+    if (route === "/missing-route") {
+      expect(response?.status(), `${route} should return HTTP 404`).toBe(404);
+    } else {
+      // Next.js can return 200 for a notFound() discovered after streaming
+      // starts. The generated noindex directive below is the SEO safeguard.
+      expect([200, 404]).toContain(response?.status());
+    }
+    await expect(page.locator("header")).toHaveCount(1);
+    await expect(page.locator("footer")).toHaveCount(1);
+    await expect(
+      page.getByRole("heading", { name: /frame missing/i })
+    ).toBeVisible();
+    const robotsDirectives = await page
+      .locator('meta[name="robots"]')
+      .evaluateAll((elements) =>
+        elements.map((element) => element.getAttribute("content") ?? "")
+      );
+    expect(robotsDirectives.length).toBeGreaterThan(0);
+    expect(
+      robotsDirectives.every((directive) => directive.includes("noindex")),
+      `${route} should not emit an indexable robots directive`
+    ).toBe(true);
+    await expect(page).toHaveTitle(/Page Not Found/);
+  }
+});
+
+test("robots and sitemap expose the intended crawl signals", async ({
+  request
+}, testInfo) => {
+  test.skip(testInfo.project.name !== "desktop-1440");
+
+  const [robotsResponse, sitemapResponse] = await Promise.all([
+    request.get("/robots.txt"),
+    request.get("/sitemap.xml")
+  ]);
+  const robots = await robotsResponse.text();
+  const sitemap = await sitemapResponse.text();
+
+  expect(robotsResponse.ok()).toBe(true);
+  expect(robots).toContain("Disallow: /api/");
+  expect(sitemapResponse.ok()).toBe(true);
+  expect(sitemap).toContain("<changefreq>");
+  expect(sitemap).toContain("<priority>");
 });
 
 test("mobile navigation traps focus and closes with Escape", async ({
@@ -320,7 +404,7 @@ test("Frames in Motion offers a persistent playback control", async ({
   await expect(playbackButton).toHaveAccessibleName("Play strip");
   await expect(track).toHaveCSS("animation-play-state", "paused");
 
-  await page.reload({ waitUntil: "networkidle" });
+  await page.reload({ waitUntil: "domcontentloaded" });
   const restoredPlayButton = page.locator("[data-motion-strip-toggle]");
   await expect(restoredPlayButton).toHaveAccessibleName("Play strip");
   await expect(restoredPlayButton).toHaveAttribute("aria-pressed", "true");
@@ -651,9 +735,7 @@ test("admin mobile workspace switches between projects editor and preview", asyn
   test.skip(testInfo.project.name !== "mobile-390");
   await page.goto("/admin", { waitUntil: "networkidle" });
 
-  const projectsMode = page.locator(
-    '[data-admin-workspace-mode="projects"]'
-  );
+  const projectsMode = page.locator('[data-admin-workspace-mode="projects"]');
   const editMode = page.locator('[data-admin-workspace-mode="edit"]');
   const previewMode = page.locator('[data-admin-workspace-mode="preview"]');
   const projectPane = page.locator("#admin-project-list-pane");
@@ -759,6 +841,24 @@ test("admin exposes independent homepage frame collections", async ({
     settingsForm.getByText("Frames in Motion", { exact: true })
   ).toBeVisible();
   await expect(settingsForm.getByText(/no eight-image limit/i)).toBeVisible();
+
+  const libraryToggles = settingsForm.locator(
+    "[data-project-frame-library-toggle]"
+  );
+  await expect(libraryToggles).toHaveCount(2);
+  await expect(libraryToggles.first()).toHaveAttribute(
+    "aria-expanded",
+    "false"
+  );
+  await expect(
+    settingsForm.locator("[data-project-frame-library-content]")
+  ).toHaveCount(0);
+
+  await libraryToggles.first().click();
+  await expect(libraryToggles.first()).toHaveAttribute("aria-expanded", "true");
+  await expect(
+    settingsForm.locator("[data-project-frame-library-content]")
+  ).toHaveCount(1);
 });
 
 test("admin protects unsaved project changes before creating a new project", async ({
@@ -809,7 +909,9 @@ test("admin restores an unsaved project draft after reload", async ({
   await expect(page.locator("[data-admin-project-title]")).toHaveValue(
     "Recovered after reload"
   );
-  await expect(page.getByText(/Unsaved draft from .* restored\./)).toBeVisible();
+  await expect(
+    page.getByText(/Unsaved draft from .* restored\./)
+  ).toBeVisible();
 });
 
 test("admin save shortcut and reset follow the active settings tab", async ({

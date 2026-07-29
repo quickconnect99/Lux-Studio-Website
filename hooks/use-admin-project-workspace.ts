@@ -4,6 +4,7 @@ import { useCallback, useMemo, useRef, useState } from "react";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { useForm } from "@/hooks/use-form";
 import { findAdminProjectBySlug } from "@/lib/admin-project-repository";
+import { serializeProjectFormState } from "@/lib/admin-form-snapshots";
 import type {
   AdminConfirmDialogState,
   AdminProjectListItem,
@@ -43,6 +44,19 @@ type UseAdminProjectWorkspaceOptions = {
   showStatus(message: string): void;
 };
 
+/**
+ * Owns the editable project workspace independently from remote persistence.
+ *
+ * The hook converts a selected project into form state, tracks the last saved
+ * snapshot for `isDirty`, validates slugs without accepting stale async
+ * responses, and prepares reset/delete confirmations. Actual uploads and
+ * database writes are deliberately handled by `useAdminData`.
+ *
+ * @param options - Current projects, queued media flags, and callbacks supplied
+ * by the admin orchestration layer.
+ * @returns Project form state plus selection, validation, reset, duplicate, and
+ * confirmation actions used by the editor and preview.
+ */
 export function useAdminProjectWorkspace({
   supabase,
   sessionEmail,
@@ -63,12 +77,11 @@ export function useAdminProjectWorkspace({
     defaultTemplate.adminKey
   );
   const [savedFormSnapshot, setSavedFormSnapshot] = useState(() =>
-    JSON.stringify(toFormState(defaultTemplate))
+    serializeProjectFormState(toFormState(defaultTemplate))
   );
   const [saveCount, setSaveCount] = useState(0);
-  const [slugValidation, setSlugValidation] = useState<SlugValidationState>(
-    IDLE_SLUG_VALIDATION
-  );
+  const [slugValidation, setSlugValidation] =
+    useState<SlugValidationState>(IDLE_SLUG_VALIDATION);
   const [confirmDialog, setConfirmDialog] =
     useState<AdminConfirmDialogState | null>(null);
   const slugValidationRequest = useRef(0);
@@ -90,7 +103,7 @@ export function useAdminProjectWorkspace({
     queuedGalleryCount: galleryFiles.length
   });
   const isDirty =
-    JSON.stringify(formState) !== savedFormSnapshot ||
+    serializeProjectFormState(formState) !== savedFormSnapshot ||
     Boolean(coverFile) ||
     galleryFiles.length > 0 ||
     Boolean(videoFile);
@@ -105,7 +118,7 @@ export function useAdminProjectWorkspace({
       const state = toFormState(project);
       setSelectedProjectKey(project.adminKey);
       replaceForm(state);
-      setSavedFormSnapshot(JSON.stringify(state));
+      setSavedFormSnapshot(serializeProjectFormState(state));
       clearSaveReport();
       clearMedia();
       setConfirmDialog(null);
@@ -118,7 +131,7 @@ export function useAdminProjectWorkspace({
     const fresh = createEmptyProject();
     setSelectedProjectKey(DRAFT_PROJECT_KEY);
     replaceForm(fresh);
-    setSavedFormSnapshot(JSON.stringify(fresh));
+    setSavedFormSnapshot(serializeProjectFormState(fresh));
     clearSaveReport();
     clearMedia();
     setConfirmDialog(null);
@@ -126,10 +139,7 @@ export function useAdminProjectWorkspace({
   }, [clearMedia, clearSaveReport, replaceForm, resetSlugValidation]);
 
   const updateField = useCallback(
-    <K extends keyof ProjectFormState>(
-      key: K,
-      value: ProjectFormState[K]
-    ) => {
+    <K extends keyof ProjectFormState>(key: K, value: ProjectFormState[K]) => {
       clearSaveReport();
       if (key === "slug" || key === "title") {
         resetSlugValidation();
@@ -176,7 +186,8 @@ export function useAdminProjectWorkspace({
       title: `${formState.title} (Copy)`,
       slug: baseSlug,
       published: false,
-      createdAt: new Date().toISOString()
+      createdAt: new Date().toISOString(),
+      updatedAt: undefined
     };
 
     setSelectedProjectKey(DRAFT_PROJECT_KEY);
@@ -222,8 +233,7 @@ export function useAdminProjectWorkspace({
       });
 
       const localConflict = projects.find(
-        (project) =>
-          project.slug === targetSlug && project.id !== formState.id
+        (project) => project.slug === targetSlug && project.id !== formState.id
       );
 
       if (localConflict) {
@@ -279,13 +289,10 @@ export function useAdminProjectWorkspace({
       }
 
       setSlugValidation({
-        status:
-          options?.showAvailableState === false ? "idle" : "available",
+        status: options?.showAvailableState === false ? "idle" : "available",
         slug: targetSlug,
         message:
-          options?.showAvailableState === false
-            ? null
-            : "Slug is available.",
+          options?.showAvailableState === false ? null : "Slug is available.",
         suggestedSlug: null
       });
       return { ok: true as const, slug: targetSlug };
@@ -316,7 +323,11 @@ export function useAdminProjectWorkspace({
     const current = allProjects.find(
       (project) => project.adminKey === selectedProjectKey
     );
-    current ? applyProject(current) : resetToNewProject();
+    if (current) {
+      applyProject(current);
+    } else {
+      resetToNewProject();
+    }
   }, [allProjects, applyProject, resetToNewProject, selectedProjectKey]);
 
   const handleResetClick = useCallback(() => {
@@ -425,7 +436,7 @@ export function useAdminProjectWorkspace({
       const state = toFormState(saved);
       setSelectedProjectKey(saved.adminKey);
       replaceForm(state);
-      setSavedFormSnapshot(JSON.stringify(state));
+      setSavedFormSnapshot(serializeProjectFormState(state));
       setSaveCount((count) => count + 1);
       setConfirmDialog(null);
       resetSlugValidation();

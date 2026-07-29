@@ -36,18 +36,18 @@ export function SiteSettingsToolbar({
         <p className="mt-1.5 flex items-center gap-2 text-sm text-muted">
           {isDirty ? (
             <>
-              <AlertCircle className="h-4 w-4 text-warning" />
-              <span className="text-warning">Unsaved changes</span>
+              <AlertCircle className="h-4 w-4 text-warning-text" />
+              <span className="text-warning-text">Unsaved changes</span>
             </>
           ) : (
             <>
-              <CheckCircle2 className="h-4 w-4 text-success" />
+              <CheckCircle2 className="h-4 w-4 text-success-text" />
               All changes saved
             </>
           )}
         </p>
         <p className="border-accent/40 bg-accent/10 mt-2 inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-[0.62rem] uppercase tracking-ui text-foreground">
-          <Pencil className="h-3 w-3 text-accent" />
+          <Pencil className="h-3 w-3 text-accent-text" />
           Green-highlighted content is directly editable
         </p>
       </div>

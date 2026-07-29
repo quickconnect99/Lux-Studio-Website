@@ -2,7 +2,9 @@ import type {
   Project,
   ProjectBusiness,
   ProjectCategory,
+  Service,
   SiteCopy,
+  SocialLink,
   TeamMember
 } from "@/lib/types";
 
@@ -46,10 +48,12 @@ export type ProjectFormState = {
   featured: boolean;
   published: boolean;
   createdAt: string;
+  updatedAt?: string;
   behindTheScenes: string;
 };
 
 export type SiteSettingsFormState = {
+  updatedAt: string;
   // Brand
   brandName: string;
   brandMark: string;
@@ -59,7 +63,7 @@ export type SiteSettingsFormState = {
   contactPhone: string;
   contactCity: string;
   // Social
-  socialLinksText: string;
+  socialLinks: SocialLink[];
   // SEO
   seoTitle: string;
   seoDescription: string;
@@ -74,9 +78,9 @@ export type SiteSettingsFormState = {
   aboutPositioning: string;
   aboutTeamMembers: TeamMember[];
   aboutTeamGalleryText: string;
-  aboutValuesText: string; // one per line: "Title | Copy"
+  aboutValues: Array<{ title: string; copy: string }>;
   // Services
-  servicesText: string; // one per line: "01 | Title | Description | deliverable1, deliverable2"
+  services: Service[];
   // Selected frames
   selectedFramesText: string;
   // Moving project frames

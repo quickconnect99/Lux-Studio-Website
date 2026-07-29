@@ -3,6 +3,19 @@
 import { type ChangeEvent, useCallback, useEffect, useState } from "react";
 import { getInvalidMediaFiles } from "@/lib/admin-persistence";
 
+/**
+ * Holds local files selected in the admin UI before they are uploaded.
+ *
+ * The hook validates type and size at the browser boundary and creates a
+ * temporary object URL for the cover preview. Selecting a file does not persist
+ * it; `useAdminData` or `useAdminSiteSettings` consumes these queues during a
+ * save. All object URLs created here are revoked when replaced or unmounted.
+ *
+ * @param callbacks - `onChange` clears stale save feedback; `onError` exposes a
+ * human-readable validation failure.
+ * @returns Pending project and Site Settings files with add/remove/reset
+ * actions.
+ */
 export function useAdminMedia({
   onChange,
   onError
@@ -47,23 +60,21 @@ export function useAdminMedia({
   );
 
   useEffect(() => {
-    if (!coverFile) {
-      setCoverPreviewUrl(null);
-      return;
-    }
+    if (!coverPreviewUrl) return;
+    return () => URL.revokeObjectURL(coverPreviewUrl);
+  }, [coverPreviewUrl]);
 
-    const objectUrl = URL.createObjectURL(coverFile);
-    setCoverPreviewUrl(objectUrl);
-
-    return () => URL.revokeObjectURL(objectUrl);
-  }, [coverFile]);
+  const replaceCoverFile = useCallback((file: File | null) => {
+    setCoverFileState(file);
+    setCoverPreviewUrl(file ? URL.createObjectURL(file) : null);
+  }, []);
 
   const setCoverFile = useCallback(
     (file: File | null) => {
       onChange();
-      setCoverFileState(file);
+      replaceCoverFile(file);
     },
-    [onChange]
+    [onChange, replaceCoverFile]
   );
 
   const setVideoFile = useCallback(
@@ -83,14 +94,14 @@ export function useAdminMedia({
   );
 
   const clearMedia = useCallback(() => {
-    setCoverFileState(null);
+    replaceCoverFile(null);
     setGalleryFiles([]);
     setVideoFileState(null);
     setSiteHeroVideoFileState(null);
     setSelectedFrameFiles([]);
     setAboutTeamGalleryFiles([]);
     setAboutTeamMemberImageFiles([]);
-  }, []);
+  }, [replaceCoverFile]);
 
   const clearSiteSettingsMedia = useCallback(() => {
     setSiteHeroVideoFileState(null);

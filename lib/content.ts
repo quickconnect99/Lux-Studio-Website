@@ -1,10 +1,4 @@
-import {
-  Camera,
-  Clapperboard,
-  Film,
-  MapPin,
-  Smartphone
-} from "lucide-react";
+import { Camera, Clapperboard, Film, MapPin, Smartphone } from "lucide-react";
 import type { ComponentType } from "react";
 import type { Project, Service } from "@/lib/types";
 

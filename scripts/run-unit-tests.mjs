@@ -13,7 +13,8 @@ const testFiles = (await readdir(testDirectory))
 const tsxCli = fileURLToPath(
   new URL("../node_modules/tsx/dist/cli.mjs", import.meta.url)
 );
-const result = spawnSync(process.execPath, [tsxCli, "--test", ...testFiles], {
+const nodeArguments = [tsxCli, "--test", ...testFiles];
+const result = spawnSync(process.execPath, nodeArguments, {
   cwd: workspaceDirectory,
   stdio: "inherit"
 });

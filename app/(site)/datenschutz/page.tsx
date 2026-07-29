@@ -83,7 +83,7 @@ export default async function PrivacyPage() {
       <section className="section-shell pb-14">
         <div className="grid gap-6">
           {missingFields.length > 0 && (
-            <div className="panel-2xl border border-warning/30 bg-warning/10 p-6 sm:p-7">
+            <div className="panel-2xl border-warning/30 bg-warning/10 border p-6 sm:p-7">
               <p className="text-xs uppercase tracking-eyebrow text-muted">
                 Check Before Launch
               </p>
@@ -96,7 +96,7 @@ export default async function PrivacyPage() {
                 {missingFields.map((field) => (
                   <li
                     key={field.label}
-                    className="rounded-[1.25rem] border border-warning/30 bg-white/35 px-4 py-3 text-sm leading-6 text-foreground"
+                    className="border-warning/30 rounded-[1.25rem] border bg-white/35 px-4 py-3 text-sm leading-6 text-foreground"
                   >
                     {field.label}
                   </li>
@@ -107,9 +107,11 @@ export default async function PrivacyPage() {
 
           <PrivacyBlock title="1. Controller">
             <p>
-              The controller responsible for data processing on this website
-              is{" "}
-              <strong className="text-foreground">{identity.operatorName}</strong>.
+              The controller responsible for data processing on this website is{" "}
+              <strong className="text-foreground">
+                {identity.operatorName}
+              </strong>
+              .
             </p>
             <p>
               Contact:{" "}
@@ -130,7 +132,8 @@ export default async function PrivacyPage() {
                   className="text-foreground underline underline-offset-4"
                 >
                   {legalProfile.privacyContactEmail}
-                </a>.
+                </a>
+                .
               </p>
             )}
             <p>
@@ -153,7 +156,7 @@ export default async function PrivacyPage() {
               to deliver the website and maintain system security.
             </p>
             <p>
-              Planned hosting provider:{" "}
+              Hosting provider:{" "}
               <strong className="text-foreground">
                 {legalProfile.hostingProviderName}
               </strong>
@@ -165,13 +168,21 @@ export default async function PrivacyPage() {
               The legal basis is our legitimate interest in a secure and stable
               website operation.
             </p>
+            {process.env.NEXT_PUBLIC_ENABLE_TELEMETRY === "true" ? (
+              <p>
+                We also record anonymous Core Web Vitals (metric name, value,
+                rating, and navigation type) in our own server logs. The
+                measurement does not transmit page URLs, form contents, or
+                advertising identifiers.
+              </p>
+            ) : null}
           </PrivacyBlock>
 
           <PrivacyBlock title="3. Project Inquiry Form">
             <p>
               When you submit a project inquiry, we process the data entered in
-              the form: name, email address, company, selected service type,
-              and project brief.
+              the form: name, email address, company, selected service type, and
+              project brief.
             </p>
             <p>
               The purpose is to review your request and prepare for a possible
@@ -180,8 +191,7 @@ export default async function PrivacyPage() {
               project inquiries in a structured way.
             </p>
             <p>
-              If enabled in the live environment, form submissions are stored
-              in{" "}
+              If enabled in the live environment, form submissions are stored in{" "}
               <strong className="text-foreground">
                 {legalProfile.databaseProviderName}
               </strong>{" "}
@@ -217,9 +227,9 @@ export default async function PrivacyPage() {
 
           <PrivacyBlock title="5. Local Browser Storage">
             <p>
-              This website stores the user-selected theme variant locally in
-              the browser. An entry under the key <code>theme</code> is written
-              to browser storage.
+              This website stores the user-selected theme variant locally in the
+              browser. An entry under the key <code>theme</code> is written to
+              browser storage.
             </p>
             <p>
               This entry is used solely to restore the preferred interface
@@ -232,8 +242,8 @@ export default async function PrivacyPage() {
             <p>
               The website contains links to external platforms and social
               networks. Simply viewing the page does not automatically load
-              those platforms. Only when you click such a link do you leave
-              this website.
+              those platforms. Only when you click such a link do you leave this
+              website.
             </p>
           </PrivacyBlock>
 

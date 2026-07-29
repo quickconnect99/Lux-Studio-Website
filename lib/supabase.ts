@@ -50,6 +50,13 @@ if (
 
 let browserClient: SupabaseClient | null = null;
 
+/**
+ * Returns the singleton browser client used for auth and admin mutations.
+ *
+ * `null` means Supabase is intentionally unavailable and callers should use
+ * the documented demo path. Reusing one browser instance also reuses its auth
+ * session and subscription state.
+ */
 export function createBrowserSupabaseClient() {
   if (!isSupabaseConfigured) {
     return null;
@@ -62,6 +69,13 @@ export function createBrowserSupabaseClient() {
   return browserClient;
 }
 
+/**
+ * Creates a stateless server client for public reads.
+ *
+ * Server fetches use a five-minute cache fallback. Successful admin saves call
+ * the protected revalidation route so visitors normally see changes
+ * immediately.
+ */
 export function createServerSupabaseClient() {
   if (!isSupabaseConfigured) {
     return null;
@@ -84,7 +98,7 @@ export function createServerSupabaseClient() {
   });
 }
 
-type SupabaseProjectRow = {
+export type SupabaseProjectRow = {
   id?: string;
   business?: string | null;
   title: string;
@@ -112,7 +126,7 @@ type SupabaseProjectRow = {
   behind_the_scenes: string | null;
 };
 
-type SupabaseSiteSettingsRow = {
+export type SupabaseSiteSettingsRow = {
   id: string;
   updated_at?: string | null;
   brand_name: string | null;
@@ -207,6 +221,7 @@ function normalizeSelectedFrames(frames: string[] | null | undefined) {
   return frames.map((frame) => frame.trim()).filter(Boolean);
 }
 
+/** Normalizes optional CMS motion frames while retaining configured defaults. */
 export function normalizeMotionFrames(frames: string[] | null | undefined) {
   if (!Array.isArray(frames)) {
     return defaultSiteSettings.motionFrames;
@@ -239,6 +254,13 @@ function normalizeTeamMembers(
   }));
 }
 
+/**
+ * Converts a snake_case `projects` row into the public `Project` model.
+ *
+ * The normalizer also sanitizes media URLs, supports the legacy parallel
+ * gallery arrays, prefers structured gallery items when available, and keeps
+ * captions aligned after duplicate removal.
+ */
 export function normalizeProjectRecord(record: SupabaseProjectRow): Project {
   const legacyGallery = normalizeProjectGallery({
     coverImage: record.cover_image,
@@ -294,6 +316,12 @@ export function normalizeProjectRecord(record: SupabaseProjectRow): Project {
   };
 }
 
+/**
+ * Converts the singleton Site Settings row into a complete public model.
+ *
+ * Missing or legacy values are filled from `defaultSiteSettings`, allowing
+ * older databases to remain readable while migrations are rolled out.
+ */
 export function normalizeSiteSettingsRecord(
   record: SupabaseSiteSettingsRow
 ): SiteSettings {
@@ -355,9 +383,13 @@ export function normalizeSiteSettingsRecord(
   };
 }
 
-// Wrapped in React's cache() so the layout and a page rendering in the same
-// request (both of which call these) share one Supabase round-trip instead
-// of fetching the same rows twice.
+/**
+ * Loads all published projects for public pages.
+ *
+ * React `cache()` makes a layout and page in the same server request share one
+ * Supabase round-trip. Demo content is used only when Supabase is not
+ * configured; a configured but failing backend throws for the error boundary.
+ */
 export const getPublishedProjects = cache(async () => {
   const client = createServerSupabaseClient();
 
@@ -385,6 +417,12 @@ export const getPublishedProjects = cache(async () => {
   return (data as SupabaseProjectRow[]).map(normalizeProjectRecord);
 });
 
+/**
+ * Loads one published project by slug.
+ *
+ * Unpublished and missing rows return `undefined`; backend errors throw so they
+ * are not incorrectly presented as a normal 404.
+ */
 export const getProjectBySlug = cache(async (slug: string) => {
   const client = createServerSupabaseClient();
 
@@ -413,6 +451,12 @@ export const getProjectBySlug = cache(async (slug: string) => {
   return normalizeProjectRecord(data as SupabaseProjectRow);
 });
 
+/**
+ * Loads global Site Settings or returns defaults when the singleton row does
+ * not yet exist.
+ *
+ * Like project reads, this is request-deduplicated through React `cache()`.
+ */
 export const getSiteSettings = cache(async () => {
   const client = createServerSupabaseClient();
 

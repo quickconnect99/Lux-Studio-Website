@@ -1,8 +1,5 @@
 import { createHash } from "node:crypto";
-import {
-  consumeRateLimitAttempt,
-  type RateLimitStore
-} from "@/lib/rate-limit";
+import { consumeRateLimitAttempt, type RateLimitStore } from "@/lib/rate-limit";
 
 type PersistentRateLimitParameters = {
   p_client_key_hash: string;
@@ -34,10 +31,18 @@ export type InquiryRateLimitDecision = {
   fallbackReason: "unavailable" | "rpc-error" | "invalid-response" | null;
 };
 
+/** Hashes the client key before it crosses the persistent database boundary. */
 export function hashRateLimitKey(key: string) {
   return createHash("sha256").update(key).digest("hex");
 }
 
+/**
+ * Consumes one inquiry attempt using the persistent database limiter when
+ * available, with an in-memory fallback for local development and outages.
+ *
+ * The decision exposes the source and fallback reason for observability without
+ * exposing the original client key.
+ */
 export async function consumeInquiryRateLimit({
   key,
   maxAttempts,

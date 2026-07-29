@@ -30,7 +30,7 @@ export function BusinessFocus({ cards }: BusinessFocusProps) {
           <p className="eyebrow">Business focus</p>
           <h2 className="font-[family-name:var(--font-display)] text-[2.5rem] uppercase leading-[0.92] sm:text-5xl">
             Explore
-            <span className="block pl-5 text-accent sm:pl-12">
+            <span className="block pl-5 text-accent-text sm:pl-12">
               {hasMultipleSectors ? "More Of Our Work" : "Our Work"}
             </span>
           </h2>
@@ -82,7 +82,7 @@ export function BusinessFocus({ cards }: BusinessFocusProps) {
                   <p className="text-[0.72rem] uppercase tracking-[0.16em] text-muted">
                     {card.eyebrow}
                   </p>
-                  <span className="inline-flex items-center gap-1.5 text-xs font-medium uppercase tracking-ui text-foreground transition-colors duration-150 group-hover:text-accent">
+                  <span className="inline-flex items-center gap-1.5 text-xs font-medium uppercase tracking-ui text-foreground transition-colors duration-150 group-hover:text-accent-text">
                     View {card.business} Work
                     <ArrowUpRight className="h-3.5 w-3.5 transition-transform duration-300 group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
                   </span>

@@ -15,7 +15,7 @@ export function PublicErrorState({
   return (
     <main className="section-shell flex min-h-[70dvh] items-center py-16">
       <div className="panel-2xl mx-auto w-full max-w-2xl p-6 text-center sm:p-10">
-        <span className="border-error/25 bg-error/10 mx-auto flex h-12 w-12 items-center justify-center rounded-full border text-error">
+        <span className="border-error/25 bg-error/10 mx-auto flex h-12 w-12 items-center justify-center rounded-full border text-error-text">
           <AlertTriangle className="h-5 w-5" aria-hidden="true" />
         </span>
         <p className="eyebrow mt-6 justify-center">Temporary interruption</p>

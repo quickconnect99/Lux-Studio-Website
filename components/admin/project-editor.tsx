@@ -21,6 +21,7 @@ import {
 } from "lucide-react";
 import { FieldError } from "@/components/ui/field-error";
 import { GalleryEditor } from "@/components/admin/gallery-editor";
+import { EditorFieldShell } from "@/components/admin/field-highlight-shell";
 import {
   adminProjectFieldMeta,
   getGalleryFrameRole
@@ -48,7 +49,6 @@ function FieldHelpTooltip({ fieldKey }: { fieldKey: AdminProjectFieldKey }) {
 
   useEffect(() => {
     if (!open) {
-      setPosition(null);
       return;
     }
 
@@ -159,48 +159,10 @@ function FieldLabel({
     <span className="flex items-center gap-1.5 text-xs uppercase tracking-eyebrow">
       <span>
         {children ?? adminProjectFieldMeta[fieldKey].label}
-        {required ? <span className="text-error"> *</span> : null}
+        {required ? <span className="text-error-text"> *</span> : null}
       </span>
       <FieldHelpTooltip fieldKey={fieldKey} />
     </span>
-  );
-}
-
-function EditorFieldShell({
-  fieldKey,
-  activeField,
-  onActiveFieldChange,
-  className,
-  children
-}: {
-  fieldKey: AdminProjectFieldKey;
-  activeField: AdminProjectFieldKey | null;
-  onActiveFieldChange: (field: AdminProjectFieldKey | null) => void;
-  className?: string;
-  children: ReactNode;
-}) {
-  const isHighlighted = activeField === fieldKey;
-
-  return (
-    <div
-      data-admin-editor-field={fieldKey}
-      onMouseEnter={() => onActiveFieldChange(fieldKey)}
-      onMouseLeave={() => onActiveFieldChange(null)}
-      onFocusCapture={() => onActiveFieldChange(fieldKey)}
-      onBlurCapture={(event) => {
-        const nextTarget = event.relatedTarget as Node | null;
-        if (!event.currentTarget.contains(nextTarget)) {
-          onActiveFieldChange(null);
-        }
-      }}
-      className={cn(
-        "rounded-[1.5rem] p-3 ring-1 ring-transparent transition-colors",
-        isHighlighted ? "bg-accent/5 ring-accent/40" : "",
-        className
-      )}
-    >
-      {children}
-    </div>
   );
 }
 
@@ -241,6 +203,14 @@ type Props = {
   onActiveFieldChange: (field: AdminProjectFieldKey | null) => void;
 };
 
+/**
+ * Renders every editable project field and the queued-media controls.
+ *
+ * The component is controlled: values arrive through `formState`, and every
+ * edit is reported through callbacks. It does not upload or save on its own.
+ * Keeping persistence outside this large form lets the editor, sidebar, and
+ * live preview share one authoritative state.
+ */
 export function ProjectEditor({
   galleryKey,
   formState,
@@ -313,8 +283,8 @@ export function ProjectEditor({
             <p className="mt-1.5 flex items-center gap-1.5 text-sm leading-7">
               {uploadProgress ? (
                 <>
-                  <RefreshCw className="h-3.5 w-3.5 animate-spin text-accent" />
-                  <span className="text-accent">
+                  <RefreshCw className="h-3.5 w-3.5 animate-spin text-accent-text" />
+                  <span className="text-accent-text">
                     Uploading {uploadProgress.current} / {uploadProgress.total}
                     {" · "}
                     {uploadProgress.filename}
@@ -322,8 +292,8 @@ export function ProjectEditor({
                 </>
               ) : isDirty ? (
                 <>
-                  <AlertCircle className="h-3.5 w-3.5 text-warning" />
-                  <span className="text-warning">
+                  <AlertCircle className="h-3.5 w-3.5 text-warning-text" />
+                  <span className="text-warning-text">
                     Unsaved changes · Ctrl+S to save
                   </span>
                 </>
@@ -332,7 +302,7 @@ export function ProjectEditor({
               )}
             </p>
             <p className="mt-1 text-xs text-muted">
-              <span className="text-error">*</span> Required field
+              <span className="text-error-text">*</span> Required field
             </p>
           </div>
           <div className="flex flex-wrap items-center gap-3">
@@ -445,7 +415,7 @@ export function ProjectEditor({
               ) : null}
               {slugValidation.status === "available" &&
               slugValidation.slug === formState.slug ? (
-                <p className="text-xs leading-6 text-success">
+                <p className="text-xs leading-6 text-success-text">
                   Slug is available.
                 </p>
               ) : null}
@@ -460,7 +430,7 @@ export function ProjectEditor({
                     <button
                       type="button"
                       onClick={onApplySuggestedSlug}
-                      className="inline-flex items-center gap-1.5 text-xs uppercase tracking-eyebrow text-accent hover:underline"
+                      className="inline-flex items-center gap-1.5 text-xs uppercase tracking-eyebrow text-accent-text hover:underline"
                     >
                       Use suggestion: {slugValidation.suggestedSlug}
                     </button>
@@ -903,7 +873,7 @@ export function ProjectEditor({
                 href={`/work/${formState.slug}`}
                 target="_blank"
                 rel="noreferrer"
-                className="inline-flex items-center gap-1.5 text-xs uppercase tracking-eyebrow text-accent hover:underline"
+                className="inline-flex items-center gap-1.5 text-xs uppercase tracking-eyebrow text-accent-text hover:underline"
               >
                 View on site
                 <ExternalLink className="h-3 w-3" />
@@ -916,7 +886,7 @@ export function ProjectEditor({
                 type="button"
                 onClick={handleDeleteClick}
                 disabled={working}
-                className="control-pill hover:border-error/40 text-error"
+                className="control-pill hover:border-error/40 text-error-text"
               >
                 <Trash2 className="h-4 w-4" />
                 Delete

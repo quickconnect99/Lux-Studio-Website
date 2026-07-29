@@ -44,7 +44,7 @@ export function SocialLinks({ links, showLabels = false }: SocialLinksProps) {
             rel="noreferrer"
             aria-label={item.label}
             title={item.label}
-            className="inline-flex h-11 min-w-11 items-center justify-center gap-2 rounded-full border border-line bg-panel px-3 text-foreground transition-colors duration-150 hover:border-accent hover:text-accent"
+            className="inline-flex h-11 min-w-11 items-center justify-center gap-2 rounded-full border border-line bg-panel px-3 text-foreground transition-colors duration-150 hover:border-accent hover:text-accent-text"
           >
             <Icon className="h-4 w-4" />
             {showLabels ? (

@@ -1,7 +1,7 @@
 "use client";
 
 import { Pause, Play, Volume2, VolumeX } from "lucide-react";
-import { motion, useReducedMotion } from "framer-motion";
+import { m, useReducedMotion } from "framer-motion";
 import { useEffect, useRef, useState } from "react";
 import { EmbeddedVideoConsent } from "@/components/legal/embedded-video-consent";
 import { LinkButton } from "@/components/ui/link-button";
@@ -28,8 +28,13 @@ export function HomeHero({ hero, copy }: HomeHeroProps) {
 
   useEffect(() => {
     const video = videoRef.current;
+    const connection = (
+      navigator as Navigator & {
+        connection?: { saveData?: boolean };
+      }
+    ).connection;
 
-    if (!video || !fileVideoSrc || shouldReduceMotion) {
+    if (!video || !fileVideoSrc || shouldReduceMotion || connection?.saveData) {
       video?.pause();
       return;
     }
@@ -101,7 +106,7 @@ export function HomeHero({ hero, copy }: HomeHeroProps) {
         className="absolute inset-x-0 top-8 -z-10 h-[500px] rounded-[3rem] bg-hero-radial blur-3xl"
       />
       <div className="grid gap-7 sm:gap-10 lg:items-center xl:grid-cols-[0.95fr_1.05fr]">
-        <motion.div
+        <m.div
           initial={{ opacity: 1, y: 28 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: motionDuration.hero, ease: motionEase }}
@@ -131,9 +136,9 @@ export function HomeHero({ hero, copy }: HomeHeroProps) {
               {copy.heroSecondaryCta}
             </LinkButton>
           </div>
-        </motion.div>
+        </m.div>
 
-        <motion.div
+        <m.div
           initial={{ opacity: 1, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{
@@ -229,7 +234,7 @@ export function HomeHero({ hero, copy }: HomeHeroProps) {
               </h2>
             </div>
           </div>
-        </motion.div>
+        </m.div>
       </div>
     </section>
   );

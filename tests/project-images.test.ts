@@ -18,7 +18,33 @@ test("preserves internal project links in serialized frame selections", () => {
     image: "/images/still.jpg",
     href: "/work/project-one"
   });
-  assert.equal(serializeFrameItem(frame), entry);
+  assert.equal(
+    serializeFrameItem(frame),
+    '{"image":"/images/still.jpg","href":"/work/project-one"}'
+  );
+  assert.deepEqual(
+    buildFrameItems({
+      selectedFrames: [serializeFrameItem(frame)],
+      fallbackImages: [],
+      galleryImages: []
+    }),
+    [frame]
+  );
+});
+
+test("ignores malformed structured frame data and keeps legacy fallbacks", () => {
+  const frames = buildFrameItems({
+    selectedFrames: [
+      '{"image":"javascript:alert(1)","href":"/work/project"}',
+      "/images/legacy.jpg -> /work/legacy"
+    ],
+    fallbackImages: [],
+    galleryImages: []
+  });
+
+  assert.deepEqual(frames, [
+    { image: "/images/legacy.jpg", href: "/work/legacy" }
+  ]);
 });
 
 test("keeps duplicate image URLs attached to their explicit projects", () => {

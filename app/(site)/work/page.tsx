@@ -1,11 +1,14 @@
 import type { Metadata } from "next";
+import Script from "next/script";
 import { PageHeader } from "@/components/sections/page-header";
 import { ProjectGrid } from "@/components/sections/project-grid";
+import { serializeJsonLd } from "@/lib/json-ld";
 import { parseProjectBusinessParam } from "@/lib/project-business";
 import {
   buildSharingMetadata,
   resolveSharingImage
 } from "@/lib/sharing-metadata";
+import { buildPageStructuredData } from "@/lib/site-structured-data";
 import { getPublishedProjects, getSiteSettings } from "@/lib/supabase";
 
 const pageTitle = "Work";
@@ -59,9 +62,21 @@ export default async function WorkPage({ searchParams }: WorkPageProps) {
   const copy = initialBusiness
     ? `Selected ${initialBusiness.toLowerCase()} work.`
     : settings.copy.work.copy;
+  const structuredData = buildPageStructuredData({
+    name: pageTitle,
+    description: pageDescription,
+    path: "/work",
+    type: "CollectionPage",
+    projects
+  });
 
   return (
     <>
+      <Script
+        id="schema-work-collection"
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: serializeJsonLd(structuredData) }}
+      />
       <PageHeader
         eyebrow={settings.copy.work.eyebrow}
         lead={initialBusiness ?? settings.copy.work.headlineLead}

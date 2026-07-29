@@ -39,6 +39,7 @@ export function ProjectMedia({ project }: ProjectMediaProps) {
           src={project.coverImage}
           alt={project.title}
           fill
+          preload
           sizes="(min-width: 1024px) 55vw, 100vw"
           quality={90}
           className="object-cover"
@@ -56,7 +57,9 @@ export function ProjectMedia({ project }: ProjectMediaProps) {
         <div className="pointer-events-none absolute inset-x-0 bottom-0 z-10 bg-gradient-to-t from-black/70 via-black/10 to-transparent p-4 text-white sm:p-6">
           <div className="flex flex-wrap items-center justify-between gap-4 text-[0.65rem] uppercase tracking-eyebrow text-white/75">
             <span>
-              {videoSource ? `Project film / ${videoSource.label}` : "Cover still"}
+              {videoSource
+                ? `Project film / ${videoSource.label}`
+                : "Cover still"}
             </span>
             <span>{project.location}</span>
           </div>

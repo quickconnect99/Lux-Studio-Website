@@ -30,6 +30,16 @@ media storage.
 4. Add Supabase credentials if you want live auth, database, storage, and the production inquiry endpoint.
 5. Run `npm run dev`.
 
+## Developer orientation
+
+- Start with `docs/developer-onboarding.md` for an approachable architecture
+  overview, the public and admin data flows, a recommended reading order, and
+  safe recipes for common changes.
+- See `docs/project-scripts.md` for the purpose and prerequisites of every
+  quality command.
+- See `DESIGN_SYSTEM.md` before changing visual tokens, typography, layout, or
+  interaction patterns.
+
 ## Supabase notes
 
 - SQL schema is in `supabase/schema.sql`.

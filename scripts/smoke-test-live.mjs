@@ -3,7 +3,9 @@ import process from "node:process";
 const target = process.argv[2];
 
 if (!target) {
-  console.error("Usage: node scripts/smoke-test-live.mjs https://your-domain.tld");
+  console.error(
+    "Usage: node scripts/smoke-test-live.mjs https://your-domain.tld"
+  );
   process.exit(1);
 }
 

@@ -3,13 +3,12 @@
 import { updateCopySection } from "@/components/admin/site-settings-copy";
 import type { SiteSettingsFieldsProps } from "@/components/admin/site-settings-editor-types";
 import { InlineText } from "@/components/admin/site-settings-inline-text";
-import { formatSocialLinksText, parseSocialLinksText } from "@/lib/admin-utils";
 
 export function SiteSettingsPreviewFooter({
   formState,
   updateField
 }: SiteSettingsFieldsProps) {
-  const social = parseSocialLinksText(formState.socialLinksText);
+  const social = formState.socialLinks;
   const navigation = [
     { label: "Home", visible: formState.navigationHome },
     { label: "Work", visible: formState.navigationWork },
@@ -21,7 +20,7 @@ export function SiteSettingsPreviewFooter({
   function updateSocialLabel(index: number, value: string) {
     const next = [...social];
     next[index] = { ...next[index], label: value };
-    updateField("socialLinksText", formatSocialLinksText(next));
+    updateField("socialLinks", next);
   }
 
   return (

@@ -7,8 +7,13 @@ import {
   useSyncExternalStore,
   type ReactNode
 } from "react";
-import { MotionConfig } from "framer-motion";
-import { type ThemeId, DEFAULT_THEME, resolveTheme, isThemeId } from "@/lib/themes";
+import { domAnimation, LazyMotion, MotionConfig } from "framer-motion";
+import {
+  type ThemeId,
+  DEFAULT_THEME,
+  resolveTheme,
+  isThemeId
+} from "@/lib/themes";
 
 interface ThemeContextValue {
   theme: ThemeId;
@@ -61,7 +66,9 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
 
   return (
     <ThemeContext.Provider value={{ theme, mounted, setTheme }}>
-      <MotionConfig reducedMotion="user">{children}</MotionConfig>
+      <LazyMotion features={domAnimation} strict>
+        <MotionConfig reducedMotion="user">{children}</MotionConfig>
+      </LazyMotion>
     </ThemeContext.Provider>
   );
 }

@@ -2,9 +2,9 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { startTransition, useEffect, useMemo, useState } from "react";
+import { startTransition, useMemo, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence, m } from "framer-motion";
 import { ArrowUpRight } from "lucide-react";
 import {
   getProjectPrimaryMetaLabel,
@@ -56,11 +56,15 @@ export function ProjectGrid({
     ProjectBusiness | typeof ALL
   >(resolvedInitialBusiness ?? ALL);
   const [activeCategory, setActiveCategory] = useState(ALL);
+  const [previousInitialBusiness, setPreviousInitialBusiness] = useState(
+    resolvedInitialBusiness
+  );
 
-  useEffect(() => {
+  if (previousInitialBusiness !== resolvedInitialBusiness) {
+    setPreviousInitialBusiness(resolvedInitialBusiness);
     setActiveBusiness(resolvedInitialBusiness ?? ALL);
     setActiveCategory(ALL);
-  }, [resolvedInitialBusiness]);
+  }
 
   const businessFilteredProjects = useMemo(
     () =>
@@ -130,7 +134,7 @@ export function ProjectGrid({
       {availableBusinesses.length > 1 ? (
         <div className="mobile-scroll-affordance no-scrollbar -mx-4 flex gap-2 overflow-x-auto border-y border-line px-4 py-4 sm:mx-0 sm:flex-wrap sm:gap-3 sm:px-0 sm:py-5">
           {businessFilters.map((business) => (
-            <motion.button
+            <m.button
               key={business}
               type="button"
               aria-pressed={activeBusiness === business}
@@ -146,14 +150,14 @@ export function ProjectGrid({
               )}
             >
               {business}
-            </motion.button>
+            </m.button>
           ))}
         </div>
       ) : null}
 
       <div className="mobile-scroll-affordance no-scrollbar -mx-4 flex gap-2 overflow-x-auto px-4 py-4 sm:mx-0 sm:flex-wrap sm:gap-3 sm:px-0 sm:py-5">
         {categories.map((category) => (
-          <motion.button
+          <m.button
             key={category}
             type="button"
             aria-pressed={activeCategory === category}
@@ -169,7 +173,7 @@ export function ProjectGrid({
             )}
           >
             {category}
-          </motion.button>
+          </m.button>
         ))}
       </div>
 
@@ -191,7 +195,9 @@ export function ProjectGrid({
           </p>
           <h2 className="mt-4 font-[family-name:var(--font-display)] text-4xl uppercase leading-none text-foreground">
             More
-            <span className="block pl-8 text-accent sm:pl-12">Coming Soon</span>
+            <span className="block pl-8 text-accent-text sm:pl-12">
+              Coming Soon
+            </span>
           </h2>
           <p className="mx-auto mt-4 max-w-xl text-sm leading-7 text-muted sm:text-base">
             This selection is still being curated. Explore another category or
@@ -216,7 +222,7 @@ export function ProjectGrid({
         <div className="grid gap-5 pt-5 sm:pt-8 md:grid-cols-2 xl:grid-cols-3">
           <AnimatePresence mode="popLayout">
             {filteredProjects.map((project, index) => (
-              <motion.div
+              <m.div
                 key={project.slug}
                 layout
                 initial={{ opacity: 1, y: 18 }}
@@ -227,7 +233,7 @@ export function ProjectGrid({
                   delay: index < 6 ? index * 0.025 : 0,
                   ease: motionEase
                 }}
-                className="[content-visibility:auto] [contain-intrinsic-block-size:600px]"
+                className="[contain-intrinsic-block-size:600px] [content-visibility:auto]"
               >
                 <Link
                   href={`/work/${project.slug}${detailQuery}`}
@@ -239,6 +245,7 @@ export function ProjectGrid({
                       src={project.coverImage}
                       alt={project.title}
                       fill
+                      preload={index === 0}
                       sizes="(min-width: 1280px) 33vw, (min-width: 768px) 50vw, 100vw"
                       className="object-cover transition-transform duration-700 group-hover:scale-[1.03]"
                     />
@@ -284,13 +291,13 @@ export function ProjectGrid({
                         {project.location}
                       </p>
                     </div>
-                    <span className="col-span-2 inline-flex items-center justify-between gap-1.5 border-t border-line pt-3 text-[0.72rem] font-medium uppercase tracking-[0.12em] text-foreground transition-colors duration-150 group-hover:text-accent sm:col-span-1 sm:justify-start sm:border-0 sm:pt-0">
+                    <span className="col-span-2 inline-flex items-center justify-between gap-1.5 border-t border-line pt-3 text-[0.72rem] font-medium uppercase tracking-[0.12em] text-foreground transition-colors duration-150 group-hover:text-accent-text sm:col-span-1 sm:justify-start sm:border-0 sm:pt-0">
                       Open Project
                       <ArrowUpRight className="h-3.5 w-3.5 transition-transform duration-300 group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
                     </span>
                   </div>
                 </Link>
-              </motion.div>
+              </m.div>
             ))}
           </AnimatePresence>
         </div>

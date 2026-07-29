@@ -1,6 +1,6 @@
 "use client";
 
-import { Eye, EyeOff } from "lucide-react";
+import { Eye, EyeOff, Plus, Trash2 } from "lucide-react";
 import type { SiteSettingsFieldsProps } from "@/components/admin/site-settings-editor-types";
 import { cn } from "@/lib/utils";
 
@@ -11,6 +11,32 @@ export function SiteSettingsInspector({
   setSiteHeroVideoFile,
   handleFileSelection
 }: SiteSettingsFieldsProps) {
+  const socialLinks = formState.socialLinks;
+
+  function updateSocialLink(
+    index: number,
+    key: "label" | "href",
+    value: string
+  ) {
+    const next = [...socialLinks];
+    next[index] = { ...next[index], [key]: value };
+    updateField("socialLinks", next);
+  }
+
+  function addSocialLink() {
+    updateField("socialLinks", [
+      ...socialLinks,
+      { label: "New link", href: "https://" }
+    ]);
+  }
+
+  function removeSocialLink(index: number) {
+    updateField(
+      "socialLinks",
+      socialLinks.filter((_, itemIndex) => itemIndex !== index)
+    );
+  }
+
   return (
     <section className="grid gap-4 lg:grid-cols-2">
       <div className="panel-2xl p-5">
@@ -65,7 +91,7 @@ export function SiteSettingsInspector({
               <span
                 className={cn(
                   "inline-flex items-center gap-2 text-[0.58rem] uppercase tracking-ui",
-                  item.value ? "text-success" : "text-muted"
+                  item.value ? "text-success-text" : "text-muted"
                 )}
               >
                 {item.value ? (
@@ -161,20 +187,63 @@ export function SiteSettingsInspector({
       </div>
 
       <div className="panel-2xl p-5 lg:col-span-2">
-        <p className="text-xs uppercase tracking-eyebrow text-muted">
-          Social destinations
-        </p>
-        <textarea
-          value={formState.socialLinksText}
-          onChange={(event) =>
-            updateField("socialLinksText", event.target.value)
-          }
-          className="textarea-field mt-4 min-h-32 text-sm leading-6"
-          placeholder="Instagram | https://instagram.com/..."
-        />
-        <p className="mt-2 text-[0.62rem] leading-5 text-muted">
-          One line per link: label | URL
-        </p>
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <p className="text-xs uppercase tracking-eyebrow text-muted">
+            Social destinations
+          </p>
+          <button
+            type="button"
+            onClick={addSocialLink}
+            className="control-pill"
+          >
+            <Plus className="h-3.5 w-3.5" />
+            Add link
+          </button>
+        </div>
+        <div className="mt-4 space-y-3">
+          {socialLinks.map((link, index) => (
+            <div
+              key={`${link.href}-${index}`}
+              className="grid gap-3 rounded-2xl border border-line bg-panel-secondary p-3 sm:grid-cols-[0.7fr_1.3fr_44px]"
+            >
+              <label className="space-y-2 text-xs uppercase tracking-meta text-muted">
+                Label
+                <input
+                  value={link.label}
+                  onChange={(event) =>
+                    updateSocialLink(index, "label", event.target.value)
+                  }
+                  className="input-field text-sm normal-case tracking-normal"
+                />
+              </label>
+              <label className="space-y-2 text-xs uppercase tracking-meta text-muted">
+                URL
+                <input
+                  type="url"
+                  value={link.href}
+                  onChange={(event) =>
+                    updateSocialLink(index, "href", event.target.value)
+                  }
+                  className="input-field text-sm normal-case tracking-normal"
+                  placeholder="https://"
+                />
+              </label>
+              <button
+                type="button"
+                onClick={() => removeSocialLink(index)}
+                className="mt-auto flex h-11 w-11 items-center justify-center rounded-xl text-muted transition-colors hover:bg-panel hover:text-error-text"
+                aria-label={`Remove ${link.label || "social"} link`}
+              >
+                <Trash2 className="h-4 w-4" />
+              </button>
+            </div>
+          ))}
+          {socialLinks.length === 0 ? (
+            <p className="rounded-2xl border border-dashed border-line p-4 text-xs leading-6 text-muted">
+              No social destinations configured.
+            </p>
+          ) : null}
+        </div>
       </div>
     </section>
   );

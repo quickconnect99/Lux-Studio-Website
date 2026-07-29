@@ -16,7 +16,7 @@ export function TeamTabs({ members }: TeamTabsProps) {
           <p className="eyebrow mb-4">Team</p>
           <h2 className="font-[family-name:var(--font-display)] text-4xl uppercase leading-none sm:text-6xl">
             People
-            <span className="block pl-8 text-accent sm:pl-12">
+            <span className="block pl-8 text-accent-text sm:pl-12">
               Behind The Work
             </span>
           </h2>
@@ -59,7 +59,7 @@ export function TeamTabs({ members }: TeamTabsProps) {
                   <p className="metadata-number">
                     {member.position} / {member.title}
                   </p>
-                  <h3 className="font-[family-name:var(--font-display)] break-words text-4xl uppercase leading-[0.9] sm:text-6xl">
+                  <h3 className="break-words font-[family-name:var(--font-display)] text-4xl uppercase leading-[0.9] sm:text-6xl">
                     {member.name}
                   </h3>
                   <p className="text-base leading-8 text-muted sm:text-lg">

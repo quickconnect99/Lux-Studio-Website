@@ -45,6 +45,19 @@ function parseStoredDraft(value: string | null): StoredProjectDraft | null {
   }
 }
 
+/**
+ * Persists unsaved project form fields as a project-scoped recovery draft.
+ *
+ * A draft is restored only when its base snapshot still matches the project
+ * that was originally edited. This prevents an old browser draft from silently
+ * overwriting a newer database version. Browser-storage failures are ignored so
+ * private browsing or storage restrictions never break the editor.
+ *
+ * File objects are intentionally not stored because `localStorage` can only
+ * contain strings; queued media must be selected again after a reload.
+ *
+ * @returns `clearDraft`, used after save/discard workflows.
+ */
 export function useAdminDraft({
   enabled,
   projectKey,
@@ -66,8 +79,11 @@ export function useAdminDraft({
   const formStateRef = useRef(formState);
   const lastCleanSnapshotRef = useRef(JSON.stringify(formState));
   const skipCleanRemovalForKeyRef = useRef<string | null>(null);
-  onRestoreRef.current = onRestore;
-  formStateRef.current = formState;
+
+  useEffect(() => {
+    onRestoreRef.current = onRestore;
+    formStateRef.current = formState;
+  }, [formState, onRestore]);
 
   useEffect(() => {
     if (!enabled) return;
@@ -85,11 +101,7 @@ export function useAdminDraft({
         JSON.stringify(stored.formState) !== currentSnapshot
       ) {
         skipCleanRemovalForKeyRef.current = projectKey;
-        onRestoreRef.current(
-          stored.formState,
-          projectKey,
-          stored.updatedAt
-        );
+        onRestoreRef.current(stored.formState, projectKey, stored.updatedAt);
         return;
       }
 
@@ -101,11 +113,7 @@ export function useAdminDraft({
       );
       if (legacyDraft) {
         skipCleanRemovalForKeyRef.current = projectKey;
-        onRestoreRef.current(
-          legacyDraft,
-          projectKey,
-          new Date().toISOString()
-        );
+        onRestoreRef.current(legacyDraft, projectKey, new Date().toISOString());
         localStorage.removeItem(DRAFT_STORAGE_KEY);
       }
     } catch {

@@ -173,10 +173,10 @@ export function InquiryForm({
             className={cn(
               "shrink-0 text-xs tabular-nums transition-colors duration-150",
               briefAtLimit
-                ? "font-semibold text-error"
+                ? "font-semibold text-error-text"
                 : briefNearLimit
-                  ? "text-warning"
-                  : "text-muted/60"
+                  ? "text-warning-text"
+                  : "text-muted"
             )}
           >
             {briefRemaining} / {BRIEF_MAX}
@@ -223,9 +223,9 @@ export function InquiryForm({
           className={cn(
             "mt-4 text-sm",
             status === "error"
-              ? "text-error"
+              ? "text-error-text"
               : status === "success"
-                ? "text-success"
+                ? "text-success-text"
                 : "text-foreground"
           )}
         >

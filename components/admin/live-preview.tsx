@@ -2,7 +2,6 @@
 
 import {
   type KeyboardEvent as ReactKeyboardEvent,
-  type ReactNode,
   type RefObject,
   useEffect,
   useRef,
@@ -10,6 +9,7 @@ import {
 } from "react";
 import Image from "next/image";
 import { ExternalLink, PenSquare } from "lucide-react";
+import { PreviewFieldShell } from "@/components/admin/field-highlight-shell";
 import { getGalleryFrameRole } from "@/lib/admin-project-fields";
 import type { AdminProjectFieldKey, ProjectFormState } from "@/lib/admin-types";
 import { getProjectPrimaryMetaLabel } from "@/lib/project-business";
@@ -52,43 +52,6 @@ type LivePreviewProps = {
   ) => void;
   liveProjectHref: string | null;
 };
-
-function PreviewFieldShell({
-  fieldKey,
-  activeField,
-  onActiveFieldChange,
-  className,
-  children
-}: {
-  fieldKey: AdminProjectFieldKey;
-  activeField: AdminProjectFieldKey | null;
-  onActiveFieldChange: (field: AdminProjectFieldKey | null) => void;
-  className?: string;
-  children: ReactNode;
-}) {
-  const isHighlighted = activeField === fieldKey;
-
-  return (
-    <div
-      onMouseEnter={() => onActiveFieldChange(fieldKey)}
-      onMouseLeave={() => onActiveFieldChange(null)}
-      onFocusCapture={() => onActiveFieldChange(fieldKey)}
-      onBlurCapture={(event) => {
-        const nextTarget = event.relatedTarget as Node | null;
-        if (!event.currentTarget.contains(nextTarget)) {
-          onActiveFieldChange(null);
-        }
-      }}
-      className={cn(
-        "rounded-[1.25rem] ring-1 ring-transparent transition-colors",
-        isHighlighted ? "bg-accent/5 ring-accent/50" : "",
-        className
-      )}
-    >
-      {children}
-    </div>
-  );
-}
 
 type EditablePreviewFieldProps = {
   fieldKey: PreviewEditableField;
@@ -257,14 +220,14 @@ function EditablePreviewField({
       className={cn(
         "group/edit relative cursor-text rounded-xl border border-transparent transition-colors",
         "hover:border-line/80 hover:bg-panel-secondary/60",
-        "focus-visible:bg-panel-secondary/60 focus-visible:border-accent focus-visible:outline-none",
+        "focus-visible:bg-panel-secondary/60 focus-visible:border-focus-ring focus-visible:outline-none",
         wrapperClassName
       )}
     >
-      <PenSquare className="absolute right-2 top-2 h-3.5 w-3.5 text-accent opacity-0 transition-opacity group-hover/edit:opacity-100 group-focus-visible/edit:opacity-100" />
+      <PenSquare className="absolute right-2 top-2 h-3.5 w-3.5 text-accent-text opacity-0 transition-opacity group-hover/edit:opacity-100 group-focus-visible/edit:opacity-100" />
       <span
         className={cn(
-          value ? "text-current" : "text-muted/75 italic",
+          value ? "text-current" : "italic text-muted",
           value ? displayClassName : (emptyClassName ?? displayClassName)
         )}
       >
@@ -312,6 +275,13 @@ function PreviewToggleChip({
   );
 }
 
+/**
+ * Interactive approximation of the public project page used while editing.
+ *
+ * Text edits are committed through callbacks and image clicks navigate back to
+ * the matching editor control. The preview never mutates Supabase directly and
+ * may receive deferred form state so rapid typing does not block the editor.
+ */
 export function LivePreview({
   formState,
   coverPreviewSrc,
@@ -348,7 +318,7 @@ export function LivePreview({
                 href={liveProjectHref}
                 target="_blank"
                 rel="noreferrer"
-                className="control-pill text-accent"
+                className="control-pill text-accent-text"
               >
                 Open Live Page
                 <ExternalLink className="h-3.5 w-3.5" />
@@ -429,7 +399,7 @@ export function LivePreview({
               placeholder="Project business"
               onCommit={onUpdateField}
               wrapperClassName="-mx-2 -my-1 px-2 py-1"
-              displayClassName="text-[0.62rem] uppercase tracking-[0.28em] text-accent"
+              displayClassName="text-[0.62rem] uppercase tracking-[0.28em] text-accent-text"
             />
           </PreviewFieldShell>
 
@@ -720,9 +690,7 @@ export function LivePreview({
                   <div className="flex gap-3">
                     <button
                       type="button"
-                      onClick={() =>
-                        onNavigateToImageField("gallery", index)
-                      }
+                      onClick={() => onNavigateToImageField("gallery", index)}
                       className="relative h-16 w-16 shrink-0 cursor-pointer overflow-hidden rounded-xl border border-line bg-panel-dark"
                       title={`Open the path for frame ${index + 1}`}
                       aria-label={`Open image path for frame ${index + 1}`}
@@ -742,7 +710,7 @@ export function LivePreview({
                           <p className="text-[0.58rem] uppercase tracking-[0.28em] text-muted">
                             Frame {String(index + 1).padStart(2, "0")}
                           </p>
-                          <span className="border-accent/30 bg-accent/10 rounded-full border px-2 py-1 text-[0.55rem] uppercase tracking-[0.24em] text-accent">
+                          <span className="border-accent/30 bg-accent/10 rounded-full border px-2 py-1 text-[0.55rem] uppercase tracking-[0.24em] text-accent-text">
                             {role.label}
                           </span>
                         </div>

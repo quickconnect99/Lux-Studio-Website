@@ -30,19 +30,25 @@ export function parseProjectBusinessParam(
     return null;
   }
 
-  return decodeURIComponent(candidate).trim() || null;
+  try {
+    return decodeURIComponent(candidate).trim() || null;
+  } catch {
+    return null;
+  }
 }
 
 export function projectBusinessToParam(business: ProjectBusiness): string {
   return encodeURIComponent(business.trim().toLowerCase());
 }
 
-export function getProjectPrimaryMetaLabel(_business: ProjectBusiness): string {
+export function getProjectPrimaryMetaLabel(business: ProjectBusiness): string {
+  void business;
   return "Primary Subject";
 }
 
 export function getProjectPrimaryMetaPlaceholder(
-  _business: ProjectBusiness
+  business: ProjectBusiness
 ): string {
+  void business;
   return "Launch film, brand campaign, opening night...";
 }

@@ -17,7 +17,7 @@ export const themes: Theme[] = [
     bg: "#f3eadb",
     accent: "#EC824D",
     secondaryAccent: "#1E493D",
-    accentContrast: "#f7efe2",
+    accentContrast: "#101917",
     dark: false
   },
   {
@@ -26,7 +26,7 @@ export const themes: Theme[] = [
     bg: "#14211d",
     accent: "#EC824D",
     secondaryAccent: "#1E493D",
-    accentContrast: "#1E493D",
+    accentContrast: "#101917",
     dark: true
   }
 ];

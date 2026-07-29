@@ -5,7 +5,8 @@ import {
   type PointerEvent as ReactPointerEvent,
   useEffect,
   useRef,
-  useState
+  useState,
+  useSyncExternalStore
 } from "react";
 import Link from "next/link";
 import { Pause, Play } from "lucide-react";
@@ -27,6 +28,8 @@ type HorizontalStillStripProps = {
 
 const KEYBOARD_SCROLL_DISTANCE = 240;
 const MOTION_STRIP_PAUSE_STORAGE_KEY = "lux-studio:motion-strip-paused";
+const MOTION_STRIP_PAUSE_EVENT = "lux-studio:motion-strip-pause-change";
+let sessionMotionPaused = false;
 const fallbackStripImages = [
   "/images/demo-car-02.jpg",
   "/images/demo-car-03.jpg",
@@ -38,6 +41,27 @@ const fallbackStripImages = [
 
 function isExternalLink(href?: string) {
   return Boolean(href && /^https?:\/\//i.test(href));
+}
+
+function subscribeToMotionPause(callback: () => void) {
+  function handleStorage(event: StorageEvent) {
+    if (event.key === MOTION_STRIP_PAUSE_STORAGE_KEY) callback();
+  }
+
+  window.addEventListener(MOTION_STRIP_PAUSE_EVENT, callback);
+  window.addEventListener("storage", handleStorage);
+  return () => {
+    window.removeEventListener(MOTION_STRIP_PAUSE_EVENT, callback);
+    window.removeEventListener("storage", handleStorage);
+  };
+}
+
+function getMotionPauseSnapshot() {
+  try {
+    return localStorage.getItem(MOTION_STRIP_PAUSE_STORAGE_KEY) === "true";
+  } catch {
+    return sessionMotionPaused;
+  }
 }
 
 export function HorizontalStillStrip({
@@ -52,7 +76,11 @@ export function HorizontalStillStrip({
 }: HorizontalStillStripProps) {
   const shouldReduceMotion = useHydratedReducedMotion();
   const [interactionPaused, setInteractionPaused] = useState(false);
-  const [userPaused, setUserPaused] = useState(false);
+  const userPaused = useSyncExternalStore(
+    subscribeToMotionPause,
+    getMotionPauseSnapshot,
+    () => false
+  );
   const [inView, setInView] = useState(false);
   const [pageVisible, setPageVisible] = useState(true);
   const sectionRef = useRef<HTMLElement>(null);
@@ -74,21 +102,10 @@ export function HorizontalStillStrip({
   }, []);
 
   useEffect(() => {
-    try {
-      setUserPaused(
-        localStorage.getItem(MOTION_STRIP_PAUSE_STORAGE_KEY) === "true"
-      );
-    } catch {
-      // Keep the session default when browser storage is unavailable.
-    }
-  }, []);
-
-  useEffect(() => {
     function handleVisibilityChange() {
       setPageVisible(document.visibilityState === "visible");
     }
 
-    handleVisibilityChange();
     document.addEventListener("visibilitychange", handleVisibilityChange);
     return () =>
       document.removeEventListener("visibilitychange", handleVisibilityChange);
@@ -200,15 +217,13 @@ export function HorizontalStillStrip({
 
   function togglePlayback() {
     const nextPaused = !userPaused;
-    setUserPaused(nextPaused);
+    sessionMotionPaused = nextPaused;
     try {
-      localStorage.setItem(
-        MOTION_STRIP_PAUSE_STORAGE_KEY,
-        String(nextPaused)
-      );
+      localStorage.setItem(MOTION_STRIP_PAUSE_STORAGE_KEY, String(nextPaused));
     } catch {
       // The in-memory preference still applies for the current page.
     }
+    window.dispatchEvent(new Event(MOTION_STRIP_PAUSE_EVENT));
   }
 
   const isAnimationPaused =
@@ -225,7 +240,7 @@ export function HorizontalStillStrip({
           {eyebrow ? <p className="eyebrow mb-4">{eyebrow}</p> : null}
           <h2 className="font-[family-name:var(--font-display)] text-4xl uppercase leading-none sm:text-6xl">
             {lead}
-            <span className="block pl-10 text-accent">{trail}</span>
+            <span className="block pl-10 text-accent-text">{trail}</span>
           </h2>
         </div>
         <button
@@ -255,7 +270,7 @@ export function HorizontalStillStrip({
         aria-label={ariaLabel}
         aria-keyshortcuts="ArrowLeft ArrowRight Home End"
         tabIndex={0}
-        className="no-scrollbar focus-visible:ring-accent/60 overflow-x-auto focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+        className="no-scrollbar overflow-x-auto focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
         onFocus={() => setInteractionPaused(true)}
         onBlur={endDrag}
         onKeyDown={handleKeyDown}

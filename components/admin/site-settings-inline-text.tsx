@@ -69,9 +69,8 @@ export function InlineText({
   if (editing) {
     const sharedProps = {
       value: draft,
-      onChange: (
-        event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
-      ) => setDraft(event.target.value),
+      onChange: (event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
+        setDraft(event.target.value),
       onBlur: commit,
       onKeyDown: handleKeyDown,
       "aria-label": ariaLabel,
@@ -101,12 +100,12 @@ export function InlineText({
       }}
       className={cn(
         "group/edit border-accent/40 bg-accent/[0.04] ring-accent/10 relative block w-full cursor-text rounded-xl border border-dashed text-left ring-1 ring-inset transition-colors",
-        "hover:bg-accent/10 hover:ring-accent/30 hover:border-accent focus-visible:border-accent",
+        "hover:bg-accent/10 hover:ring-accent/30 hover:border-accent focus-visible:border-focus-ring",
         className
       )}
       title="Click to edit"
     >
-      <span className={cn(!value && "text-muted/70 italic")}>
+      <span className={cn(!value && "italic text-muted")}>
         {value || placeholder}
       </span>
       <span className="pointer-events-none absolute -right-2 -top-2 inline-flex items-center gap-1 rounded-full bg-accent px-2 py-1 text-[0.5rem] uppercase tracking-ui text-accent-contrast opacity-70 shadow-sm transition-opacity group-hover/edit:opacity-100">

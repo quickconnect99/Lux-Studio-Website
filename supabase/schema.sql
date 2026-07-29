@@ -87,6 +87,59 @@ add column if not exists business text not null default 'Automotive';
 alter table public.inquiries
 add column if not exists service_type text;
 
+do $$
+begin
+  if not exists (
+    select 1
+    from pg_constraint
+    where conrelid = 'public.projects'::regclass
+      and conname = 'projects_gallery_shape_check'
+  ) then
+    alter table public.projects
+      add constraint projects_gallery_shape_check
+      check (
+        case
+          when jsonb_typeof(gallery_items) = 'array' then
+            cardinality(gallery_images) = cardinality(gallery_captions)
+            and cardinality(gallery_images) = jsonb_array_length(gallery_items)
+          else false
+        end
+      ) not valid;
+  end if;
+
+  if not exists (
+    select 1
+    from pg_constraint
+    where conrelid = 'public.projects'::regclass
+      and conname = 'projects_year_check'
+  ) then
+    alter table public.projects
+      add constraint projects_year_check
+      check (year between 1900 and 2100) not valid;
+  end if;
+
+  if not exists (
+    select 1
+    from pg_constraint
+    where conrelid = 'public.inquiries'::regclass
+      and conname = 'inquiries_service_type_check'
+  ) then
+    alter table public.inquiries
+      add constraint inquiries_service_type_check
+      check (
+        service_type is null
+        or service_type in (
+          'Commercial Shoot',
+          'Social Content',
+          'Event Coverage',
+          'Brand Campaign',
+          'Other'
+        )
+      ) not valid;
+  end if;
+end;
+$$;
+
 alter table public.projects enable row level security;
 alter table public.inquiries enable row level security;
 alter table public.inquiry_rate_limits enable row level security;
@@ -201,10 +254,34 @@ on public.inquiry_rate_limits (client_key_hash, attempted_at desc);
 create index if not exists inquiry_rate_limits_attempted_at_idx
 on public.inquiry_rate_limits (attempted_at);
 
-insert into storage.buckets (id, name, public)
-values ('projects', 'projects', true)
+insert into storage.buckets (
+  id,
+  name,
+  public,
+  file_size_limit,
+  allowed_mime_types
+)
+values (
+  'projects',
+  'projects',
+  true,
+  524288000,
+  array[
+    'image/avif',
+    'image/gif',
+    'image/jpeg',
+    'image/png',
+    'image/webp',
+    'video/mp4',
+    'video/quicktime',
+    'video/webm'
+  ]::text[]
+)
 on conflict (id) do update
-set public = excluded.public;
+set
+  public = excluded.public,
+  file_size_limit = excluded.file_size_limit,
+  allowed_mime_types = excluded.allowed_mime_types;
 
 drop policy if exists "Public can view project media" on storage.objects;
 create policy "Public can view project media"

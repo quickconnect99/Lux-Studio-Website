@@ -11,10 +11,19 @@ import { sendInquiryEmail } from "@/lib/email";
 import { consumeInquiryRateLimit } from "@/lib/inquiry-rate-limit";
 import { pruneRateLimitStore } from "@/lib/rate-limit";
 import {
-  getRequestId,
-  logServerEvent
-} from "@/lib/server-observability";
-import { createAdminSupabaseClient, isServiceRoleConfigured } from "@/lib/supabase-admin";
+  DEFAULT_JSON_BODY_LIMIT_BYTES,
+  readLimitedJson,
+  RequestBodyTooLargeError
+} from "@/lib/request-json";
+import {
+  getRequestClientKey,
+  isAllowedRequestOrigin
+} from "@/lib/request-security";
+import { getRequestId, logServerEvent } from "@/lib/server-observability";
+import {
+  createAdminSupabaseClient,
+  isServiceRoleConfigured
+} from "@/lib/supabase-admin";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -24,22 +33,13 @@ const rateLimitStore =
     globalThis as typeof globalThis & {
       __inquiryRateLimit?: Map<string, number[]>;
     }
-  ).__inquiryRateLimit ??
-  new Map<string, number[]>();
+  ).__inquiryRateLimit ?? new Map<string, number[]>();
 
 (
   globalThis as typeof globalThis & {
     __inquiryRateLimit?: Map<string, number[]>;
   }
 ).__inquiryRateLimit = rateLimitStore;
-
-function getClientKey(headers: Headers) {
-  const forwardedFor = headers.get("x-forwarded-for")?.split(",")[0]?.trim();
-  const realIp = headers.get("x-real-ip")?.trim();
-  const userAgent = headers.get("user-agent")?.trim() ?? "unknown";
-
-  return `${forwardedFor || realIp || "unknown"}:${userAgent.slice(0, 120)}`;
-}
 
 let pruneCallCount = 0;
 let lastRateLimitFallbackLogAt = 0;
@@ -51,35 +51,18 @@ function prepareLocalRateLimitStore() {
   }
 }
 
-function isAllowedOrigin(request: Request) {
-  const origin = request.headers.get("origin");
-
-  if (!origin) {
-    return true;
-  }
-
-  try {
-    const originHost = new URL(origin).host;
-    const requestHost = request.headers.get("host");
-
-    if (requestHost && originHost === requestHost) {
-      return true;
-    }
-
-    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL?.trim();
-    return siteUrl ? new URL(siteUrl).host === originHost : false;
-  } catch {
-    return false;
-  }
-}
-
+/**
+ * Accepts a public contact inquiry through a layered server-side pipeline.
+ *
+ * Order matters: origin and body limits reject cheap abuse first, the
+ * persistent limiter protects shared deployments, validation runs before the
+ * database write, and optional email delivery happens only after persistence.
+ * Every response includes a request ID that can be matched to structured logs.
+ */
 export async function POST(request: Request) {
   const requestId = getRequestId(request.headers);
 
-  function json(
-    body: Record<string, unknown>,
-    init?: { status?: number }
-  ) {
+  function json(body: Record<string, unknown>, init?: { status?: number }) {
     return NextResponse.json(body, {
       ...init,
       headers: {
@@ -88,7 +71,7 @@ export async function POST(request: Request) {
     });
   }
 
-  if (!isAllowedOrigin(request)) {
+  if (!isAllowedRequestOrigin(request)) {
     logServerEvent({
       level: "warn",
       event: "inquiry.origin_rejected",
@@ -97,6 +80,35 @@ export async function POST(request: Request) {
     return json(
       { message: "The inquiry could not be submitted from this origin." },
       { status: 403 }
+    );
+  }
+
+  const declaredLength = Number(request.headers.get("content-length"));
+  if (
+    Number.isFinite(declaredLength) &&
+    declaredLength > DEFAULT_JSON_BODY_LIMIT_BYTES
+  ) {
+    return json(
+      { message: "The inquiry payload is too large." },
+      { status: 413 }
+    );
+  }
+
+  let payload: unknown;
+
+  try {
+    payload = await readLimitedJson(request);
+  } catch (error) {
+    if (error instanceof RequestBodyTooLargeError) {
+      return json(
+        { message: "The inquiry payload is too large." },
+        { status: 413 }
+      );
+    }
+
+    return json(
+      { message: "The inquiry payload could not be parsed." },
+      { status: 400 }
     );
   }
 
@@ -129,7 +141,7 @@ export async function POST(request: Request) {
     );
   }
 
-  const clientKey = getClientKey(request.headers);
+  const clientKey = getRequestClientKey(request.headers);
   prepareLocalRateLimitStore();
   const rateLimit = await consumeInquiryRateLimit({
     key: clientKey,
@@ -157,19 +169,10 @@ export async function POST(request: Request) {
 
   if (!rateLimit.allowed) {
     return json(
-      { message: "Too many inquiries from this browser. Please try again later." },
+      {
+        message: "Too many inquiries from this browser. Please try again later."
+      },
       { status: 429 }
-    );
-  }
-
-  let payload: unknown;
-
-  try {
-    payload = await request.json();
-  } catch {
-    return json(
-      { message: "The inquiry payload could not be parsed." },
-      { status: 400 }
     );
   }
 
@@ -191,7 +194,8 @@ export async function POST(request: Request) {
   if (Object.keys(errors).length > 0) {
     return json(
       {
-        message: "Please review the highlighted fields before sending the inquiry.",
+        message:
+          "Please review the highlighted fields before sending the inquiry.",
         errors
       },
       { status: 400 }

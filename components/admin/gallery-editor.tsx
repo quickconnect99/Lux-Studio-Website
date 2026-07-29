@@ -90,10 +90,6 @@ function SortableItem({
     isDragging
   } = useSortable({ id: item.id });
 
-  useEffect(() => {
-    setImageDraft(item.image);
-  }, [item.image]);
-
   function commitImagePath() {
     const nextImage = imageDraft.trim();
     if (!nextImage) {
@@ -147,7 +143,7 @@ function SortableItem({
           <p className="text-[0.58rem] uppercase tracking-[0.28em] text-muted">
             {itemLabel} {String(displayIndex + 1).padStart(2, "0")}
           </p>
-          <span className="border-accent/30 bg-accent/10 rounded-full border px-2 py-1 text-[0.55rem] uppercase tracking-[0.24em] text-accent">
+          <span className="border-accent/30 bg-accent/10 rounded-full border px-2 py-1 text-[0.55rem] uppercase tracking-[0.24em] text-accent-text">
             {roleLabel}
           </span>
         </div>
@@ -207,7 +203,7 @@ function SortableItem({
       <button
         type="button"
         onClick={onRemove}
-        className="col-start-3 row-start-1 flex h-11 w-11 items-center justify-center rounded-xl text-muted transition-colors hover:bg-panel hover:text-error sm:col-start-auto sm:row-start-auto"
+        className="col-start-3 row-start-1 flex h-11 w-11 items-center justify-center rounded-xl text-muted transition-colors hover:bg-panel hover:text-error-text sm:col-start-auto sm:row-start-auto"
         aria-label={`Remove ${itemLabel.toLowerCase()} ${displayIndex + 1}`}
       >
         <X className="h-4 w-4" />
@@ -219,17 +215,11 @@ function SortableItem({
 // ── Pending file thumbnail ───────────────────────────────────────────────────
 // Object URLs let the browser render a local file before it's ever uploaded.
 function PendingThumbnail({ file }: { file: File }) {
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [previewUrl] = useState(() => URL.createObjectURL(file));
 
   useEffect(() => {
-    const url = URL.createObjectURL(file);
-    setPreviewUrl(url);
-    return () => URL.revokeObjectURL(url);
-  }, [file]);
-
-  if (!previewUrl) {
-    return null;
-  }
+    return () => URL.revokeObjectURL(previewUrl);
+  }, [previewUrl]);
 
   return (
     <Image
@@ -245,19 +235,37 @@ function PendingThumbnail({ file }: { file: File }) {
 
 // ── Main component ────────────────────────────────────────────────────────────
 
-let globalIdCounter = 0;
-function nextId() {
-  return `gi-${++globalIdCounter}`;
+function hashGalleryImage(value: string) {
+  let hash = 0;
+  for (let index = 0; index < value.length; index += 1) {
+    hash = (hash * 31 + value.charCodeAt(index)) | 0;
+  }
+  return Math.abs(hash).toString(36);
 }
 
 function buildItems(images: string[], captions: string[]): GalleryItem[] {
-  return images.map((img, i) => ({
-    id: nextId(),
-    image: img,
-    caption: captions[i] ?? ""
-  }));
+  const occurrences = new Map<string, number>();
+  return images.map((image, index) => {
+    const occurrence = occurrences.get(image) ?? 0;
+    occurrences.set(image, occurrence + 1);
+
+    return {
+      id: `gallery-${hashGalleryImage(image)}-${occurrence}`,
+      image,
+      caption: captions[index] ?? ""
+    };
+  });
 }
 
+/**
+ * Keeps gallery images and their captions aligned while users add or reorder
+ * frames.
+ *
+ * Existing URLs and newly selected `File` objects are separate collections:
+ * this component edits URL order immediately, while pending files are uploaded
+ * later by the save workflow. `onImagesChange` always emits parallel image and
+ * caption arrays in display order.
+ */
 export function GalleryEditor({
   images,
   captions,
@@ -275,9 +283,7 @@ export function GalleryEditor({
   // ── Local state — initialized from props, owns drag order ───────────────
   // The parent uses `key` to remount this component on project switch/save,
   // so we don't need a useEffect sync here.
-  const [items, setItems] = useState<GalleryItem[]>(() =>
-    buildItems(images, captions)
-  );
+  const items = useMemo(() => buildItems(images, captions), [captions, images]);
 
   const [showUrlInput, setShowUrlInput] = useState(false);
   const [urlDraft, setUrlDraft] = useState("");
@@ -295,10 +301,9 @@ export function GalleryEditor({
 
   // ── Emit helper ──────────────────────────────────────────────────────────
   function emit(nextItems: GalleryItem[]) {
-    onImagesChange(
-      nextItems.map((item) => item.image),
-      nextItems.map((item) => item.caption)
-    );
+    const nextImages = nextItems.map((item) => item.image);
+    const nextCaptions = nextItems.map((item) => item.caption);
+    onImagesChange(nextImages, nextCaptions);
   }
 
   // ── Drag end ─────────────────────────────────────────────────────────────
@@ -309,14 +314,12 @@ export function GalleryEditor({
     const newIdx = items.findIndex((item) => item.id === over.id);
     if (oldIdx === -1 || newIdx === -1) return;
     const next = arrayMove(items, oldIdx, newIdx);
-    setItems(next);
     emit(next);
   }
 
   // ── Remove ───────────────────────────────────────────────────────────────
   function handleRemove(id: string) {
     const next = items.filter((item) => item.id !== id);
-    setItems(next);
     emit(next);
   }
 
@@ -324,7 +327,6 @@ export function GalleryEditor({
     const targetIndex = index + direction;
     if (targetIndex < 0 || targetIndex >= items.length) return;
     const next = arrayMove(items, index, targetIndex);
-    setItems(next);
     emit(next);
   }
 
@@ -333,7 +335,6 @@ export function GalleryEditor({
     const next = items.map((item) =>
       item.id === id ? { ...item, caption } : item
     );
-    setItems(next);
     emit(next);
   }
 
@@ -341,7 +342,6 @@ export function GalleryEditor({
     const next = items.map((item) =>
       item.id === id ? { ...item, image } : item
     );
-    setItems(next);
     emit(next);
   }
 
@@ -349,8 +349,15 @@ export function GalleryEditor({
   function handleAddUrl() {
     const trimmed = urlDraft.trim();
     if (!trimmed) return;
-    const next = [...items, { id: nextId(), image: trimmed, caption: "" }];
-    setItems(next);
+    const occurrence = items.filter((item) => item.image === trimmed).length;
+    const next = [
+      ...items,
+      {
+        id: `gallery-${hashGalleryImage(trimmed)}-${occurrence}`,
+        image: trimmed,
+        caption: ""
+      }
+    ];
     emit(next);
     setUrlDraft("");
     setShowUrlInput(false);
@@ -384,7 +391,7 @@ export function GalleryEditor({
 
                   return (
                     <SortableItem
-                      key={item.id}
+                      key={`${item.id}:${item.image}`}
                       item={item}
                       displayIndex={displayIndex}
                       roleLabel={role.label}
@@ -420,7 +427,7 @@ export function GalleryEditor({
 
               return (
                 <div
-                  key={`${file.name}-${i}`}
+                  key={`${file.name}-${file.size}-${file.lastModified}-${i}`}
                   className="border-accent/40 bg-accent/5 flex items-center justify-between gap-3 rounded-[1.25rem] border border-dashed px-4 py-2.5"
                 >
                   <div className="flex min-w-0 items-start gap-3">
@@ -435,11 +442,11 @@ export function GalleryEditor({
                         <span className="truncate text-xs text-muted">
                           {file.name}
                         </span>
-                        <span className="shrink-0 text-[0.62rem] uppercase tracking-eyebrow text-accent">
+                        <span className="shrink-0 text-[0.62rem] uppercase tracking-eyebrow text-accent-text">
                           Queued
                         </span>
                       </div>
-                      <p className="text-accent/85 text-[0.62rem] uppercase tracking-[0.24em]">
+                      <p className="text-[0.62rem] uppercase tracking-[0.24em] text-accent-text">
                         {role.label}
                       </p>
                     </div>
@@ -447,7 +454,7 @@ export function GalleryEditor({
                   <button
                     type="button"
                     onClick={() => onFileRemove(i)}
-                    className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-muted transition-colors hover:bg-panel hover:text-error"
+                    className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-muted transition-colors hover:bg-panel hover:text-error-text"
                     aria-label="Remove queued file"
                   >
                     <X className="h-4 w-4" />

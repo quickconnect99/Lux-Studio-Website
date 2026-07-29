@@ -14,7 +14,7 @@ const homepageFrameFallbacks = [
   "/images/sourced/porsche-911-turbo-s-01.jpg",
   "/images/sourced/bmw-m4-competition-01.jpg",
   "/images/sourced/ferrari-roma-spider-01.jpg",
-  "/images/sourced/aston-martin-vantage-01.jpg",
+  "/images/sourced/porsche-taycan-turbo-s-01.jpg",
   "/images/car-pictures/midnight-aeroline-03.jpg",
   "/images/car-pictures/alpine-vector-01.avif"
 ];

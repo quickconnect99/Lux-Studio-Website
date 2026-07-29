@@ -1,19 +1,16 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { buildProjectDatabasePayload } from "@/lib/admin-persistence";
 import type { AdminProjectListItem } from "@/lib/admin-types";
+import { resolveAdminMutationResult } from "@/lib/admin-optimistic-mutation";
 import {
   adminFailure,
   adminSuccess,
   type AdminResult
 } from "@/lib/admin-result";
-import {
-  normalizeProjectRecord
-} from "@/lib/supabase";
+import { normalizeProjectRecord } from "@/lib/supabase";
 import { toAdminProjectListItem } from "@/lib/admin-utils";
 
-type ProjectDatabasePayload = ReturnType<
-  typeof buildProjectDatabasePayload
->;
+type ProjectDatabasePayload = ReturnType<typeof buildProjectDatabasePayload>;
 
 export type AdminProjectSlugMatch = {
   id: string;
@@ -21,6 +18,10 @@ export type AdminProjectSlugMatch = {
   slug: string;
 };
 
+/**
+ * Replaces a matching project in the admin list or prepends a newly inserted
+ * project. Matching by both ID and slug prevents duplicates after renames.
+ */
 export function mergeAdminProjectList(
   projects: AdminProjectListItem[],
   saved: AdminProjectListItem,
@@ -46,6 +47,13 @@ export function removeAdminProjectFromList(
   return projects.filter((project) => project.id !== projectId);
 }
 
+/**
+ * Loads every project visible to the authenticated administrator and maps raw
+ * database rows to the form-friendly admin representation.
+ *
+ * @returns A discriminated `AdminResult`; repository errors are values rather
+ * than thrown exceptions.
+ */
 export async function loadAdminProjects(
   supabase: SupabaseClient
 ): Promise<AdminResult<AdminProjectListItem[]>> {
@@ -65,6 +73,11 @@ export async function loadAdminProjects(
   );
 }
 
+/**
+ * Checks whether a normalized slug is already used by another project.
+ *
+ * `excludeProjectId` allows an existing project to keep its current slug.
+ */
 export async function findAdminProjectBySlug(
   supabase: SupabaseClient,
   slug: string,
@@ -87,35 +100,63 @@ export async function findAdminProjectBySlug(
   return adminSuccess(data);
 }
 
+/**
+ * Inserts a new project or updates an existing one based on `payload.id`.
+ *
+ * When `expectedUpdatedAt` is present, the update succeeds only if the database
+ * row still has that timestamp. A missing returned row is reported as a stale
+ * edit instead of silently overwriting another browser tab.
+ */
 export async function saveAdminProjectRecord(
   supabase: SupabaseClient,
-  payload: ProjectDatabasePayload
+  payload: ProjectDatabasePayload,
+  options?: { expectedUpdatedAt?: string }
 ): Promise<AdminResult<AdminProjectListItem>> {
-  const { data, error } = await supabase
-    .from("projects")
-    .upsert(payload, { onConflict: "slug" })
-    .select("*")
-    .single();
+  const { id, ...changes } = payload;
+  const result = id
+    ? await (() => {
+        let query = supabase.from("projects").update(changes).eq("id", id);
 
-  if (error) {
-    return adminFailure(error, "The project could not be saved.");
-  }
+        if (options?.expectedUpdatedAt) {
+          query = query.eq("updated_at", options.expectedUpdatedAt);
+        }
 
-  return adminSuccess(toAdminProjectListItem(normalizeProjectRecord(data)));
+        return query.select("*").maybeSingle();
+      })()
+    : await supabase.from("projects").insert(changes).select("*").single();
+
+  return resolveAdminMutationResult(result, {
+    operationFallback: "The project could not be saved.",
+    staleMessage:
+      "This project was changed in another browser tab. Reload it before saving so those changes are not overwritten.",
+    mapData: (data) => toAdminProjectListItem(normalizeProjectRecord(data))
+  });
 }
 
+/**
+ * Deletes a project with the same optimistic-concurrency protection used by
+ * saving.
+ *
+ * This removes only the database row. The orchestration layer separately
+ * checks and removes media that is no longer referenced anywhere.
+ */
 export async function deleteAdminProjectRecord(
   supabase: SupabaseClient,
-  projectId: string
+  projectId: string,
+  expectedUpdatedAt?: string
 ): Promise<AdminResult<null>> {
-  const { error } = await supabase
-    .from("projects")
-    .delete()
-    .eq("id", projectId);
+  let query = supabase.from("projects").delete().eq("id", projectId);
 
-  if (error) {
-    return adminFailure(error, "The project could not be deleted.");
+  if (expectedUpdatedAt) {
+    query = query.eq("updated_at", expectedUpdatedAt);
   }
 
-  return adminSuccess(null);
+  const result = await query.select("id").maybeSingle();
+
+  return resolveAdminMutationResult(result, {
+    operationFallback: "The project could not be deleted.",
+    staleMessage:
+      "This project changed in another browser tab. Reload it before deleting so those changes can be reviewed.",
+    mapData: () => null
+  });
 }

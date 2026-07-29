@@ -7,6 +7,7 @@ const inquiryEmailTo = process.env.INQUIRY_EMAIL_TO;
 const inquiryEmailFrom =
   process.env.INQUIRY_EMAIL_FROM ?? "Lux Studio <onboarding@resend.dev>";
 
+/** Reports whether all server-only values required for inquiry email are set. */
 export function isInquiryEmailConfigured() {
   return Boolean(resendApiKey && inquiryEmailTo);
 }
@@ -65,6 +66,14 @@ function formatHtmlInquiry(inquiry: Inquiry) {
   `;
 }
 
+/**
+ * Sends one sanitized inquiry through Resend.
+ *
+ * Missing email configuration is a deliberate skip rather than an error,
+ * allowing database persistence to work without the optional notification.
+ * Non-success responses throw so the API route can record/report delivery
+ * failure separately.
+ */
 export async function sendInquiryEmail(inquiry: Inquiry) {
   if (!isInquiryEmailConfigured()) {
     return { skipped: true };

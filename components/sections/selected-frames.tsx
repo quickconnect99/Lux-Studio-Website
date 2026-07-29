@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
+import { AnimatePresence, m, useReducedMotion } from "framer-motion";
 import { ChevronLeft, ChevronRight, Expand } from "lucide-react";
 import { Lightbox } from "@/components/ui/lightbox";
 import { FallbackImage } from "@/components/ui/fallback-image";
@@ -112,7 +112,7 @@ export function SelectedFrames({ frames, label }: SelectedFramesProps) {
         <div className="film-frame relative overflow-hidden rounded-[2rem]">
           <div className="aspect-[4/3]" />
           <AnimatePresence initial={false} custom={transitionDirection}>
-            <motion.div
+            <m.div
               key={`${position}-${frame.image}-${index}`}
               initial={
                 shouldReduceMotion
@@ -150,7 +150,7 @@ export function SelectedFrames({ frames, label }: SelectedFramesProps) {
                 sizes="(min-width: 1280px) 660px, (min-width: 640px) 48vw, 78vw"
                 className="object-cover"
               />
-            </motion.div>
+            </m.div>
           </AnimatePresence>
           <div className="absolute inset-0 z-10 bg-black/20 transition-colors duration-300 group-hover:bg-black/10" />
         </div>
@@ -175,7 +175,7 @@ export function SelectedFrames({ frames, label }: SelectedFramesProps) {
         >
           <div className="aspect-[4/3]" />
           <AnimatePresence initial={false} custom={transitionDirection}>
-            <motion.div
+            <m.div
               key={`${frame.image}-${index}`}
               data-selected-frame-image={index}
               initial={
@@ -216,10 +216,10 @@ export function SelectedFrames({ frames, label }: SelectedFramesProps) {
                   className="object-cover"
                 />
               </div>
-            </motion.div>
+            </m.div>
           </AnimatePresence>
 
-          <motion.div
+          <m.div
             key={`light-sweep-${index}-${transitionDirection}`}
             aria-hidden="true"
             initial={{
@@ -289,7 +289,7 @@ export function SelectedFrames({ frames, label }: SelectedFramesProps) {
             <p className="eyebrow">{label}</p>
             <h2 className="font-[family-name:var(--font-display)] text-4xl uppercase leading-none sm:text-6xl">
               Shot
-              <span className="block pl-8 text-accent sm:pl-12">
+              <span className="block pl-8 text-accent-text sm:pl-12">
                 With Intent
               </span>
             </h2>
@@ -314,7 +314,7 @@ export function SelectedFrames({ frames, label }: SelectedFramesProps) {
                 className="absolute bottom-0 left-1/2 z-40 min-w-[4rem] -translate-x-1/2 overflow-hidden rounded-full border border-line bg-panel px-4 py-2 text-center text-xs uppercase tracking-ui text-muted"
               >
                 <AnimatePresence initial={false} mode="wait">
-                  <motion.span
+                  <m.span
                     key={focusedIndex}
                     initial={
                       shouldReduceMotion
@@ -340,7 +340,7 @@ export function SelectedFrames({ frames, label }: SelectedFramesProps) {
                     className="block"
                   >
                     {focusedIndex + 1} / {frameItems.length}
-                  </motion.span>
+                  </m.span>
                 </AnimatePresence>
               </div>
             ) : null}

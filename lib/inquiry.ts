@@ -14,6 +14,7 @@ export const inquiryServiceTypes: InquiryServiceType[] = [
 
 export type InquiryErrors = Partial<Record<keyof Inquiry, string>>;
 
+/** Trims user-entered inquiry text before validation and persistence. */
 export function sanitizeInquiry(values: Inquiry): Inquiry {
   return {
     name: values.name.trim(),
@@ -24,6 +25,11 @@ export function sanitizeInquiry(values: Inquiry): Inquiry {
   };
 }
 
+/**
+ * Applies the shared client/server inquiry rules.
+ *
+ * @returns A field-keyed error map; no keys means the inquiry is valid.
+ */
 export function validateInquiry(values: Inquiry): InquiryErrors {
   const errors: InquiryErrors = {};
 
@@ -64,7 +70,10 @@ export function validateInquiry(values: Inquiry): InquiryErrors {
   return errors;
 }
 
-export function parseInquiryServiceType(value: unknown): Inquiry["serviceType"] {
+/** Narrows unknown request data to one allowed inquiry service or an empty value. */
+export function parseInquiryServiceType(
+  value: unknown
+): Inquiry["serviceType"] {
   if (typeof value !== "string") {
     return "";
   }
@@ -74,6 +83,10 @@ export function parseInquiryServiceType(value: unknown): Inquiry["serviceType"] 
     : "";
 }
 
+/**
+ * Detects the hidden honeypot and implausibly fast submissions used as the
+ * first low-cost bot filter.
+ */
 export function getInquiryProtectionIssue({
   website,
   startedAt,

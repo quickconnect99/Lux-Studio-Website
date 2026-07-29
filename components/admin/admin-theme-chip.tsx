@@ -17,7 +17,7 @@ export function AdminThemeChip() {
   }
 
   return (
-    <div className="inline-flex items-center gap-2 rounded-full border border-line bg-panel-secondary/80 px-3 py-2 text-[0.62rem] uppercase tracking-eyebrow text-muted shadow-card backdrop-blur-md">
+    <div className="bg-panel-secondary/80 inline-flex items-center gap-2 rounded-full border border-line px-3 py-2 text-[0.62rem] uppercase tracking-eyebrow text-muted shadow-card backdrop-blur-md">
       <span
         className="h-2.5 w-2.5 rounded-full"
         style={{ backgroundColor: activeTheme.accent }}

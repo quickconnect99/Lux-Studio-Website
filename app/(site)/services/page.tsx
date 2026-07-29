@@ -1,13 +1,16 @@
 import type { Metadata } from "next";
+import Script from "next/script";
 import { Film } from "lucide-react";
 import { PageHeader } from "@/components/sections/page-header";
 import { RevealList } from "@/components/ui/reveal-list";
 import { serviceIcons } from "@/lib/content";
+import { serializeJsonLd } from "@/lib/json-ld";
 import { adaptSiteSettingsToPublishedProjects } from "@/lib/public-portfolio";
 import {
   buildSharingMetadata,
   resolveSharingImage
 } from "@/lib/sharing-metadata";
+import { buildPageStructuredData } from "@/lib/site-structured-data";
 import { getPublishedProjects, getSiteSettings } from "@/lib/supabase";
 
 const pageTitle = "Services";
@@ -43,9 +46,19 @@ export default async function ServicesPage() {
     getPublishedProjects()
   ]);
   const settings = adaptSiteSettingsToPublishedProjects(rawSettings, projects);
+  const structuredData = buildPageStructuredData({
+    name: pageTitle,
+    description: pageDescription,
+    path: "/services"
+  });
 
   return (
     <>
+      <Script
+        id="schema-services-page"
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: serializeJsonLd(structuredData) }}
+      />
       <PageHeader
         eyebrow={settings.copy.services.eyebrow}
         lead={settings.copy.services.headlineLead}
@@ -66,7 +79,7 @@ export default async function ServicesPage() {
                   {/* Service number + icon */}
                   <div className="flex items-start gap-3">
                     <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[0.75rem] border border-line bg-panel">
-                      <Icon className="h-4 w-4 text-accent" />
+                      <Icon className="h-4 w-4 text-accent-text" />
                     </div>
                     <span className="metadata-number pt-2.5">
                       {service.number}

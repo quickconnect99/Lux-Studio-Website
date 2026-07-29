@@ -3,6 +3,9 @@ import { notFound } from "next/navigation";
 import { AdminDashboard } from "@/components/admin/admin-dashboard";
 import { AdminErrorBoundary } from "@/components/admin/admin-error-boundary";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 export const metadata: Metadata = {
   title: "Admin",
   description:
@@ -16,10 +19,11 @@ export const metadata: Metadata = {
 export default function AdminPage() {
   const isSupabaseConfigured = Boolean(
     process.env.NEXT_PUBLIC_SUPABASE_URL &&
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
   );
   const isAdminEnabled =
     process.env.NODE_ENV !== "production" ||
+    process.env.NEXT_PUBLIC_ENABLE_ADMIN_DEMO === "true" ||
     (process.env.NEXT_PUBLIC_ENABLE_ADMIN === "true" && isSupabaseConfigured);
 
   if (!isAdminEnabled) {

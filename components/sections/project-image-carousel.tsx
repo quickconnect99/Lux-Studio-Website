@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { useState } from "react";
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence, m } from "framer-motion";
 import { ChevronLeft, ChevronRight, Maximize2 } from "lucide-react";
 import { Lightbox } from "@/components/ui/lightbox";
 import { motionDuration, motionEase } from "@/lib/motion";
@@ -59,7 +59,7 @@ export function ProjectImageCarousel({
           <div className="film-frame relative overflow-hidden rounded-[1.25rem] sm:rounded-[1.5rem]">
             <div className="aspect-[4/3] sm:aspect-[16/9]" />
             <AnimatePresence initial={false} mode="sync">
-              <motion.div
+              <m.div
                 key={activeImage}
                 initial={{ opacity: 0, scale: 1.015 }}
                 animate={{ opacity: 1, scale: 1 }}
@@ -77,7 +77,7 @@ export function ProjectImageCarousel({
                   sizes="(min-width: 1440px) 1360px, 100vw"
                   className="object-cover"
                 />
-              </motion.div>
+              </m.div>
             </AnimatePresence>
 
             <button
@@ -92,7 +92,11 @@ export function ProjectImageCarousel({
               <p className="text-[0.62rem] uppercase tracking-meta text-white/75">
                 Project stills
               </p>
-              <span className="font-[family-name:var(--font-mono)] text-[0.62rem] uppercase tracking-meta text-white/75">
+              <span
+                aria-live="polite"
+                aria-atomic="true"
+                className="font-[family-name:var(--font-mono)] text-[0.62rem] uppercase tracking-meta text-white/75"
+              >
                 {String(activeIndex + 1).padStart(2, "0")} /{" "}
                 {String(images.length).padStart(2, "0")}
               </span>

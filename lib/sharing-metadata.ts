@@ -62,6 +62,7 @@ export function buildSharingMetadata({
       description,
       type,
       siteName,
+      locale: "en_US",
       images: [{ url: image, alt: imageAlt }]
     },
     twitter: {

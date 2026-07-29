@@ -25,13 +25,19 @@ function getErrorLike(error: unknown): ErrorLike {
   return typeof error === "object" && error !== null ? error : {};
 }
 
+/**
+ * Converts unknown Supabase, PostgREST, and network failures into the small set
+ * of error categories understood by the admin UI.
+ *
+ * Raw backend details are intentionally replaced with actionable user-facing
+ * messages. The optional backend code is retained for diagnostics.
+ */
 export function toAdminOperationError(
   error: unknown,
   fallbackMessage: string
 ): AdminOperationError {
   const candidate = getErrorLike(error);
-  const code =
-    typeof candidate.code === "string" ? candidate.code : undefined;
+  const code = typeof candidate.code === "string" ? candidate.code : undefined;
   const status =
     typeof candidate.status === "number" ? candidate.status : undefined;
   const rawMessage =
@@ -60,7 +66,10 @@ export function toAdminOperationError(
     return {
       kind: "conflict",
       code,
-      message: "This change conflicts with an existing record."
+      message:
+        code === "ADMIN_STALE" && rawMessage
+          ? rawMessage
+          : "This change conflicts with an existing record."
     };
   }
 
@@ -80,7 +89,8 @@ export function toAdminOperationError(
     return {
       kind: "network",
       code,
-      message: "The server could not be reached. Check the connection and retry."
+      message:
+        "The server could not be reached. Check the connection and retry."
     };
   }
 
@@ -91,10 +101,12 @@ export function toAdminOperationError(
   };
 }
 
+/** Wraps successful repository data in the `AdminResult` discriminated union. */
 export function adminSuccess<T>(data: T): AdminResult<T> {
   return { ok: true, data };
 }
 
+/** Normalizes an unknown failure and wraps it as an unsuccessful result. */
 export function adminFailure<T>(
   error: unknown,
   fallbackMessage: string

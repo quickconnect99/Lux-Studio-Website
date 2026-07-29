@@ -19,11 +19,14 @@ import {
   resolveSharingImage
 } from "@/lib/sharing-metadata";
 import {
+  buildProjectBreadcrumbSchema,
+  buildProjectVideoSchema
+} from "@/lib/site-structured-data";
+import {
   getProjectBySlug,
   getPublishedProjects,
   getSiteSettings
 } from "@/lib/supabase";
-import { siteConfig } from "@/lib/site-config";
 
 type ProjectPageProps = {
   params: Promise<{ slug: string }>;
@@ -40,7 +43,10 @@ export async function generateMetadata({
   ]);
 
   if (!project) {
-    return {};
+    return {
+      title: "Page Not Found",
+      description: "The requested Lux Studio project could not be found."
+    };
   }
 
   const title = `${project.title} | ${settings.brand.name}`;
@@ -115,44 +121,10 @@ export default async function ProjectPage({
   const [titleLead, ...titleTrailParts] = project.title.trim().split(/\s+/);
   const titleTrail = titleTrailParts.join(" ");
 
-  const videoUrl = project.videoUrl || project.uploadedVideo;
   const primarySubject = project.carModel.trim() || project.category;
   const behindTheScenes = project.behindTheScenes?.trim();
-  const breadcrumbSchema = {
-    "@context": "https://schema.org",
-    "@type": "BreadcrumbList",
-    itemListElement: [
-      {
-        "@type": "ListItem",
-        position: 1,
-        name: "Home",
-        item: siteConfig.siteUrl
-      },
-      {
-        "@type": "ListItem",
-        position: 2,
-        name: "Work",
-        item: `${siteConfig.siteUrl}/work`
-      },
-      {
-        "@type": "ListItem",
-        position: 3,
-        name: project.title,
-        item: `${siteConfig.siteUrl}/work/${project.slug}`
-      }
-    ]
-  };
-  const videoSchema = videoUrl
-    ? {
-        "@context": "https://schema.org",
-        "@type": "VideoObject",
-        name: project.title,
-        description: project.shortDescription,
-        thumbnailUrl: project.coverImage,
-        uploadDate: project.createdAt,
-        contentUrl: videoUrl
-      }
-    : null;
+  const breadcrumbSchema = buildProjectBreadcrumbSchema(project);
+  const videoSchema = buildProjectVideoSchema(project);
 
   return (
     <div>
@@ -177,7 +149,7 @@ export default async function ProjectPage({
             <h1 className="project-display-title break-words font-[family-name:var(--font-display)] uppercase leading-[0.9] tracking-[-0.05em] text-foreground">
               {titleLead}
               {titleTrail ? (
-                <span className="block pl-5 text-accent sm:pl-14">
+                <span className="block pl-5 text-accent-text sm:pl-14">
                   {titleTrail}
                 </span>
               ) : null}
@@ -223,7 +195,7 @@ export default async function ProjectPage({
                 <p className="eyebrow">Production Notes</p>
                 <h2 className="font-[family-name:var(--font-display)] text-4xl uppercase leading-[0.92] sm:text-5xl">
                   Behind
-                  <span className="block pl-6 text-accent sm:pl-10">
+                  <span className="block pl-6 text-accent-text sm:pl-10">
                     The Scenes
                   </span>
                 </h2>

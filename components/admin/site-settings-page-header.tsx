@@ -37,7 +37,7 @@ export function SiteSettingsPageHeader({
             {eyebrow}
           </p>
         )}
-        <div className="font-[family-name:var(--font-display)] mt-5 text-[clamp(3rem,7vw,6rem)] uppercase leading-[0.88] tracking-[-0.04em]">
+        <div className="mt-5 font-[family-name:var(--font-display)] text-[clamp(3rem,7vw,6rem)] uppercase leading-[0.88] tracking-[-0.04em]">
           {onLeadChange ? (
             <InlineText
               value={lead}
@@ -55,10 +55,10 @@ export function SiteSettingsPageHeader({
               placeholder="Headline accent"
               ariaLabel="Page headline trail"
               onChange={onTrailChange}
-              className="ml-8 mt-1 px-2 text-accent"
+              className="ml-8 mt-1 px-2 text-accent-text"
             />
           ) : (
-            <div className="pl-8 text-accent">{trail}</div>
+            <div className="pl-8 text-accent-text">{trail}</div>
           )}
         </div>
         {onCopyChange ? (

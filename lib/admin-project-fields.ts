@@ -86,8 +86,7 @@ export const adminProjectFieldMeta: Record<
   },
   featured: {
     label: "Featured",
-    helpText:
-      "Featured projects appear in the homepage featured section."
+    helpText: "Featured projects appear in the homepage featured section."
   },
   published: {
     label: "Published",

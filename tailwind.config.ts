@@ -18,6 +18,7 @@ const config: Config = {
         "accent-contrast": "var(--accent-contrast)",
         "accent-soft": "var(--accent-soft)",
         "accent-text": "var(--accent-text)",
+        "focus-ring": "var(--focus-ring)",
         "accent-blue": "var(--accent-blue)",
         panel: "var(--panel)",
         "panel-secondary": "var(--panel-secondary)",
@@ -26,8 +27,11 @@ const config: Config = {
         "panel-dark-mid": "var(--panel-dark-mid)",
         line: "var(--line)",
         error: "var(--error)",
+        "error-text": "var(--error-text)",
         success: "var(--success)",
-        warning: "var(--warning)"
+        "success-text": "var(--success-text)",
+        warning: "var(--warning)",
+        "warning-text": "var(--warning-text)"
       },
 
       /* ─── Letter-spacing scale ──────────────────────────────────── */

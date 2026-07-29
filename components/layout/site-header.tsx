@@ -4,7 +4,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { Menu, X } from "lucide-react";
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence, m } from "framer-motion";
 import { useEffect, useRef, useState } from "react";
 import type { SiteSettings } from "@/lib/types";
 import { cn } from "@/lib/utils";
@@ -157,7 +157,7 @@ export function SiteHeader({ settings }: SiteHeaderProps) {
             >
               <AnimatePresence mode="wait" initial={false}>
                 {open ? (
-                  <motion.span
+                  <m.span
                     key="close"
                     initial={{ rotate: -90, opacity: 0 }}
                     animate={{ rotate: 0, opacity: 1 }}
@@ -165,9 +165,9 @@ export function SiteHeader({ settings }: SiteHeaderProps) {
                     transition={{ duration: motionDuration.micro }}
                   >
                     <X className="h-4 w-4" />
-                  </motion.span>
+                  </m.span>
                 ) : (
-                  <motion.span
+                  <m.span
                     key="open"
                     initial={{ rotate: 90, opacity: 0 }}
                     animate={{ rotate: 0, opacity: 1 }}
@@ -175,7 +175,7 @@ export function SiteHeader({ settings }: SiteHeaderProps) {
                     transition={{ duration: motionDuration.micro }}
                   >
                     <Menu className="h-4 w-4" />
-                  </motion.span>
+                  </m.span>
                 )}
               </AnimatePresence>
             </button>
@@ -186,7 +186,7 @@ export function SiteHeader({ settings }: SiteHeaderProps) {
       {/* Mobile navigation – animated slide-in */}
       <AnimatePresence>
         {open && (
-          <motion.div
+          <m.div
             key="mobile-nav"
             id="mobile-navigation"
             ref={mobileMenuRef}
@@ -229,7 +229,7 @@ export function SiteHeader({ settings }: SiteHeaderProps) {
                       <span
                         className={cn(
                           "font-[family-name:var(--font-mono)] text-[0.68rem]",
-                          active ? "text-accent" : "text-muted"
+                          active ? "text-accent-text" : "text-muted"
                         )}
                       >
                         0{index + 1}
@@ -244,7 +244,7 @@ export function SiteHeader({ settings }: SiteHeaderProps) {
                 </p>
               </div>
             </div>
-          </motion.div>
+          </m.div>
         )}
       </AnimatePresence>
     </header>

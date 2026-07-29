@@ -24,7 +24,9 @@ import {
 import { defaultSiteSettings } from "../lib/site-config";
 import {
   buildLocalProjectSaveReport,
-  buildRemoteProjectSaveReport
+  buildRemoteProjectSaveReport,
+  buildSiteSettingsSaveReport,
+  withAdminSaveWarnings
 } from "../lib/admin-save-report";
 
 test("restores drafts with safe defaults and a valid business", () => {
@@ -95,8 +97,10 @@ test("builds equivalent database and local project records", () => {
 
 test("serializes site settings and file limits", () => {
   const formState = toSiteSettingsFormState(defaultSiteSettings);
-  formState.socialLinksText = "Instagram | https://instagram.com/lux";
-  formState.aboutValuesText = "Precision | Measured decisions";
+  formState.socialLinks = [
+    { label: "Instagram", href: "https://instagram.com/lux" }
+  ];
+  formState.aboutValues = [{ title: "Precision", copy: "Measured decisions" }];
   formState.aboutTeamGalleryText =
     "/images/team-gallery-01.jpg\n/images/team-gallery-02.jpg";
   formState.aboutTeamMembers = formState.aboutTeamMembers.map(
@@ -186,5 +190,32 @@ test("builds remote and local save reports from queued media", () => {
   assert.deepEqual(
     local.items.map((item) => item.id),
     ["project", "cover-warning", "gallery-warning"]
+  );
+});
+
+test("builds site settings reports and shared follow-up warnings", () => {
+  const report = buildSiteSettingsSaveReport({
+    heroVideoFile: { name: "hero.mp4" } as File,
+    selectedFrameFiles: [{ name: "frame.jpg" }] as File[],
+    aboutTeamGalleryFiles: [],
+    aboutTeamMemberImageFiles: [],
+    cleanupCompleted: false,
+    publicRefreshCompleted: true
+  });
+  const projectReport = withAdminSaveWarnings(
+    {
+      title: "Saved",
+      items: [{ id: "project", label: "Project", tone: "success" }]
+    },
+    { cleanupCompleted: true, publicRefreshCompleted: false }
+  );
+
+  assert.deepEqual(
+    report.items.map((item) => item.id),
+    ["site-settings", "hero-video", "selected-frames", "media-cleanup"]
+  );
+  assert.deepEqual(
+    projectReport.items.map((item) => item.id),
+    ["project", "public-refresh"]
   );
 });

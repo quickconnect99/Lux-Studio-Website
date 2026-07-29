@@ -1,6 +1,6 @@
 "use client";
 
-import { motion } from "framer-motion";
+import { m } from "framer-motion";
 import { useState } from "react";
 import { useHydratedReducedMotion } from "@/hooks/use-hydrated-reduced-motion";
 import { motionDuration, motionEase } from "@/lib/motion";
@@ -27,7 +27,10 @@ type RevealProps = {
   variant?: RevealVariant;
 };
 
-const variantConfig: Record<RevealVariant, { offset: number; duration: number }> = {
+const variantConfig: Record<
+  RevealVariant,
+  { offset: number; duration: number }
+> = {
   subtle: { offset: 18, duration: motionDuration.content },
   default: { offset: 30, duration: 0.48 },
   bold: { offset: 44, duration: 0.55 }
@@ -56,13 +59,11 @@ export function Reveal({
   const initialOffset = buildOffset(direction, offset);
 
   if (shouldReduceMotion) {
-    return (
-      <div className={cn("group-reveal", className)}>{children}</div>
-    );
+    return <div className={cn("group-reveal", className)}>{children}</div>;
   }
 
   return (
-    <motion.div
+    <m.div
       initial={{ opacity: 1, ...initialOffset }}
       whileInView={{ opacity: 1, x: 0, y: 0 }}
       viewport={{ once: true, margin: "0px 0px 18% 0px" }}
@@ -71,6 +72,6 @@ export function Reveal({
       className={cn(revealed && "group-reveal", className)}
     >
       {children}
-    </motion.div>
+    </m.div>
   );
 }

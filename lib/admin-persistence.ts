@@ -2,13 +2,7 @@ import type {
   ProjectFormState,
   SiteSettingsFormState
 } from "@/lib/admin-types";
-import {
-  createEmptyProject,
-  parseMultilineInput,
-  parseServicesText,
-  parseSocialLinksText,
-  parseValuesText
-} from "@/lib/admin-utils";
+import { createEmptyProject, parseMultilineInput } from "@/lib/admin-utils";
 import { normalizeProjectGallery } from "@/lib/project-images";
 import { projectBusinesses } from "@/lib/project-business";
 import { SITE_SETTINGS_ID } from "@/lib/supabase";
@@ -34,6 +28,17 @@ type MediaFileLike = {
   type?: string;
 };
 
+/**
+ * Returns files that violate the admin upload contract.
+ *
+ * Both MIME type and extension are checked because either value alone can be
+ * misleading. Empty files and files above the image/video size limit are also
+ * rejected.
+ *
+ * @param files - Browser `File` objects or file-like test values.
+ * @param kind - Chooses the accepted formats and maximum size.
+ * @returns Only invalid entries; an empty array means validation passed.
+ */
 export function getInvalidMediaFiles<T extends MediaFileLike>(
   files: T[],
   kind: "image" | "video"
@@ -64,6 +69,13 @@ export type ProjectMediaState = {
   uploadedVideo: string;
 };
 
+/**
+ * Validates and upgrades an unknown browser draft into current project form
+ * state.
+ *
+ * Missing fields receive current defaults and unsupported business values fall
+ * back safely. Invalid non-object input returns `null`.
+ */
 export function restoreProjectDraft(value: unknown): ProjectFormState | null {
   if (!value || typeof value !== "object" || Array.isArray(value)) {
     return null;
@@ -90,6 +102,17 @@ export function getOversizedFiles<T extends { size: number }>(
   return files.filter((file) => file.size > maxBytes);
 }
 
+/**
+ * Produces one normalized media snapshot from form URLs and optional upload
+ * results.
+ *
+ * The gallery normalizer removes blanks, duplicate images, and the cover image
+ * while preserving caption alignment.
+ *
+ * @param formState - Current project form.
+ * @param overrides - Newly uploaded URLs that should replace form values.
+ * @returns Media ready for either the database or local demo project.
+ */
 export function getProjectMediaState(
   formState: ProjectFormState,
   overrides: Partial<ProjectMediaState> = {}
@@ -112,6 +135,14 @@ export function getProjectMediaState(
   };
 }
 
+/**
+ * Maps camelCase admin form state to the `projects` database row shape.
+ *
+ * Template projects intentionally omit `id`, causing the repository to insert
+ * a new row instead of updating the permanent template. No I/O happens here.
+ *
+ * @returns A Supabase-ready payload using snake_case column names.
+ */
 export function buildProjectDatabasePayload({
   formState,
   slug,
@@ -152,6 +183,12 @@ export function buildProjectDatabasePayload({
   };
 }
 
+/**
+ * Builds the same logical project as the database path without performing I/O.
+ *
+ * This keeps demo mode behavior close to production and returns the public
+ * camelCase `Project` representation rather than database column names.
+ */
 export function buildLocalProject({
   formState,
   slug,
@@ -188,10 +225,19 @@ export function buildLocalProject({
     featured: formState.featured,
     published: formState.published,
     createdAt: isTemplateSource ? createdAt : formState.createdAt,
+    updatedAt: isTemplateSource
+      ? createdAt
+      : (formState.updatedAt ?? formState.createdAt),
     behindTheScenes: formState.behindTheScenes || undefined
   };
 }
 
+/**
+ * Maps Site Settings form state to the single `site_settings` database row.
+ *
+ * Nested editor values are trimmed and normalized here so UI components never
+ * need to know the database's snake_case schema.
+ */
 export function buildSiteSettingsDatabasePayload(
   formState: SiteSettingsFormState
 ) {
@@ -205,7 +251,12 @@ export function buildSiteSettingsDatabasePayload(
     contact_email: formState.contactEmail,
     contact_phone: formState.contactPhone,
     contact_city: formState.contactCity,
-    social_links: parseSocialLinksText(formState.socialLinksText),
+    social_links: formState.socialLinks
+      .map((link) => ({
+        label: link.label.trim(),
+        href: link.href.trim()
+      }))
+      .filter((link) => link.label && link.href),
     seo_title: formState.seoTitle,
     seo_description: formState.seoDescription,
     hero_eyebrow: formState.heroEyebrow,
@@ -217,8 +268,22 @@ export function buildSiteSettingsDatabasePayload(
     about_positioning: formState.aboutPositioning,
     about_team_images: parseMultilineInput(formState.aboutTeamGalleryText),
     about_team_members: teamMembers,
-    about_values: parseValuesText(formState.aboutValuesText),
-    services: parseServicesText(formState.servicesText),
+    about_values: formState.aboutValues
+      .map((value) => ({
+        title: value.title.trim(),
+        copy: value.copy.trim()
+      }))
+      .filter((value) => value.title || value.copy),
+    services: formState.services
+      .map((service, index) => ({
+        number: service.number.trim() || String(index + 1).padStart(2, "0"),
+        title: service.title.trim(),
+        description: service.description.trim(),
+        deliverables: service.deliverables
+          .map((deliverable) => deliverable.trim())
+          .filter(Boolean)
+      }))
+      .filter((service) => service.title),
     selected_frames: parseMultilineInput(formState.selectedFramesText),
     motion_frames: parseMultilineInput(formState.motionFramesText),
     navigation_visibility: {

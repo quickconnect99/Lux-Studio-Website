@@ -1,29 +1,35 @@
-import Link from "next/link";
-import { LinkButton } from "@/components/ui/link-button";
+import type { Metadata } from "next";
+import { SiteFooter } from "@/components/layout/site-footer";
+import { SiteHeader } from "@/components/layout/site-header";
+import { NotFoundContent } from "@/components/sections/not-found-content";
+import { adaptSiteSettingsToPublishedProjects } from "@/lib/public-portfolio";
+import { getPublishedProjects, getSiteSettings } from "@/lib/supabase";
 
-export default function NotFound() {
+export const metadata: Metadata = {
+  title: "Page Not Found | Lux Studio",
+  description: "The requested Lux Studio page could not be found."
+};
+
+export default async function NotFound() {
+  const [rawSettings, projects] = await Promise.all([
+    getSiteSettings(),
+    getPublishedProjects()
+  ]);
+  const settings = adaptSiteSettingsToPublishedProjects(rawSettings, projects);
+
   return (
-    <section className="section-shell flex min-h-[70vh] items-center py-20">
-      <div className="glass-panel w-full rounded-[2.5rem] p-8 sm:p-12">
-        <p className="eyebrow">404</p>
-        <h1 className="font-[family-name:var(--font-display)] mt-6 text-5xl uppercase leading-none sm:text-7xl">
-          Frame
-          <span className="block pl-8 text-accent sm:pl-14">Missing</span>
-        </h1>
-        <p className="mt-6 max-w-xl text-base leading-8 text-muted">
-          The requested page is not in the portfolio flow. Return to the curated
-          work index or jump back to the home page.
-        </p>
-        <div className="mt-8 flex flex-wrap gap-4">
-          <LinkButton href="/work">Browse Work</LinkButton>
-          <Link
-            href="/"
-            className="inline-flex items-center rounded-full border border-line bg-panel-secondary px-5 py-3 text-xs uppercase tracking-[0.3em] text-foreground hover:border-accent hover:text-accent"
-          >
-            Go Home
-          </Link>
-        </div>
-      </div>
-    </section>
+    <div className="texture-grid min-h-screen">
+      <a
+        href="#main-content"
+        className="fixed left-4 top-4 z-[100] -translate-y-24 rounded-full bg-foreground px-5 py-3 text-xs font-medium uppercase tracking-ui text-background shadow-card transition-transform focus-visible:translate-y-0"
+      >
+        Skip to content
+      </a>
+      <SiteHeader settings={settings} />
+      <main id="main-content" tabIndex={-1}>
+        <NotFoundContent />
+      </main>
+      <SiteFooter settings={settings} />
+    </div>
   );
 }

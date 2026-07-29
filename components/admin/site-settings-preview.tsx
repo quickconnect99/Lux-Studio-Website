@@ -22,7 +22,7 @@ function PreviewLoading() {
       aria-live="polite"
     >
       <span className="inline-flex items-center gap-3 text-xs uppercase tracking-eyebrow text-muted">
-        <RefreshCw className="h-4 w-4 animate-spin text-accent" />
+        <RefreshCw className="h-4 w-4 animate-spin text-accent-text" />
         Loading preview
       </span>
     </div>

@@ -30,7 +30,7 @@ export function LinkButton({
         // variants
         variant === "primary" && [
           "border-foreground bg-foreground text-background",
-          "hover:bg-accent hover:text-accent-contrast hover:border-accent"
+          "hover:border-accent hover:bg-accent hover:text-accent-contrast"
         ],
         variant === "secondary" && [
           "border-line bg-panel-secondary text-foreground",

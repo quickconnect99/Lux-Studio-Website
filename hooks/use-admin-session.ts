@@ -24,6 +24,17 @@ type UseAdminSessionOptions = {
   showStatus(message: string): void;
 };
 
+/**
+ * Synchronizes Supabase authentication with access to the admin workspace.
+ *
+ * A valid login is not sufficient by itself: every restored or newly created
+ * session is checked through the database `is_admin()` function. Unauthorized
+ * sessions are signed out immediately. The supplied lifecycle callbacks let
+ * the orchestration layer load or reset data without duplicating auth logic.
+ *
+ * @param options - Supabase client, credentials, and admin lifecycle callbacks.
+ * @returns Sign-in/sign-out handlers and the latest user-facing auth message.
+ */
 export function useAdminSession({
   supabase,
   credentials,
@@ -64,17 +75,12 @@ export function useAdminSession({
       await onAuthorized();
       return true;
     },
-    [
-      onAuthorized,
-      onSessionEnded,
-      setSessionEmail,
-      showStatus,
-      supabase
-    ]
+    [onAuthorized, onSessionEnded, setSessionEmail, showStatus, supabase]
   );
 
   useEffect(() => {
     if (!supabase) {
+      void onBootstrap();
       return;
     }
 
@@ -182,16 +188,11 @@ export function useAdminSession({
     await supabase.auth.signOut();
     setSessionEmail(null);
     onSessionEnded();
-    const message = "Signed out. Templates remain available for new project drafts.";
+    const message =
+      "Signed out. Templates remain available for new project drafts.";
     showStatus(message);
     setSignInMessage({ tone: "success", text: message });
-  }, [
-    onBeforeAuth,
-    onSessionEnded,
-    setSessionEmail,
-    showStatus,
-    supabase
-  ]);
+  }, [onBeforeAuth, onSessionEnded, setSessionEmail, showStatus, supabase]);
 
   return {
     handleSignIn,

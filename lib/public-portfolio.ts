@@ -12,7 +12,8 @@ export function hasPublishedHospitalityProject(projects: Project[]) {
  */
 export function adaptSiteSettingsToPublishedProjects(
   settings: SiteSettings,
-  _projects: Project[]
+  projects: Project[]
 ) {
+  void projects;
   return settings;
 }

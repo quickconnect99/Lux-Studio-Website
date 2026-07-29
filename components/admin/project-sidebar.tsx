@@ -63,7 +63,7 @@ export function ProjectSidebar({
         className={`w-full rounded-[1.25rem] border p-4 text-left transition-colors ${
           isActive
             ? "border-foreground bg-foreground text-background"
-            : "border-line bg-panel-secondary text-foreground hover:border-foreground/30"
+            : "hover:border-foreground/30 border-line bg-panel-secondary text-foreground"
         }`}
       >
         <div className="flex items-start justify-between gap-2">
@@ -74,7 +74,9 @@ export function ProjectSidebar({
             {project.isTemplate ? (
               <span
                 className={`rounded-full px-1.5 py-0.5 text-[0.5rem] uppercase tracking-wider ${
-                  isActive ? "bg-white/20 text-white" : "bg-accent/15 text-accent"
+                  isActive
+                    ? "bg-white/20 text-white"
+                    : "bg-accent/15 text-accent-text"
                 }`}
               >
                 Template
@@ -83,7 +85,9 @@ export function ProjectSidebar({
             {project.featured ? (
               <span
                 className={`rounded-full px-1.5 py-0.5 text-[0.5rem] font-medium ${
-                  isActive ? "bg-white/20 text-white" : "bg-accent/15 text-accent"
+                  isActive
+                    ? "bg-white/20 text-white"
+                    : "bg-accent/15 text-accent-text"
                 }`}
               >
                 ★
@@ -92,7 +96,9 @@ export function ProjectSidebar({
             {!project.published && !project.isTemplate ? (
               <span
                 className={`rounded-full px-1.5 py-0.5 text-[0.5rem] uppercase tracking-wider ${
-                  isActive ? "bg-white/20 text-white/70" : "bg-muted/15 text-muted"
+                  isActive
+                    ? "bg-white/20 text-white/70"
+                    : "bg-muted/15 text-muted"
                 }`}
               >
                 Draft
@@ -100,7 +106,7 @@ export function ProjectSidebar({
             ) : null}
           </div>
         </div>
-        <p className="font-[family-name:var(--font-display)] mt-2 text-lg uppercase leading-tight">
+        <p className="mt-2 font-[family-name:var(--font-display)] text-lg uppercase leading-tight">
           {project.title}
         </p>
         <p className="mt-1.5 text-xs uppercase tracking-meta opacity-60">
@@ -169,7 +175,7 @@ export function ProjectSidebar({
 
       <div className="mt-4 flex flex-col gap-3 xl:min-h-0 xl:flex-1">
         {showTemplates ? (
-          <div className="rounded-[1.25rem] border border-line bg-panel-secondary/45 p-2">
+          <div className="bg-panel-secondary/45 rounded-[1.25rem] border border-line p-2">
             <button
               type="button"
               onClick={() => setTemplatesCollapsed((current) => !current)}
@@ -209,7 +215,7 @@ export function ProjectSidebar({
           <p className="text-[0.58rem] uppercase tracking-[0.28em] text-muted">
             Saved projects
           </p>
-          <div className="mt-2 max-h-[24rem] space-y-2 overflow-y-auto pr-1 xl:min-h-0 xl:max-h-none xl:flex-1">
+          <div className="mt-2 max-h-[24rem] space-y-2 overflow-y-auto pr-1 xl:max-h-none xl:min-h-0 xl:flex-1">
             {filtered.length === 0 ? (
               <p className="rounded-[1.25rem] border border-line bg-panel-secondary px-4 py-6 text-center text-xs text-muted">
                 No saved projects found.

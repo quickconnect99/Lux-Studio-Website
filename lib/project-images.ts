@@ -1,5 +1,6 @@
 import type { Project } from "@/lib/types";
 
+/** Trims image URLs and removes blanks and later duplicates in stable order. */
 export function dedupeImageUrls(images: string[]) {
   const seen = new Set<string>();
 
@@ -32,6 +33,10 @@ function isLinkValue(value: string) {
   return (value.startsWith("/") || isWebUrl(value)) && !isLikelyImageUrl(value);
 }
 
+/**
+ * Performs a conservative format check for local, hosted, and Supabase image
+ * URLs used by the CMS frame parser.
+ */
 export function isLikelyImageUrl(value: string) {
   const source = value.trim();
 
@@ -51,6 +56,34 @@ function splitFrameEntry(entry: string) {
   return parts.length > 1 ? parts : [entry.trim()];
 }
 
+function parseStructuredFrameEntry(entry: string): FrameItem | null {
+  try {
+    const value = JSON.parse(entry) as unknown;
+    if (!value || typeof value !== "object" || Array.isArray(value)) {
+      return null;
+    }
+
+    const record = value as Record<string, unknown>;
+    const image = typeof record.image === "string" ? record.image.trim() : "";
+    const href = typeof record.href === "string" ? record.href.trim() : "";
+
+    if (!isLikelyImageUrl(image) || (href && !isLinkValue(href))) {
+      return null;
+    }
+
+    return { image, href: href || undefined };
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Parses the flexible Selected/Motion Frames storage format.
+ *
+ * Entries may be JSON (`{"image":"...","href":"..."}`), a legacy
+ * `image | link` string, or separate image/link lines. Explicit selections win;
+ * gallery and fallback images are used only when no selected image is valid.
+ */
 export function buildFrameItems({
   selectedFrames,
   fallbackImages,
@@ -64,6 +97,13 @@ export function buildFrameItems({
   const selectedLinks: string[] = [];
 
   selectedFrames.forEach((entry) => {
+    const structuredFrame = parseStructuredFrameEntry(entry);
+    if (structuredFrame) {
+      selectedItems.push(structuredFrame);
+      if (structuredFrame.href) selectedLinks.push(structuredFrame.href);
+      return;
+    }
+
     const parts = splitFrameEntry(entry);
     const image = parts.find(isLikelyImageUrl);
     const href = parts.find(isLinkValue);
@@ -105,10 +145,20 @@ export function buildFrameItems({
   );
 }
 
+/** Serializes a frame into the canonical JSON format written by the admin UI. */
 export function serializeFrameItem(frame: FrameItem) {
-  return frame.href ? `${frame.image} | ${frame.href}` : frame.image;
+  return JSON.stringify({
+    image: frame.image,
+    ...(frame.href ? { href: frame.href } : {})
+  });
 }
 
+/**
+ * Associates selected frame images with their owning public project.
+ *
+ * Explicit saved links are preserved. Otherwise a matching project image
+ * infers `/work/<slug>`, which makes each moving frame open the correct project.
+ */
 export function buildProjectFrameItems(
   projects: Array<
     Pick<Project, "title" | "slug" | "coverImage" | "galleryImages">
@@ -182,6 +232,13 @@ export function buildProjectFrameItems(
   });
 }
 
+/**
+ * Normalizes a project gallery while preserving image/caption index alignment.
+ *
+ * Empty URLs, duplicate gallery images, and the cover image are removed. The
+ * result exposes both parallel arrays for legacy callers and structured items
+ * for newer rendering code.
+ */
 export function normalizeProjectGallery({
   coverImage,
   galleryImages,

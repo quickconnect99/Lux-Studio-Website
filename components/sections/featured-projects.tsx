@@ -18,10 +18,7 @@ export function FeaturedProjects({ projects }: FeaturedProjectsProps) {
       <div className="section-shell">
         <div className="divide-y divide-line">
           {projects.map((project, index) => (
-            <article
-              key={project.slug}
-              className="py-8 sm:py-10 lg:py-14"
-            >
+            <article key={project.slug} className="py-8 sm:py-10 lg:py-14">
               <div className="grid items-center gap-6 sm:gap-8 lg:grid-cols-[0.9fr_1.1fr] lg:gap-10">
                 <Reveal
                   variant="default"
@@ -50,7 +47,7 @@ export function FeaturedProjects({ projects }: FeaturedProjectsProps) {
                       </p>
                       <h2 className="font-[family-name:var(--font-display)] text-[2.5rem] uppercase leading-[0.9] tracking-[-0.05em] text-foreground sm:text-5xl lg:text-7xl">
                         {project.title.split(" ")[0]}
-                        <span className="block pl-5 text-accent sm:pl-14">
+                        <span className="block pl-5 text-accent-text sm:pl-14">
                           {project.title.split(" ").slice(1).join(" ")}
                         </span>
                       </h2>
@@ -85,7 +82,7 @@ export function FeaturedProjects({ projects }: FeaturedProjectsProps) {
                       src={project.coverImage}
                       alt={project.title}
                       fill
-                      priority={index === 0}
+                      preload={index === 0}
                       sizes="(min-width: 1024px) 52vw, 100vw"
                       className="object-cover"
                     />

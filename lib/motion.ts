@@ -5,6 +5,4 @@ export const motionDuration = {
   hero: 0.6
 } as const;
 
-export const motionEase: [number, number, number, number] = [
-  0.22, 1, 0.36, 1
-];
+export const motionEase: [number, number, number, number] = [0.22, 1, 0.36, 1];

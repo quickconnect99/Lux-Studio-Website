@@ -1,13 +1,16 @@
 import type { Metadata } from "next";
+import Script from "next/script";
 import { InquiryForm } from "@/components/sections/inquiry-form";
 import { PageHeader } from "@/components/sections/page-header";
 import { ContactInfo } from "@/components/ui/contact-info";
 import { SocialLinks } from "@/components/ui/social-links";
+import { serializeJsonLd } from "@/lib/json-ld";
 import { adaptSiteSettingsToPublishedProjects } from "@/lib/public-portfolio";
 import {
   buildSharingMetadata,
   resolveSharingImage
 } from "@/lib/sharing-metadata";
+import { buildPageStructuredData } from "@/lib/site-structured-data";
 import { getPublishedProjects, getSiteSettings } from "@/lib/supabase";
 
 const pageTitle = "Contact";
@@ -47,9 +50,20 @@ export default async function ContactPage() {
     getPublishedProjects()
   ]);
   const settings = adaptSiteSettingsToPublishedProjects(rawSettings, projects);
+  const structuredData = buildPageStructuredData({
+    name: pageTitle,
+    description: pageDescription,
+    path: "/contact",
+    type: "ContactPage"
+  });
 
   return (
     <>
+      <Script
+        id="schema-contact-page"
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: serializeJsonLd(structuredData) }}
+      />
       <PageHeader
         eyebrow={settings.copy.contact.eyebrow}
         lead={settings.copy.contact.headlineLead}

@@ -1,9 +1,10 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useRef } from "react";
 import { AlertTriangle, RefreshCw, X } from "lucide-react";
 import type { AdminConfirmDialogState } from "@/lib/admin-types";
 import { cn } from "@/lib/utils";
+import { useFocusTrapDialog } from "@/hooks/use-focus-trap-dialog";
 
 type AdminConfirmModalProps = {
   dialog: AdminConfirmDialogState | null;
@@ -24,65 +25,15 @@ export function AdminConfirmModal({
 }: AdminConfirmModalProps) {
   const modalRef = useRef<HTMLDivElement>(null);
   const closeButtonRef = useRef<HTMLButtonElement>(null);
-  const onCloseRef = useRef(onClose);
-  const workingRef = useRef(working);
-  onCloseRef.current = onClose;
-  workingRef.current = working;
 
-  useEffect(() => {
-    if (!dialog) {
-      return;
-    }
-
-    const previouslyFocused =
-      document.activeElement instanceof HTMLElement
-        ? document.activeElement
-        : null;
-    const previousOverflow = document.body.style.overflow;
-
-    function handleKeyDown(event: KeyboardEvent) {
-      if (event.key === "Escape" && !workingRef.current) {
-        onCloseRef.current();
-        return;
-      }
-
-      if (event.key !== "Tab" || !modalRef.current) {
-        return;
-      }
-
-      const focusable = Array.from(
-        modalRef.current.querySelectorAll<HTMLElement>(
-          'button:not([disabled]), input:not([disabled]), [tabindex]:not([tabindex="-1"])'
-        )
-      );
-      const first = focusable[0];
-      const last = focusable[focusable.length - 1];
-
-      if (!first || !last) {
-        event.preventDefault();
-        modalRef.current.focus();
-      } else if (event.shiftKey && document.activeElement === first) {
-        event.preventDefault();
-        last.focus();
-      } else if (!event.shiftKey && document.activeElement === last) {
-        event.preventDefault();
-        first.focus();
-      }
-    }
-
-    window.addEventListener("keydown", handleKeyDown);
-    document.body.style.overflow = "hidden";
-    window.requestAnimationFrame(() => {
-      const input = modalRef.current?.querySelector<HTMLElement>("input");
-      (input ?? closeButtonRef.current ?? modalRef.current)?.focus();
-    });
-
-    return () => {
-      window.removeEventListener("keydown", handleKeyDown);
-      document.body.style.overflow = previousOverflow;
-      previouslyFocused?.focus();
-    };
-  }, [dialog]);
+  useFocusTrapDialog({
+    active: Boolean(dialog),
+    containerRef: modalRef,
+    initialFocusRef: closeButtonRef,
+    initialFocusSelector: dialog?.requireMatchText ? "input" : undefined,
+    onClose,
+    canClose: !working
+  });
 
   if (!dialog) {
     return null;
@@ -116,8 +67,8 @@ export function AdminConfirmModal({
               className={cn(
                 "flex h-11 w-11 shrink-0 items-center justify-center rounded-full border",
                 dialog.tone === "danger"
-                  ? "border-error/25 bg-error/10 text-error"
-                  : "border-warning/25 bg-warning/10 text-warning"
+                  ? "border-error/25 bg-error/10 text-error-text"
+                  : "border-warning/25 bg-warning/10 text-warning-text"
               )}
             >
               <AlertTriangle className="h-5 w-5" />
@@ -186,7 +137,7 @@ export function AdminConfirmModal({
               type="button"
               onClick={onSecondary}
               disabled={working}
-              className="control-pill border-warning/35 text-warning hover:border-warning/60"
+              className="control-pill border-warning/35 hover:border-warning/60 text-warning-text"
             >
               {dialog.secondaryLabel}
             </button>

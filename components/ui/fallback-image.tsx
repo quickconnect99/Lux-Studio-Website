@@ -1,7 +1,7 @@
 "use client";
 
 import Image, { type ImageProps } from "next/image";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 type FallbackImageProps = Omit<ImageProps, "src"> & {
   src: string;
@@ -16,7 +16,15 @@ export function FallbackImage({
   unoptimized,
   ...props
 }: FallbackImageProps) {
-  const [currentSrc, setCurrentSrc] = useState(src);
+  const [sourceState, setSourceState] = useState({
+    requestedSrc: src,
+    currentSrc: src
+  });
+  if (sourceState.requestedSrc !== src) {
+    setSourceState({ requestedSrc: src, currentSrc: src });
+  }
+  const currentSrc =
+    sourceState.requestedSrc === src ? sourceState.currentSrc : src;
   const configuredStorageHost = (() => {
     try {
       return process.env.NEXT_PUBLIC_SUPABASE_URL
@@ -42,10 +50,6 @@ export function FallbackImage({
     }
   })();
 
-  useEffect(() => {
-    setCurrentSrc(src);
-  }, [src]);
-
   return (
     <Image
       {...props}
@@ -56,7 +60,10 @@ export function FallbackImage({
         onError?.(event);
 
         if (currentSrc !== fallbackSrc) {
-          setCurrentSrc(fallbackSrc);
+          setSourceState({
+            requestedSrc: src,
+            currentSrc: fallbackSrc
+          });
         }
       }}
     />
