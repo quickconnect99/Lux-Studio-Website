@@ -20,7 +20,8 @@
     "migrations:check": "node scripts/check-migrations.mjs",
     "format": "prettier . --write",
     "format:check": "prettier . --check",
-    "smoke:live": "node scripts/smoke-test-live.mjs"
+    "smoke:live": "node scripts/smoke-test-live.mjs",
+    "smoke:images": "node scripts/check-live-images.mjs"
   },
   "dependencies": {
     "@axe-core/playwright": "^4.12.1",

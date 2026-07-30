@@ -1,6 +1,6 @@
 "use client";
 
-import Image from "next/image";
+import { ResilientImage as Image } from "@/components/ui/resilient-image";
 import { LinkButton } from "@/components/ui/link-button";
 import { Reveal } from "@/components/ui/reveal";
 import { cn } from "@/lib/utils";

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useId, useMemo, useRef, useState } from "react";
-import Image from "next/image";
+import { ResilientImage as Image } from "@/components/ui/resilient-image";
 import { ChevronDown, ChevronUp, GripVertical, Plus, X } from "lucide-react";
 import {
   DndContext,

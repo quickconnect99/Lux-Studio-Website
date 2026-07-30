@@ -34,6 +34,10 @@ Stand: 29. Juli 2026
   raster-image sizes and raster signatures after a production build.
 - `npm run smoke:live` performs read-only smoke checks against the configured
   production URL.
+- `npm run smoke:images -- https://example.com` checks the home page, Work page
+  and one project for broken rendered images. Add `--all` to inspect every
+  linked project page. The report distinguishes recovered direct-source images
+  from Vercel optimizer `402` responses.
 
 The CI-only database job additionally uses the Supabase CLI to start a fresh
 local Postgres stack, reset it from all migration files, and run

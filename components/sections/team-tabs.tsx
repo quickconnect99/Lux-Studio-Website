@@ -1,4 +1,4 @@
-import Image from "next/image";
+import { ResilientImage as Image } from "@/components/ui/resilient-image";
 import type { TeamMember } from "@/lib/types";
 import { cn } from "@/lib/utils";
 

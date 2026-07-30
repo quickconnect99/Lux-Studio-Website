@@ -1,4 +1,4 @@
-import Image from "next/image";
+import { ResilientImage as Image } from "@/components/ui/resilient-image";
 import Link from "next/link";
 import { ArrowUpRight } from "lucide-react";
 import { Reveal } from "@/components/ui/reveal";

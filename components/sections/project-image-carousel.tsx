@@ -1,6 +1,6 @@
 "use client";
 
-import Image from "next/image";
+import { ResilientImage as Image } from "@/components/ui/resilient-image";
 import { useState } from "react";
 import { AnimatePresence, m } from "framer-motion";
 import { ChevronLeft, ChevronRight, Maximize2 } from "lucide-react";

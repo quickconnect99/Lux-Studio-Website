@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { ArrowDown, ArrowUp, Plus, Trash2, Upload } from "lucide-react";
-import Image from "next/image";
+import { ResilientImage as Image } from "@/components/ui/resilient-image";
 import { updateCopySection } from "@/components/admin/site-settings-copy";
 import { type SiteSettingsEditorProps as Props } from "@/components/admin/site-settings-editor-types";
 import { GalleryEditor } from "@/components/admin/gallery-editor";

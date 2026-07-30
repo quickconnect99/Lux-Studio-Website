@@ -7,7 +7,7 @@ import {
   useRef,
   useState
 } from "react";
-import Image from "next/image";
+import { ResilientImage as Image } from "@/components/ui/resilient-image";
 import { ExternalLink, PenSquare } from "lucide-react";
 import { PreviewFieldShell } from "@/components/admin/field-highlight-shell";
 import { getGalleryFrameRole } from "@/lib/admin-project-fields";

@@ -1,6 +1,6 @@
 "use client";
 
-import Image from "next/image";
+import { ResilientImage as Image } from "@/components/ui/resilient-image";
 import { useId, useMemo, useState } from "react";
 import { Check, ChevronDown, Plus, Search } from "lucide-react";
 import {

@@ -80,6 +80,10 @@ export function Lightbox({
         height: 1080,
         quality: 95
       });
+      image.onerror = () => {
+        image.onerror = null;
+        image.src = images[index];
+      };
       image.src = props.src;
     });
   }, [activeIndex, images]);

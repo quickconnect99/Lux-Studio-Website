@@ -1,6 +1,6 @@
 "use client";
 
-import Image from "next/image";
+import { ResilientImage as Image } from "@/components/ui/resilient-image";
 import Link from "next/link";
 import { ExternalLink, Play } from "lucide-react";
 import { useState } from "react";
