@@ -88,13 +88,34 @@ export function useAdminData() {
   const [sessionEmail, setSessionEmail] = useState<string | null>(null);
   const [statusMessage, setStatusMessage] = useState(DEFAULT_STATUS_MESSAGE);
   const [saveReport, setSaveReport] = useState<AdminSaveReport | null>(null);
-  const [working, setWorking] = useState(false);
+  const [working, setWorkingState] = useState(false);
   const [uploadProgress, setUploadProgress] =
     useState<AdminUploadProgress | null>(null);
   const [workflowConfirmDialog, setWorkflowConfirmDialog] =
     useState<AdminConfirmDialogState | null>(null);
   const pendingWorkflowRef = useRef<PendingAdminWorkflow | null>(null);
   const hasAppliedInitialProject = useRef(false);
+  const workingRef = useRef(false);
+
+  const setWorking = useCallback((nextWorking: boolean) => {
+    workingRef.current = nextWorking;
+    setWorkingState(nextWorking);
+  }, []);
+
+  const tryStartWorking = useCallback(() => {
+    if (workingRef.current) {
+      return false;
+    }
+
+    workingRef.current = true;
+    setWorkingState(true);
+    return true;
+  }, []);
+
+  const finishWorking = useCallback(() => {
+    workingRef.current = false;
+    setWorkingState(false);
+  }, []);
 
   const {
     values: authFormState,
@@ -200,7 +221,8 @@ export function useAdminData() {
     clearSiteSettingsMedia,
     setSaveReport,
     setUploadProgress,
-    setWorking,
+    tryStartWorking,
+    finishWorking,
     showStatus
   });
 
@@ -271,7 +293,7 @@ export function useAdminData() {
   });
 
   const handleKeyboardSave = useEffectEvent(() => {
-    if (working) return;
+    if (workingRef.current) return;
 
     if (activeTab === "settings") {
       if (isSettingsDirty) void handleSaveSiteSettings();
@@ -298,29 +320,34 @@ export function useAdminData() {
   }): Promise<boolean> {
     event?.preventDefault();
 
-    if (!isProjectComplete) {
-      showStatus(
-        `Project not saved. Complete these fields first: ${completionIssues.join(", ")}.`
-      );
+    if (!tryStartWorking()) {
       return false;
     }
 
-    const slugResult = await checkSlugAvailability(
-      formState.slug || formState.title,
-      { showAvailableState: false }
-    );
-    if (!slugResult.ok) {
-      showStatus("Project not saved. Resolve the slug conflict before saving.");
-      return false;
-    }
-
-    const targetSlug = slugResult.slug;
-    const isTemplateSource = Boolean(formState.templateBusiness);
     const newlyUploadedUrls: string[] = [];
-    setSaveReport(null);
-    setWorking(true);
 
     try {
+      if (!isProjectComplete) {
+        showStatus(
+          `Project not saved. Complete these fields first: ${completionIssues.join(", ")}.`
+        );
+        return false;
+      }
+
+      const slugResult = await checkSlugAvailability(
+        formState.slug || formState.title,
+        { showAvailableState: false }
+      );
+      if (!slugResult.ok) {
+        showStatus(
+          "Project not saved. Resolve the slug conflict before saving."
+        );
+        return false;
+      }
+
+      const targetSlug = slugResult.slug;
+      const isTemplateSource = Boolean(formState.templateBusiness);
+      setSaveReport(null);
       let coverImage = formState.coverImage;
       let uploadedVideo = formState.uploadedVideo;
       let galleryImages = parseMultilineInput(formState.galleryImagesText);
@@ -464,7 +491,7 @@ export function useAdminData() {
       );
       return false;
     } finally {
-      setWorking(false);
+      finishWorking();
     }
   }
 
@@ -489,8 +516,11 @@ export function useAdminData() {
       return;
     }
 
+    if (!tryStartWorking()) {
+      return;
+    }
+
     setSaveReport(null);
-    setWorking(true);
 
     try {
       let cleanupCompleted = true;
@@ -548,7 +578,7 @@ export function useAdminData() {
           .message
       );
     } finally {
-      setWorking(false);
+      finishWorking();
     }
   }
 
@@ -576,7 +606,7 @@ export function useAdminData() {
   }
 
   function closeConfirmDialog() {
-    if (working) return;
+    if (workingRef.current) return;
 
     if (workflowConfirmDialog) {
       pendingWorkflowRef.current = null;
@@ -672,6 +702,8 @@ export function useAdminData() {
   }
 
   function handleResetClick() {
+    if (workingRef.current) return;
+
     if (activeTab === "projects") {
       handleProjectResetClick();
       return;
@@ -693,6 +725,8 @@ export function useAdminData() {
   }
 
   function handleSignOut() {
+    if (workingRef.current) return;
+
     if (!isDirty && !isSettingsDirty) {
       void handleSignOutImmediately();
       return;

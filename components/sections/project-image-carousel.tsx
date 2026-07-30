@@ -1,12 +1,17 @@
 "use client";
 
 import { ResilientImage as Image } from "@/components/ui/resilient-image";
+import dynamic from "next/dynamic";
 import { useState } from "react";
 import { AnimatePresence, m } from "framer-motion";
 import { ChevronLeft, ChevronRight, Maximize2 } from "lucide-react";
-import { Lightbox } from "@/components/ui/lightbox";
 import { motionDuration, motionEase } from "@/lib/motion";
 import { cn } from "@/lib/utils";
+
+const Lightbox = dynamic(
+  () => import("@/components/ui/lightbox").then((module) => module.Lightbox),
+  { ssr: false }
+);
 
 type ProjectImageCarouselProps = {
   images: string[];
@@ -21,6 +26,7 @@ export function ProjectImageCarousel({
 }: ProjectImageCarouselProps) {
   const [activeIndex, setActiveIndex] = useState(0);
   const [fullscreenIndex, setFullscreenIndex] = useState<number | null>(null);
+  const [hasOpenedLightbox, setHasOpenedLightbox] = useState(false);
 
   if (images.length === 0) return null;
 
@@ -41,10 +47,12 @@ export function ProjectImageCarousel({
   }
 
   function openFullscreen() {
+    setHasOpenedLightbox(true);
     setFullscreenIndex(activeIndex);
   }
 
   function showFullscreenImage(index: number) {
+    setHasOpenedLightbox(true);
     setActiveIndex(index);
     setFullscreenIndex(index);
   }
@@ -196,23 +204,25 @@ export function ProjectImageCarousel({
         </div>
       </div>
 
-      <Lightbox
-        images={images}
-        imageAlts={imageAlts}
-        activeIndex={fullscreenIndex}
-        onClose={() => setFullscreenIndex(null)}
-        onPrev={() =>
-          showFullscreenImage(
-            ((fullscreenIndex ?? activeIndex) - 1 + images.length) %
-              images.length
-          )
-        }
-        onNext={() =>
-          showFullscreenImage(
-            ((fullscreenIndex ?? activeIndex) + 1) % images.length
-          )
-        }
-      />
+      {hasOpenedLightbox ? (
+        <Lightbox
+          images={images}
+          imageAlts={imageAlts}
+          activeIndex={fullscreenIndex}
+          onClose={() => setFullscreenIndex(null)}
+          onPrev={() =>
+            showFullscreenImage(
+              ((fullscreenIndex ?? activeIndex) - 1 + images.length) %
+                images.length
+            )
+          }
+          onNext={() =>
+            showFullscreenImage(
+              ((fullscreenIndex ?? activeIndex) + 1) % images.length
+            )
+          }
+        />
+      ) : null}
     </>
   );
 }

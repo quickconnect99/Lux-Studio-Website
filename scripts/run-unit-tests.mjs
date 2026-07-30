@@ -16,6 +16,10 @@ const tsxCli = fileURLToPath(
 const nodeArguments = [tsxCli, "--test", ...testFiles];
 const result = spawnSync(process.execPath, nodeArguments, {
   cwd: workspaceDirectory,
+  env: {
+    ...process.env,
+    TSX_TSCONFIG_PATH: path.join(workspaceDirectory, "tsconfig.test.json")
+  },
   stdio: "inherit"
 });
 

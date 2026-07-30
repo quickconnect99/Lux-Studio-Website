@@ -89,17 +89,17 @@
   --font-display: var(--font-bodoni);
   --font-sans: var(--font-barlow);
 
-  /* Core palette */
-  --background: #f4f1ea;
-  --foreground: #1b232b;
-  --muted: #58636c;
-  --muted-warm: #6b6360; /* warmer secondary for footer / dark contexts */
+  /* Default fallback mirrors the configured Vintage Dark theme. */
+  --background: #101917;
+  --foreground: #f2e9db;
+  --muted: #b7aa97;
+  --muted-warm: #c98f72;
 
   /* Accent */
-  --accent: #9eff4f;
-  --accent-contrast: #1b232b;
-  --accent-soft: rgba(158, 255, 79, 0.65);
-  --accent-blue: #7dd3fc; /* complementary cool accent */
+  --accent: #ec824d;
+  --accent-contrast: #101917;
+  --accent-soft: rgba(236, 130, 77, 0.22);
+  --accent-blue: #1e493d;
 
   /* Darker stand-in for --accent when it renders as text directly on the
      page background (e.g. SplitHeadline trail). --accent itself stays tuned
@@ -109,14 +109,14 @@
   --focus-ring: var(--accent);
 
   /* Panels – three standardised opacity levels */
-  --panel: rgba(255, 255, 255, 0.8); /* primary panels */
-  --panel-secondary: rgba(255, 255, 255, 0.7); /* nested content */
-  --panel-subtle: rgba(255, 255, 255, 0.55); /* background fills */
-  --panel-dark: #11161b;
-  --panel-dark-mid: #1a1f25; /* lighter dark for nested dark panels */
+  --panel: rgba(23, 41, 36, 0.78);
+  --panel-secondary: rgba(248, 236, 219, 0.08);
+  --panel-subtle: rgba(30, 73, 61, 0.24);
+  --panel-dark: #08110f;
+  --panel-dark-mid: #1e493d;
 
   /* Borders */
-  --line: rgba(27, 35, 43, 0.12);
+  --line: rgba(242, 233, 219, 0.1);
 
   /* Semantic colours (kept in system so components can reference vars) */
   --error: #ef4444;
@@ -127,38 +127,39 @@
   --warning-text: var(--warning);
 
   /* Theming helpers */
-  --header-bg: rgba(244, 241, 234, 0.82);
-  --grid-line: rgba(27, 35, 43, 0.04);
+  --header-bg: rgba(16, 25, 23, 0.86);
+  --grid-line: rgba(236, 130, 77, 0.06);
 }
 
 /* ─── Base ─────────────────────────────────────────────────────────────── */
 html {
   scroll-behavior: smooth;
+  color-scheme: dark;
+}
+
+html[data-theme="vintage-light"] {
   color-scheme: light;
 }
 
-/* ─── Dark colour-scheme for dark themes ──────────────────────────────── */
-html[data-theme="obsidian"],
-html[data-theme="vintage"],
-html[data-theme="gpt-vintage"],
-html[data-theme="carbon"],
-html[data-theme="amber"],
-html[data-theme="midnight-racing"],
-html[data-theme="asphalt"],
-html[data-theme="bloodline"] {
+html[data-theme="gpt-vintage"] {
   color-scheme: dark;
 }
 
 body {
   color: var(--foreground);
   background:
-    radial-gradient(circle at 0% 0%, rgba(158, 255, 79, 0.18), transparent 25%),
     radial-gradient(
-      circle at 100% 10%,
-      rgba(70, 120, 255, 0.1),
-      transparent 22%
+      circle at 10% 0%,
+      rgba(236, 130, 77, 0.18),
+      transparent 26%
     ),
-    linear-gradient(180deg, #f7f4ee 0%, #f0eee7 100%);
+    radial-gradient(circle at 88% 18%, rgba(30, 73, 61, 0.52), transparent 32%),
+    radial-gradient(
+      circle at 50% 100%,
+      rgba(242, 233, 219, 0.06),
+      transparent 30%
+    ),
+    linear-gradient(180deg, #14211d 0%, #0d1513 48%, #090c0b 100%);
   font-feature-settings:
     "ss01" 1,
     "cv01" 1,
@@ -172,8 +173,8 @@ body {
 }
 
 ::selection {
-  background: rgba(158, 255, 79, 0.5);
-  color: #0f1419;
+  background: rgba(236, 130, 77, 0.42);
+  color: #101917;
 }
 
 /* ─── Global transitions ───────────────────────────────────────────────── */
@@ -545,8 +546,7 @@ select:focus-visible {
    script that runs before hydration to prevent any flash of unstyled content.
    ═══════════════════════════════════════════════════════════════════════════ */
 
-/* ─── 1. Cream (default) ──────────────────────────────────────────────── */
-/* No overrides needed – :root already holds the cream values. */
+/* :root mirrors the default dark theme; explicit blocks keep themes complete. */
 
 /* Vintage Light - faded paper, terracotta and racing green */
 [data-theme="vintage-light"] {
@@ -589,7 +589,6 @@ select:focus-visible {
   color: #101917;
 }
 
-/* Vintage Noir - warm noir with terracotta and racing green */
 /* Vintage Dark - green noir with terracotta highlights */
 [data-theme="gpt-vintage"] {
   --background: #101917;

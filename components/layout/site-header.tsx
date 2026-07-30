@@ -5,7 +5,8 @@ import { ResilientImage as Image } from "@/components/ui/resilient-image";
 import { usePathname } from "next/navigation";
 import { Menu, X } from "lucide-react";
 import { AnimatePresence, m } from "framer-motion";
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
+import { useFocusTrapDialog } from "@/hooks/use-focus-trap-dialog";
 import type { SiteSettings } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { getVisibleNavigation } from "@/lib/site-config";
@@ -19,56 +20,15 @@ type SiteHeaderProps = {
 export function SiteHeader({ settings }: SiteHeaderProps) {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
-  const triggerRef = useRef<HTMLButtonElement>(null);
   const mobileMenuRef = useRef<HTMLDivElement>(null);
   const navigation = getVisibleNavigation(settings.navigation);
 
-  useEffect(() => {
-    if (!open) {
-      return;
-    }
-
-    const previousOverflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-
-    const focusable = mobileMenuRef.current?.querySelectorAll<HTMLElement>(
-      "a[href], button:not([disabled])"
-    );
-
-    focusable?.[0]?.focus();
-
-    function handleKeyDown(event: KeyboardEvent) {
-      if (event.key === "Escape") {
-        setOpen(false);
-        triggerRef.current?.focus();
-        return;
-      }
-
-      if (event.key !== "Tab" || !focusable || focusable.length === 0) {
-        return;
-      }
-
-      const first = focusable[0];
-      const last = focusable[focusable.length - 1];
-
-      if (event.shiftKey && document.activeElement === first) {
-        event.preventDefault();
-        last.focus();
-      }
-
-      if (!event.shiftKey && document.activeElement === last) {
-        event.preventDefault();
-        first.focus();
-      }
-    }
-
-    document.addEventListener("keydown", handleKeyDown);
-
-    return () => {
-      document.body.style.overflow = previousOverflow;
-      document.removeEventListener("keydown", handleKeyDown);
-    };
-  }, [open]);
+  useFocusTrapDialog({
+    active: open,
+    containerRef: mobileMenuRef,
+    initialFocusSelector: "a[href]",
+    onClose: () => setOpen(false)
+  });
 
   return (
     <header className="sticky top-0 z-50 border-b border-line bg-[var(--header-bg)]">
@@ -143,7 +103,6 @@ export function SiteHeader({ settings }: SiteHeaderProps) {
             <ThemeSwitcher />
             {/* Mobile menu toggle */}
             <button
-              ref={triggerRef}
               type="button"
               aria-expanded={open}
               aria-controls="mobile-navigation"
@@ -192,6 +151,7 @@ export function SiteHeader({ settings }: SiteHeaderProps) {
             ref={mobileMenuRef}
             role="dialog"
             aria-modal="true"
+            aria-labelledby="mobile-navigation-title"
             initial={{ opacity: 0, y: -8 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -8 }}
@@ -202,7 +162,9 @@ export function SiteHeader({ settings }: SiteHeaderProps) {
             className="bg-background/95 fixed inset-x-0 bottom-0 top-[4.5rem] overflow-y-auto border-t border-line shadow-card backdrop-blur-2xl sm:top-[5.5rem] lg:hidden"
           >
             <div className="section-shell flex min-h-full flex-col py-5">
-              <p className="eyebrow mb-5">Navigation</p>
+              <p id="mobile-navigation-title" className="eyebrow mb-5">
+                Navigation
+              </p>
               <div className="flex flex-col gap-2">
                 {navigation.map((item, index) => {
                   const active =

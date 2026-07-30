@@ -6,8 +6,8 @@ import { adaptSiteSettingsToPublishedProjects } from "@/lib/public-portfolio";
 import { getPublishedProjects, getSiteSettings } from "@/lib/supabase";
 
 export const metadata: Metadata = {
-  title: "Page Not Found | Lux Studio",
-  description: "The requested Lux Studio page could not be found."
+  title: "Page Not Found",
+  description: "The requested page could not be found."
 };
 
 export default async function NotFound() {

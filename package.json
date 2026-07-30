@@ -14,7 +14,7 @@
     "lint": "eslint app components hooks lib next.config.mjs playwright.config.ts scripts tests --max-warnings=0 --cache",
     "typecheck": "tsc --noEmit",
     "test": "node scripts/run-unit-tests.mjs",
-    "test:coverage": "c8 --reporter=text --reporter=lcov --reports-dir=coverage --exclude=tests/** --exclude=scripts/** node scripts/run-unit-tests.mjs",
+    "test:coverage": "c8 --all \"--include=lib/**/*.ts\" \"--include=app/api/inquiries/route.ts\" --reporter=text --reporter=lcov --reports-dir=coverage --exclude=tests/** --exclude=scripts/** --check-coverage --lines=75 --statements=75 --functions=80 --branches=70 node scripts/run-unit-tests.mjs",
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
     "migrations:check": "node scripts/check-migrations.mjs",

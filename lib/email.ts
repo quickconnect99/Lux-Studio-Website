@@ -2,13 +2,18 @@ import "server-only";
 
 import type { Inquiry } from "@/lib/types";
 
-const resendApiKey = process.env.RESEND_API_KEY;
-const inquiryEmailTo = process.env.INQUIRY_EMAIL_TO;
-const inquiryEmailFrom =
-  process.env.INQUIRY_EMAIL_FROM ?? "Lux Studio <onboarding@resend.dev>";
+function getInquiryEmailConfiguration() {
+  return {
+    resendApiKey: process.env.RESEND_API_KEY,
+    inquiryEmailTo: process.env.INQUIRY_EMAIL_TO,
+    inquiryEmailFrom:
+      process.env.INQUIRY_EMAIL_FROM ?? "Lux Studio <onboarding@resend.dev>"
+  };
+}
 
 /** Reports whether all server-only values required for inquiry email are set. */
 export function isInquiryEmailConfigured() {
+  const { resendApiKey, inquiryEmailTo } = getInquiryEmailConfiguration();
   return Boolean(resendApiKey && inquiryEmailTo);
 }
 
@@ -75,7 +80,10 @@ function formatHtmlInquiry(inquiry: Inquiry) {
  * failure separately.
  */
 export async function sendInquiryEmail(inquiry: Inquiry) {
-  if (!isInquiryEmailConfigured()) {
+  const { resendApiKey, inquiryEmailTo, inquiryEmailFrom } =
+    getInquiryEmailConfiguration();
+
+  if (!resendApiKey || !inquiryEmailTo) {
     return { skipped: true };
   }
 

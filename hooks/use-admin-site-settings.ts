@@ -32,6 +32,8 @@ import { defaultSiteSettings } from "@/lib/site-config";
 import { SITE_SETTINGS_ID, normalizeSiteSettingsRecord } from "@/lib/supabase";
 import { buildFrameItems } from "@/lib/project-images";
 
+const DRAFT_PERSIST_DELAY_MS = 250;
+
 type TeamImageFile = {
   index: number;
   file: File;
@@ -47,7 +49,8 @@ type UseAdminSiteSettingsOptions = {
   clearSiteSettingsMedia(): void;
   setSaveReport(report: AdminSaveReport | null): void;
   setUploadProgress(progress: AdminUploadProgress | null): void;
-  setWorking(working: boolean): void;
+  tryStartWorking(): boolean;
+  finishWorking(): void;
   showStatus(message: string): void;
 };
 
@@ -73,7 +76,8 @@ export function useAdminSiteSettings({
   clearSiteSettingsMedia,
   setSaveReport,
   setUploadProgress,
-  setWorking,
+  tryStartWorking,
+  finishWorking,
   showStatus
 }: UseAdminSiteSettingsOptions) {
   const form = useForm<SiteSettingsFormState>(
@@ -115,11 +119,15 @@ export function useAdminSiteSettings({
       return;
     }
 
-    persistSiteSettingsDraft({
-      baseSnapshot: savedSnapshot,
-      formState,
-      hadPendingFiles: hasPendingFiles
-    });
+    const timeout = window.setTimeout(() => {
+      persistSiteSettingsDraft({
+        baseSnapshot: savedSnapshot,
+        formState,
+        hadPendingFiles: hasPendingFiles
+      });
+    }, DRAFT_PERSIST_DELAY_MS);
+
+    return () => window.clearTimeout(timeout);
   }, [formState, hasLoaded, hasPendingFiles, savedSnapshot]);
 
   const updateField = useCallback(
@@ -188,8 +196,12 @@ export function useAdminSiteSettings({
   const save = useCallback(
     async (event?: { preventDefault(): void }): Promise<boolean> => {
       event?.preventDefault();
+
+      if (!tryStartWorking()) {
+        return false;
+      }
+
       setSaveReport(null);
-      setWorking(true);
       const newlyUploadedUrls: string[] = [];
 
       try {
@@ -348,23 +360,24 @@ export function useAdminSiteSettings({
         );
         return false;
       } finally {
-        setWorking(false);
+        finishWorking();
       }
     },
     [
       aboutTeamGalleryFiles,
       aboutTeamMemberImageFiles,
       clearSiteSettingsMedia,
+      finishWorking,
       formState,
       replaceForm,
       selectedFrameFiles,
       sessionEmail,
       setSaveReport,
       setUploadProgress,
-      setWorking,
       showStatus,
       siteHeroVideoFile,
-      supabase
+      supabase,
+      tryStartWorking
     ]
   );
 

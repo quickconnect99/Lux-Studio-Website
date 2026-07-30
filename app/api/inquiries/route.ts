@@ -112,6 +112,22 @@ export async function POST(request: Request) {
     );
   }
 
+  const body =
+    payload && typeof payload === "object"
+      ? (payload as Record<string, unknown>)
+      : {};
+  const protectionIssue = getInquiryProtectionIssue({
+    website: typeof body.website === "string" ? body.website : "",
+    startedAt:
+      typeof body.startedAt === "number" && Number.isFinite(body.startedAt)
+        ? body.startedAt
+        : undefined
+  });
+
+  if (protectionIssue) {
+    return json({ message: protectionIssue }, { status: 400 });
+  }
+
   if (!isServiceRoleConfigured()) {
     logServerEvent({
       level: "error",
@@ -176,11 +192,6 @@ export async function POST(request: Request) {
     );
   }
 
-  const body =
-    payload && typeof payload === "object"
-      ? (payload as Record<string, unknown>)
-      : {};
-
   const inquiry = sanitizeInquiry({
     name: typeof body.name === "string" ? body.name : "",
     email: typeof body.email === "string" ? body.email : "",
@@ -200,18 +211,6 @@ export async function POST(request: Request) {
       },
       { status: 400 }
     );
-  }
-
-  const protectionIssue = getInquiryProtectionIssue({
-    website: typeof body.website === "string" ? body.website : "",
-    startedAt:
-      typeof body.startedAt === "number" && Number.isFinite(body.startedAt)
-        ? body.startedAt
-        : undefined
-  });
-
-  if (protectionIssue) {
-    return json({ message: protectionIssue }, { status: 400 });
   }
 
   const { error } = await supabase.from("inquiries").insert({

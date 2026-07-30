@@ -5,6 +5,8 @@ import type { ProjectFormState } from "@/lib/admin-types";
 import { restoreProjectDraft } from "@/lib/admin-persistence";
 import { DRAFT_STORAGE_KEY } from "@/lib/admin-utils";
 
+const DRAFT_PERSIST_DELAY_MS = 250;
+
 type StoredProjectDraft = {
   version: 1;
   projectKey: string;
@@ -124,31 +126,39 @@ export function useAdminDraft({
   useEffect(() => {
     if (!enabled) return;
 
-    try {
-      const storageKey = getProjectDraftStorageKey(projectKey);
-      const currentSnapshot = JSON.stringify(formState);
+    const storageKey = getProjectDraftStorageKey(projectKey);
 
-      if (!isDirty) {
+    if (!isDirty) {
+      try {
+        const currentSnapshot = JSON.stringify(formState);
         lastCleanSnapshotRef.current = currentSnapshot;
         if (skipCleanRemovalForKeyRef.current === projectKey) {
           skipCleanRemovalForKeyRef.current = null;
           return;
         }
         localStorage.removeItem(storageKey);
-        return;
+      } catch {
+        // Ignore unavailable browser storage.
       }
-
-      const draft: StoredProjectDraft = {
-        version: 1,
-        projectKey,
-        baseSnapshot: lastCleanSnapshotRef.current,
-        updatedAt: new Date().toISOString(),
-        formState
-      };
-      localStorage.setItem(storageKey, JSON.stringify(draft));
-    } catch {
-      // Ignore unavailable browser storage.
+      return;
     }
+
+    const timeout = window.setTimeout(() => {
+      try {
+        const draft: StoredProjectDraft = {
+          version: 1,
+          projectKey,
+          baseSnapshot: lastCleanSnapshotRef.current,
+          updatedAt: new Date().toISOString(),
+          formState
+        };
+        localStorage.setItem(storageKey, JSON.stringify(draft));
+      } catch {
+        // Ignore unavailable browser storage.
+      }
+    }, DRAFT_PERSIST_DELAY_MS);
+
+    return () => window.clearTimeout(timeout);
   }, [enabled, formState, isDirty, projectKey]);
 
   const clearDraft = useCallback(

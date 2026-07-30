@@ -1,15 +1,20 @@
 "use client";
 
 import { useState } from "react";
+import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
 import { AnimatePresence, m, useReducedMotion } from "framer-motion";
 import { ChevronLeft, ChevronRight, Expand } from "lucide-react";
-import { Lightbox } from "@/components/ui/lightbox";
 import { FallbackImage } from "@/components/ui/fallback-image";
 import { Reveal } from "@/components/ui/reveal";
 import { motionDuration, motionEase } from "@/lib/motion";
 import type { FrameItem } from "@/lib/project-images";
 import { cn } from "@/lib/utils";
+
+const Lightbox = dynamic(
+  () => import("@/components/ui/lightbox").then((module) => module.Lightbox),
+  { ssr: false }
+);
 
 type SelectedFramesProps = {
   frames: FrameItem[];
@@ -33,6 +38,7 @@ export function SelectedFrames({ frames, label }: SelectedFramesProps) {
   const shouldReduceMotion = useReducedMotion();
   const [focusedIndex, setFocusedIndex] = useState(0);
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
+  const [hasOpenedLightbox, setHasOpenedLightbox] = useState(false);
   const [transitionDirection, setTransitionDirection] = useState<-1 | 1>(1);
 
   if (frameItems.length === 0) return null;
@@ -53,6 +59,7 @@ export function SelectedFrames({ frames, label }: SelectedFramesProps) {
       return;
     }
 
+    setHasOpenedLightbox(true);
     setActiveIndex(index);
   }
 
@@ -348,15 +355,17 @@ export function SelectedFrames({ frames, label }: SelectedFramesProps) {
         </Reveal>
       </section>
 
-      <Lightbox
-        images={frameImages}
-        imageAlts={frameAlts}
-        fallbackImages={fallbackFrameImages}
-        activeIndex={activeIndex}
-        onClose={closeLightbox}
-        onPrev={prev}
-        onNext={next}
-      />
+      {hasOpenedLightbox ? (
+        <Lightbox
+          images={frameImages}
+          imageAlts={frameAlts}
+          fallbackImages={fallbackFrameImages}
+          activeIndex={activeIndex}
+          onClose={closeLightbox}
+          onPrev={prev}
+          onNext={next}
+        />
+      ) : null}
     </>
   );
 }

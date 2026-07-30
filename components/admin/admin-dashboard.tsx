@@ -383,7 +383,8 @@ export function AdminDashboard() {
               <button
                 type="button"
                 onClick={handleSignOut}
-                className="control-pill"
+                disabled={working}
+                className="control-pill disabled:cursor-not-allowed disabled:opacity-60"
               >
                 <LogOut className="h-4 w-4" />
                 Sign Out
@@ -393,7 +394,8 @@ export function AdminDashboard() {
               <button
                 type="button"
                 onClick={handleResetClick}
-                className="control-pill"
+                disabled={working}
+                className="control-pill disabled:cursor-not-allowed disabled:opacity-60"
               >
                 <RefreshCw className="h-4 w-4" />
                 {activeTab === "projects" ? "Reset Project" : "Reset Settings"}

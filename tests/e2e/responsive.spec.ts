@@ -164,6 +164,13 @@ test("reduced motion hydrates without hiding content", async ({
 
   await expect(page.locator("main")).toBeVisible();
   await expect(page.locator("h1")).toBeVisible();
+  await expect(page.locator("video[data-hero-reel]")).toHaveJSProperty(
+    "paused",
+    true
+  );
+  await expect(
+    page.getByRole("button", { name: "Play showreel video" })
+  ).toBeVisible();
 
   const frame = page.locator('[data-selected-frame="center"]');
   await frame.scrollIntoViewIfNeeded();
@@ -251,7 +258,16 @@ test("mobile navigation traps focus and closes with Escape", async ({
 
   const dialog = page.getByRole("dialog");
   await expect(dialog).toBeVisible();
+  await expect(dialog).toHaveAccessibleName("Navigation");
   await expect(trigger).toHaveAttribute("aria-expanded", "true");
+
+  const links = dialog.getByRole("link");
+  await expect(links.first()).toBeFocused();
+  await links.last().focus();
+  await page.keyboard.press("Tab");
+  await expect(links.first()).toBeFocused();
+  await page.keyboard.press("Shift+Tab");
+  await expect(links.last()).toBeFocused();
 
   const bounds = await dialog.evaluate((element) => {
     const rect = element.getBoundingClientRect();
