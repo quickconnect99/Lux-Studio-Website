@@ -1,6 +1,6 @@
 "use client";
 
-import { useDeferredValue, useState } from "react";
+import { useState } from "react";
 import dynamic from "next/dynamic";
 import { CheckCircle2, RefreshCw, Save } from "lucide-react";
 import type {
@@ -86,13 +86,17 @@ export function SiteSettingsPreview({
   addAboutTeamGalleryFiles,
   removeAboutTeamGalleryFile,
   setAboutTeamMemberImageFile,
+  removeAboutTeamMemberImageFile,
+  moveAboutTeamMemberImageFile,
   handleFileSelection
 }: SiteSettingsEditorProps) {
   const [page, setPage] = useState<PreviewPage>("general");
   const [previewWidth, setPreviewWidth] = useState<PreviewWidth>("desktop");
   const isGeneralPage = page === "general";
-  const deferredFormState = useDeferredValue(formState);
-  const previewFormState = isGeneralPage ? formState : deferredFormState;
+  // These previews also contain the controlled editor fields. Passing a
+  // deferred snapshot to an input can restore an older value while someone is
+  // typing, so editable previews must always receive the current form state.
+  const previewFormState = formState;
 
   return (
     <form onSubmit={onSubmit} id="site-settings-form" className="space-y-5">
@@ -175,6 +179,10 @@ export function SiteSettingsPreview({
                   addAboutTeamGalleryFiles={addAboutTeamGalleryFiles}
                   removeAboutTeamGalleryFile={removeAboutTeamGalleryFile}
                   setAboutTeamMemberImageFile={setAboutTeamMemberImageFile}
+                  removeAboutTeamMemberImageFile={
+                    removeAboutTeamMemberImageFile
+                  }
+                  moveAboutTeamMemberImageFile={moveAboutTeamMemberImageFile}
                 />
               ) : null}
               {page === "contact" ? (

@@ -840,6 +840,50 @@ test("admin switches to the lazy-loaded settings workspace", async ({
   expect(errors).toEqual([]);
 });
 
+test("admin keeps a newly added team member editable and marks it dirty", async ({
+  page
+}, testInfo) => {
+  test.skip(testInfo.project.name !== "desktop-1440");
+  await page.goto("/admin", { waitUntil: "networkidle" });
+
+  await page.getByRole("tab", { name: /Site Settings/ }).click();
+  const settingsForm = page.locator("#site-settings-form");
+  await settingsForm.getByRole("tab", { name: "04 About" }).click();
+
+  const members = settingsForm.locator("[data-admin-team-member]");
+  const addMemberButton = settingsForm.getByRole("button", {
+    name: "Add member"
+  });
+  await expect(addMemberButton).toBeVisible();
+  const initialCount = await members.count();
+  await addMemberButton.click();
+  await expect(members).toHaveCount(initialCount + 1);
+
+  const nameInput = members.last().getByLabel("Name");
+  await nameInput.click();
+  await nameInput.press("ControlOrMeta+A");
+  await nameInput.pressSequentially("Jamie Doe");
+
+  await expect(nameInput).toBeFocused();
+  await expect(nameInput).toHaveValue("Jamie Doe");
+  await expect(
+    settingsForm.getByRole("button", { name: "Save changes" })
+  ).toBeVisible();
+
+  await members
+    .last()
+    .locator('input[type="file"]')
+    .setInputFiles("public/images/demo-car-01.jpg");
+  await expect(
+    members.last().getByText("Queued: demo-car-01.jpg")
+  ).toBeVisible();
+  await members.last().getByRole("button", { name: "Move member up" }).click();
+
+  const movedMember = members.nth(initialCount - 1);
+  await expect(movedMember.getByLabel("Name")).toHaveValue("Jamie Doe");
+  await expect(movedMember.getByText("Queued: demo-car-01.jpg")).toBeVisible();
+});
+
 test("admin exposes independent homepage frame collections", async ({
   page
 }, testInfo) => {

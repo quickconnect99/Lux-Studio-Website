@@ -59,7 +59,9 @@ export function SiteSettingsAboutPreview({
   aboutTeamMemberImageFiles = [],
   addAboutTeamGalleryFiles,
   removeAboutTeamGalleryFile,
-  setAboutTeamMemberImageFile
+  setAboutTeamMemberImageFile,
+  removeAboutTeamMemberImageFile,
+  moveAboutTeamMemberImageFile
 }: Pick<
   Props,
   | "formState"
@@ -69,6 +71,8 @@ export function SiteSettingsAboutPreview({
   | "addAboutTeamGalleryFiles"
   | "removeAboutTeamGalleryFile"
   | "setAboutTeamMemberImageFile"
+  | "removeAboutTeamMemberImageFile"
+  | "moveAboutTeamMemberImageFile"
 >) {
   const values = formState.aboutValues;
   const teamMembers = formState.aboutTeamMembers;
@@ -128,6 +132,7 @@ export function SiteSettingsAboutPreview({
   }
 
   function removeTeamMember(index: number) {
+    removeAboutTeamMemberImageFile?.(index);
     const next = teamMembers.filter((_, memberIndex) => memberIndex !== index);
     updateField("aboutTeamMembers", next);
   }
@@ -135,6 +140,7 @@ export function SiteSettingsAboutPreview({
   function moveTeamMember(index: number, direction: -1 | 1) {
     const target = index + direction;
     if (target < 0 || target >= teamMembers.length) return;
+    moveAboutTeamMemberImageFile?.(index, target);
     const next = [...teamMembers];
     const [member] = next.splice(index, 1);
     next.splice(target, 0, member);
@@ -297,7 +303,8 @@ export function SiteSettingsAboutPreview({
 
               return (
                 <div
-                  key={`${member.name}-${index}`}
+                  data-admin-team-member
+                  key={index}
                   className="grid gap-5 rounded-[1.75rem] border border-line bg-panel-secondary p-5 lg:grid-cols-[180px_1fr]"
                 >
                   <div className="space-y-3">

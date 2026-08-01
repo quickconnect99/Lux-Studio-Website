@@ -191,6 +191,40 @@ export function useAdminMedia({
     [onChange, validateFiles]
   );
 
+  const removeAboutTeamMemberImageFile = useCallback(
+    (index: number) => {
+      onChange();
+      setAboutTeamMemberImageFiles((current) =>
+        current.flatMap((item) => {
+          if (item.index === index) return [];
+          return [
+            {
+              ...item,
+              index: item.index > index ? item.index - 1 : item.index
+            }
+          ];
+        })
+      );
+    },
+    [onChange]
+  );
+
+  const moveAboutTeamMemberImageFile = useCallback(
+    (fromIndex: number, toIndex: number) => {
+      if (fromIndex === toIndex) return;
+
+      onChange();
+      setAboutTeamMemberImageFiles((current) =>
+        current.map((item) => {
+          if (item.index === fromIndex) return { ...item, index: toIndex };
+          if (item.index === toIndex) return { ...item, index: fromIndex };
+          return item;
+        })
+      );
+    },
+    [onChange]
+  );
+
   const handleFileSelection = useCallback(
     (
       event: ChangeEvent<HTMLInputElement>,
@@ -230,6 +264,8 @@ export function useAdminMedia({
     addAboutTeamGalleryFiles,
     removeAboutTeamGalleryFile,
     setAboutTeamMemberImageFile,
+    removeAboutTeamMemberImageFile,
+    moveAboutTeamMemberImageFile,
     handleFileSelection,
     clearMedia,
     clearSiteSettingsMedia

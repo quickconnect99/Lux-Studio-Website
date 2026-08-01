@@ -130,6 +130,8 @@ export function AdminDashboard() {
     addAboutTeamGalleryFiles,
     removeAboutTeamGalleryFile,
     setAboutTeamMemberImageFile,
+    removeAboutTeamMemberImageFile,
+    moveAboutTeamMemberImageFile,
     formState,
     isTemplateProject,
     updateField,
@@ -752,6 +754,8 @@ export function AdminDashboard() {
             addAboutTeamGalleryFiles={addAboutTeamGalleryFiles}
             removeAboutTeamGalleryFile={removeAboutTeamGalleryFile}
             setAboutTeamMemberImageFile={setAboutTeamMemberImageFile}
+            removeAboutTeamMemberImageFile={removeAboutTeamMemberImageFile}
+            moveAboutTeamMemberImageFile={moveAboutTeamMemberImageFile}
             handleFileSelection={handleFileSelection}
           />
         </AdminErrorBoundary>

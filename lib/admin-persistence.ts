@@ -69,6 +69,49 @@ export type ProjectMediaState = {
   uploadedVideo: string;
 };
 
+export type TeamMemberValidationIssue = {
+  index: number;
+  missing: Array<"name" | "portrait">;
+};
+
+/**
+ * Finds the first partially completed team member before Site Settings save.
+ *
+ * Public team cards require both a name and a portrait. A queued portrait
+ * counts as present even though its final Storage URL is only known during the
+ * save operation.
+ */
+export function findIncompleteTeamMember(
+  members: TeamMember[],
+  queuedPortraitIndexes: number[] = []
+): TeamMemberValidationIssue | null {
+  const queuedIndexes = new Set(queuedPortraitIndexes);
+
+  for (const [index, member] of members.entries()) {
+    const name = member.name.trim();
+    const hasPortrait =
+      Boolean(member.image.trim()) || queuedIndexes.has(index);
+    const hasContent =
+      Boolean(name) ||
+      Boolean(member.title.trim()) ||
+      Boolean(member.position.trim()) ||
+      Boolean(member.description.trim()) ||
+      hasPortrait;
+
+    if (!hasContent) continue;
+
+    const missing: TeamMemberValidationIssue["missing"] = [];
+    if (!name) missing.push("name");
+    if (!hasPortrait) missing.push("portrait");
+
+    if (missing.length > 0) {
+      return { index, missing };
+    }
+  }
+
+  return null;
+}
+
 /**
  * Validates and upgrades an unknown browser draft into current project form
  * state.

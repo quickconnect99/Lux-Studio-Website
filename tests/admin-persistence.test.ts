@@ -4,6 +4,7 @@ import {
   buildLocalProject,
   buildProjectDatabasePayload,
   buildSiteSettingsDatabasePayload,
+  findIncompleteTeamMember,
   getOversizedFiles,
   getProjectMediaState,
   restoreProjectDraft
@@ -145,6 +146,28 @@ test("persists an intentionally empty Frames in Motion selection", () => {
 
   assert.deepEqual(payload.motion_frames, []);
   assert.deepEqual(normalizeMotionFrames(payload.motion_frames), []);
+});
+
+test("requires a name and portrait for partially completed team members", () => {
+  const member = {
+    name: "Jamie Doe",
+    title: "Producer",
+    position: "Production",
+    description: "Coordinates the production.",
+    image: ""
+  };
+
+  assert.deepEqual(findIncompleteTeamMember([member]), {
+    index: 0,
+    missing: ["portrait"]
+  });
+  assert.equal(findIncompleteTeamMember([member], [0]), null);
+  assert.equal(
+    findIncompleteTeamMember([
+      { name: "", title: "", position: "", description: "", image: "" }
+    ]),
+    null
+  );
 });
 
 test("round-trips escaped delimiters in structured settings text", () => {

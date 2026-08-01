@@ -7,8 +7,6 @@ import type {
   ProjectFormState,
   SiteSettingsFormState
 } from "@/lib/admin-types";
-import { toSiteSettingsFormState } from "@/lib/admin-utils";
-import { normalizeSiteSettingsRecord } from "@/lib/supabase";
 
 /**
  * Creates the canonical project comparison string used by Dirty State checks.
@@ -30,15 +28,13 @@ export function serializeProjectFormState(formState: ProjectFormState) {
 /**
  * Creates a canonical Site Settings comparison string.
  *
- * The value is round-tripped through database normalization, and `updatedAt`
- * is omitted because a server timestamp is not an editor change.
+ * The database payload already normalizes structured arrays and omits
+ * `updatedAt`. Comparing it directly is important for incomplete editor rows:
+ * public display normalization intentionally hides a team member without a
+ * portrait, but the admin must still treat that newly added row as unsaved.
  */
 export function serializeSiteSettingsFormState(
   formState: SiteSettingsFormState
 ) {
-  const normalized = toSiteSettingsFormState(
-    normalizeSiteSettingsRecord(buildSiteSettingsDatabasePayload(formState))
-  );
-
-  return JSON.stringify({ ...normalized, updatedAt: undefined });
+  return JSON.stringify(buildSiteSettingsDatabasePayload(formState));
 }

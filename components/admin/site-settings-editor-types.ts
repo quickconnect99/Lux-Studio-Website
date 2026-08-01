@@ -24,6 +24,8 @@ export type SiteSettingsEditorProps = {
   addAboutTeamGalleryFiles?: (files: File[]) => void;
   removeAboutTeamGalleryFile?: (index: number) => void;
   setAboutTeamMemberImageFile?: (index: number, file: File | null) => void;
+  removeAboutTeamMemberImageFile?: (index: number) => void;
+  moveAboutTeamMemberImageFile?: (fromIndex: number, toIndex: number) => void;
   handleFileSelection?: (
     event: ChangeEvent<HTMLInputElement>,
     type: "cover" | "video" | "siteHeroVideo"
@@ -44,6 +46,8 @@ export type SiteSettingsFieldsProps = Pick<
   | "addAboutTeamGalleryFiles"
   | "removeAboutTeamGalleryFile"
   | "setAboutTeamMemberImageFile"
+  | "removeAboutTeamMemberImageFile"
+  | "moveAboutTeamMemberImageFile"
   | "handleFileSelection"
 >;
 

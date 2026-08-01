@@ -3,7 +3,10 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { useForm } from "@/hooks/use-form";
-import { buildSiteSettingsDatabasePayload } from "@/lib/admin-persistence";
+import {
+  buildSiteSettingsDatabasePayload,
+  findIncompleteTeamMember
+} from "@/lib/admin-persistence";
 import { serializeSiteSettingsFormState } from "@/lib/admin-form-snapshots";
 import { buildSiteSettingsSaveReport } from "@/lib/admin-save-report";
 import { toAdminOperationError } from "@/lib/admin-result";
@@ -214,6 +217,19 @@ export function useAdminSiteSettings({
 
         if (!sessionEmail) {
           showStatus("Sign in to save global site settings.");
+          return false;
+        }
+
+        const incompleteTeamMember = findIncompleteTeamMember(
+          formState.aboutTeamMembers,
+          aboutTeamMemberImageFiles.map((item) => item.index)
+        );
+
+        if (incompleteTeamMember) {
+          const missingFields = incompleteTeamMember.missing.join(" and ");
+          showStatus(
+            `Complete team member ${incompleteTeamMember.index + 1}: add a ${missingFields}.`
+          );
           return false;
         }
 

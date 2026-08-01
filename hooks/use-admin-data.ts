@@ -151,6 +151,8 @@ export function useAdminData() {
     addAboutTeamGalleryFiles,
     removeAboutTeamGalleryFile,
     setAboutTeamMemberImageFile,
+    removeAboutTeamMemberImageFile,
+    moveAboutTeamMemberImageFile,
     handleFileSelection,
     clearMedia,
     clearSiteSettingsMedia
@@ -778,6 +780,8 @@ export function useAdminData() {
     addAboutTeamGalleryFiles,
     removeAboutTeamGalleryFile,
     setAboutTeamMemberImageFile,
+    removeAboutTeamMemberImageFile,
+    moveAboutTeamMemberImageFile,
     formState,
     isTemplateProject,
     updateField,

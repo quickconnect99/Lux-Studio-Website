@@ -45,3 +45,25 @@ test("site settings snapshots normalize arrays and ignore updated_at", () => {
     serializeSiteSettingsFormState(equivalent)
   );
 });
+
+test("site settings snapshots retain a newly added team member without a portrait", () => {
+  const base = toSiteSettingsFormState(defaultSiteSettings);
+  const withNewMember = {
+    ...base,
+    aboutTeamMembers: [
+      ...base.aboutTeamMembers,
+      {
+        name: "Jamie Doe",
+        title: "Producer",
+        position: "Production",
+        description: "Coordinates the production.",
+        image: ""
+      }
+    ]
+  };
+
+  assert.notEqual(
+    serializeSiteSettingsFormState(base),
+    serializeSiteSettingsFormState(withNewMember)
+  );
+});
