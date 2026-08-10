@@ -56,10 +56,6 @@ export default async function HomePage() {
         label={settings.copy.home.selectedWorkLabel}
       />
 
-      <BusinessFocus cards={businessCards} />
-
-      <FeaturedProjects projects={featuredProjects} />
-
       <HorizontalStillStrip
         frames={motionFrames}
         direction="right"
@@ -69,6 +65,10 @@ export default async function HomePage() {
         ariaLabel="Frames in Motion projects. Select an image to open the related project."
         imageAltPrefix="Project frame"
       />
+
+      <FeaturedProjects projects={featuredProjects} />
+
+      <BusinessFocus cards={businessCards} />
 
       <section className="section-shell section-space-tight pt-0">
         <div className="dark-panel rounded-[1.5rem] p-5 text-white sm:rounded-[2.5rem] sm:p-12">
