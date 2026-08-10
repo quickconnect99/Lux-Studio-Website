@@ -7,6 +7,7 @@ create table if not exists public.email_settings (
   smtp_password text,
   inquiry_email_to text,
   inquiry_email_from text,
+  verified_at timestamptz,
   updated_at timestamptz not null default now()
 );
 
@@ -17,6 +18,10 @@ alter table public.email_settings enable row level security;
 -- site_settings, which is public-readable): only the service-role-only
 -- /api/admin/email-settings route and the server-only email sender read
 -- or write it.
+--
+-- verified_at is set only by a successful "send test email" from the admin
+-- panel, and cleared on every save, so the panel can show "not working yet"
+-- until the current configuration has actually been proven to send.
 revoke all on table public.email_settings from anon, authenticated;
 grant select, insert, update on table public.email_settings to service_role;
 

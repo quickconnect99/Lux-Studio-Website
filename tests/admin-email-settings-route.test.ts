@@ -13,7 +13,8 @@ const storedRow: EmailSettingsRow = {
   smtp_user: "studio@example.com",
   smtp_password: "stored-secret",
   inquiry_email_to: "team@example.com",
-  inquiry_email_from: "Lux Studio <studio@example.com>",
+  inquiry_email_from: "studio@example.com",
+  verified_at: null,
   updated_at: "2026-08-10T12:00:00.000Z"
 };
 
@@ -42,6 +43,10 @@ function createDependencies(overrides: Record<string, unknown> = {}) {
     getSettings: async () => storedRow,
     saveSettings: async () => ({ data: storedRow, error: null }),
     sendTest: async () => {},
+    markVerified: async () => ({
+      data: { ...storedRow, verified_at: "2026-08-10T12:05:00.000Z" },
+      error: null
+    }),
     ...overrides
   };
 }
@@ -213,4 +218,104 @@ test("test action reports a friendly error when sending fails", async () => {
   );
 
   assert.equal(response.status, 502);
+});
+
+test("marks the saved configuration verified when a matching test succeeds", async () => {
+  let markedVerified = false;
+  const handler = createEmailSettingsPostHandler(
+    createDependencies({
+      markVerified: async () => {
+        markedVerified = true;
+        return {
+          data: { ...storedRow, verified_at: "2026-08-10T12:05:00.000Z" },
+          error: null
+        };
+      }
+    })
+  );
+
+  const response = await handler(
+    createRequest("POST", {
+      headers: authHeaders,
+      body: {
+        action: "test",
+        smtpHost: storedRow.smtp_host,
+        smtpPort: storedRow.smtp_port,
+        smtpSecure: storedRow.smtp_secure,
+        smtpUser: storedRow.smtp_user,
+        smtpPassword: "",
+        inquiryEmailTo: storedRow.inquiry_email_to,
+        inquiryEmailFrom: storedRow.inquiry_email_from
+      }
+    })
+  );
+
+  assert.equal(response.status, 200);
+  assert.equal(markedVerified, true);
+  const body = await response.json();
+  assert.equal(body.settings.isVerified, true);
+});
+
+test("does not mark verified when testing unsaved draft values", async () => {
+  let markedVerified = false;
+  const handler = createEmailSettingsPostHandler(
+    createDependencies({
+      markVerified: async () => {
+        markedVerified = true;
+        return { data: storedRow, error: null };
+      }
+    })
+  );
+
+  const response = await handler(
+    createRequest("POST", {
+      headers: authHeaders,
+      body: {
+        action: "test",
+        smtpHost: "different-draft-host.example.com",
+        smtpPort: storedRow.smtp_port,
+        smtpSecure: storedRow.smtp_secure,
+        smtpUser: storedRow.smtp_user,
+        smtpPassword: "",
+        inquiryEmailTo: storedRow.inquiry_email_to,
+        inquiryEmailFrom: storedRow.inquiry_email_from
+      }
+    })
+  );
+
+  assert.equal(response.status, 200);
+  assert.equal(markedVerified, false);
+  const body = await response.json();
+  assert.ok(!("settings" in body));
+  assert.match(body.message, /Save these settings/);
+});
+
+test("does not mark verified when a new, unsaved password is used for the test", async () => {
+  let markedVerified = false;
+  const handler = createEmailSettingsPostHandler(
+    createDependencies({
+      markVerified: async () => {
+        markedVerified = true;
+        return { data: storedRow, error: null };
+      }
+    })
+  );
+
+  await handler(
+    createRequest("POST", {
+      headers: authHeaders,
+      body: {
+        action: "test",
+        smtpHost: storedRow.smtp_host,
+        smtpPort: storedRow.smtp_port,
+        smtpSecure: storedRow.smtp_secure,
+        smtpUser: storedRow.smtp_user,
+        smtpPassword: "not-yet-saved-password",
+        inquiryEmailTo: storedRow.inquiry_email_to,
+        inquiryEmailFrom: storedRow.inquiry_email_from
+      }
+    })
+  );
+
+  assert.equal(markedVerified, false);
 });

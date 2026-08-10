@@ -62,6 +62,7 @@ function storedRow(overrides: Partial<EmailSettingsRow> = {}): EmailSettingsRow 
     smtp_password: "db-password",
     inquiry_email_to: "db-to@example.com",
     inquiry_email_from: "DB Sender <db-from@example.com>",
+    verified_at: "2026-08-09T00:00:00.000Z",
     updated_at: "2026-08-10T00:00:00.000Z",
     ...overrides
   };

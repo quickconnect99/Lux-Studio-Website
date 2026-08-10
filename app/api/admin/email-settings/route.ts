@@ -2,6 +2,7 @@ import { createClient } from "@supabase/supabase-js";
 import { NextResponse } from "next/server";
 import {
   fetchStoredEmailSettings,
+  markEmailSettingsVerified,
   saveEmailSettings,
   toPublicEmailSettings
 } from "@/lib/email-settings";
@@ -31,6 +32,7 @@ type EmailSettingsDependencies = {
     input: EmailSettingsInput
   ) => Promise<{ data: EmailSettingsRow | null; error: unknown }>;
   sendTest: (config: SmtpConfig) => Promise<void>;
+  markVerified: () => Promise<{ data: EmailSettingsRow | null; error: unknown }>;
 };
 
 function createDefaultDependencies(): EmailSettingsDependencies | null {
@@ -54,7 +56,11 @@ function createDefaultDependencies(): EmailSettingsDependencies | null {
       const { data, error } = await saveEmailSettings(adminClient, input);
       return { data: data as EmailSettingsRow | null, error };
     },
-    sendTest: (config) => sendTestInquiryEmail(config)
+    sendTest: (config) => sendTestInquiryEmail(config),
+    async markVerified() {
+      const { data, error } = await markEmailSettingsVerified(adminClient);
+      return { data: data as EmailSettingsRow | null, error };
+    }
   };
 }
 
@@ -174,22 +180,45 @@ function validateSettingsInput(body: Record<string, unknown>) {
   };
 }
 
+/**
+ * A test only certifies the saved configuration (and clears the "not
+ * working yet" banner) when every tested field matches what is currently
+ * saved. Testing unsaved draft values still sends a real email, but does
+ * not mark the saved row as verified.
+ */
+function configMatchesStoredRow(
+  input: EmailSettingsInput,
+  stored: EmailSettingsRow | null
+) {
+  if (!stored || input.smtpPassword) {
+    return false;
+  }
+
+  return (
+    input.smtpHost === stored.smtp_host &&
+    input.smtpPort === stored.smtp_port &&
+    input.smtpSecure === stored.smtp_secure &&
+    input.smtpUser === stored.smtp_user &&
+    input.inquiryEmailTo === stored.inquiry_email_to &&
+    input.inquiryEmailFrom === stored.inquiry_email_from
+  );
+}
+
 async function resolveTestConfig(
   body: Record<string, unknown>,
   dependencies: EmailSettingsDependencies
-): Promise<{ config: SmtpConfig } | { error: string }> {
+): Promise<
+  | { config: SmtpConfig; matchesStoredConfig: boolean }
+  | { error: string }
+> {
   const { errors, input } = validateSettingsInput(body);
 
   if (Object.keys(errors).length > 0) {
     return { error: Object.values(errors)[0] };
   }
 
-  let password = input.smtpPassword;
-
-  if (!password) {
-    const stored = await dependencies.getSettings();
-    password = stored?.smtp_password ?? undefined;
-  }
+  const stored = await dependencies.getSettings();
+  const password = input.smtpPassword || stored?.smtp_password || undefined;
 
   if (!password) {
     return {
@@ -206,7 +235,8 @@ async function resolveTestConfig(
       password,
       to: input.inquiryEmailTo,
       from: input.inquiryEmailFrom
-    }
+    },
+    matchesStoredConfig: configMatchesStoredRow(input, stored)
   };
 }
 
@@ -284,13 +314,27 @@ export function createEmailSettingsPostHandler(
         );
       }
 
+      let verifiedSettings: PublicEmailSettings | undefined;
+      if (resolved.matchesStoredConfig) {
+        const { data } = await resolvedDependencies.markVerified();
+        if (data) {
+          verifiedSettings = toPublicEmailSettings(data);
+        }
+      }
+
       logServerEvent({
         level: "info",
         event: "admin_email_settings.test_sent",
-        requestId
+        requestId,
+        context: { markedVerified: Boolean(verifiedSettings) }
       });
       return jsonResponse(
-        { message: `Test email sent to ${resolved.config.to}.` },
+        {
+          message: verifiedSettings
+            ? `Test email sent to ${resolved.config.to}. Saved settings are now marked as verified.`
+            : `Test email sent to ${resolved.config.to}. Save these settings, then test again to mark them verified.`,
+          ...(verifiedSettings ? { settings: verifiedSettings } : {})
+        },
         200,
         requestId
       );

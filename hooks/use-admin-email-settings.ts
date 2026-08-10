@@ -60,6 +60,8 @@ export function useAdminEmailSettings() {
     emptyFormState
   );
   const [hasStoredPassword, setHasStoredPassword] = useState(false);
+  const [isVerified, setIsVerified] = useState(false);
+  const [verifiedAt, setVerifiedAt] = useState<string | null>(null);
   const [updatedAt, setUpdatedAt] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -103,6 +105,8 @@ export function useAdminEmailSettings() {
       if (settings) {
         setFormState(toFormState(settings));
         setHasStoredPassword(settings.hasSmtpPassword);
+        setIsVerified(settings.isVerified);
+        setVerifiedAt(settings.verifiedAt);
         setUpdatedAt(settings.updatedAt);
       }
     } catch {
@@ -151,9 +155,11 @@ export function useAdminEmailSettings() {
       if (settings) {
         setFormState(toFormState(settings));
         setHasStoredPassword(settings.hasSmtpPassword);
+        setIsVerified(settings.isVerified);
+        setVerifiedAt(settings.verifiedAt);
         setUpdatedAt(settings.updatedAt);
       }
-      setStatusMessage("Email settings saved.");
+      setStatusMessage("Email settings saved. Send a test email to confirm they work.");
       return true;
     } catch {
       setError("The email settings could not be saved.");
@@ -199,6 +205,12 @@ export function useAdminEmailSettings() {
         return false;
       }
 
+      const settings = body?.settings as PublicEmailSettings | undefined;
+      if (settings) {
+        setIsVerified(settings.isVerified);
+        setVerifiedAt(settings.verifiedAt);
+        setUpdatedAt(settings.updatedAt);
+      }
       setStatusMessage(body?.message ?? "Test email sent.");
       return true;
     } catch {
@@ -212,6 +224,8 @@ export function useAdminEmailSettings() {
   return {
     formState,
     hasStoredPassword,
+    isVerified,
+    verifiedAt,
     updatedAt,
     loading,
     saving,
