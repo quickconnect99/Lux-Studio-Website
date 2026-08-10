@@ -54,7 +54,7 @@ export function HomeHero({ hero, copy }: HomeHeroProps) {
       );
     }
 
-    function syncPlayback() {
+    const syncPlayback = () => {
       if (!canAutoPlay()) {
         video.pause();
         setIsPlaying(false);
@@ -74,7 +74,7 @@ export function HomeHero({ hero, copy }: HomeHeroProps) {
         .catch(() => {
           if (!disposed) setIsPlaying(false);
         });
-    }
+    };
 
     const observer = new IntersectionObserver(
       ([entry]) => {
