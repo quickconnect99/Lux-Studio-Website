@@ -8,7 +8,7 @@ import type {
   TeamMember
 } from "@/lib/types";
 
-export type AdminTab = "projects" | "settings" | "users";
+export type AdminTab = "projects" | "settings" | "users" | "email";
 
 export type AdminAccountSummary = {
   id: string;

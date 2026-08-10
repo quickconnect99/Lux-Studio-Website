@@ -11,6 +11,7 @@ import {
   Lock,
   LogIn,
   LogOut,
+  Mail,
   Monitor,
   PanelLeftClose,
   PanelLeftOpen,
@@ -89,6 +90,17 @@ const AdminUsersPanel = dynamic(
   {
     ssr: false,
     loading: () => <AdminModuleLoading label="admin access" />
+  }
+);
+
+const AdminEmailSettingsPanel = dynamic(
+  () =>
+    import("@/components/admin/admin-email-settings-panel").then(
+      (module) => module.AdminEmailSettingsPanel
+    ),
+  {
+    ssr: false,
+    loading: () => <AdminModuleLoading label="email settings" />
   }
 );
 
@@ -381,6 +393,20 @@ export function AdminDashboard() {
                   <Users className="h-3.5 w-3.5" />
                   Admin Access
                 </button>
+                <button
+                  type="button"
+                  onClick={() => setActiveTab("email")}
+                  role="tab"
+                  aria-selected={activeTab === "email"}
+                  className={`inline-flex min-h-11 items-center gap-2 rounded-full px-4 py-2 text-xs uppercase tracking-eyebrow transition-colors ${
+                    activeTab === "email"
+                      ? "bg-foreground text-background"
+                      : "text-muted hover:text-foreground"
+                  }`}
+                >
+                  <Mail className="h-3.5 w-3.5" />
+                  Email
+                </button>
               </div>
             ) : null}
             <AdminThemeChip />
@@ -426,7 +452,7 @@ export function AdminDashboard() {
                 Sign Out
               </button>
             ) : null}
-            {canEditCms && activeTab !== "users" ? (
+            {canEditCms && activeTab !== "users" && activeTab !== "email" ? (
               <button
                 type="button"
                 onClick={handleResetClick}
@@ -808,6 +834,13 @@ export function AdminDashboard() {
       {canEditCms && activeTab === "users" ? (
         <AdminErrorBoundary panelLabel="admin access">
           <AdminUsersPanel />
+        </AdminErrorBoundary>
+      ) : null}
+
+      {/* TAB: EMAIL SETTINGS */}
+      {canEditCms && activeTab === "email" ? (
+        <AdminErrorBoundary panelLabel="email settings">
+          <AdminEmailSettingsPanel />
         </AdminErrorBoundary>
       ) : null}
 

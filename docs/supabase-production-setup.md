@@ -111,6 +111,11 @@ SMTP_PASSWORD=<gemeinsam-mit-smtp-host>
 INQUIRY_EMAIL_TO=<gemeinsam-mit-smtp-host>
 ```
 
+Die SMTP-Zeilen sind nur ein Fallback. Empfohlen: SMTP-Host, Zugangsdaten und
+Empfaenger-Adresse direkt unter `/admin` -> Email eintragen (inklusive
+"Send test email"-Aktion); diese Werte werden in `public.email_settings`
+gespeichert und haben Vorrang vor den Env-Variablen.
+
 ## Admin-Zugriff
 
 Der Zugriff auf `/admin` verwendet direkt Supabase Auth:

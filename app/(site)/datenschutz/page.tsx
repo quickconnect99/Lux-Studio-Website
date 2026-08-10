@@ -14,6 +14,7 @@ import {
   resolveSharingImage
 } from "@/lib/sharing-metadata";
 import { getInquiryRetentionDays } from "@/lib/inquiry-retention";
+import { isInquiryEmailConfigured } from "@/lib/email";
 import { getSiteSettings } from "@/lib/supabase";
 
 const pageTitle = "Privacy Policy";
@@ -68,6 +69,7 @@ export default async function PrivacyPage() {
   const missingFields = getMissingPrivacyFields();
   const businessAddress = getFormattedBusinessAddress();
   const inquiryRetentionDays = getInquiryRetentionDays();
+  const emailNotificationsConfigured = await isInquiryEmailConfigured();
 
   return (
     <>
@@ -208,9 +210,7 @@ export default async function PrivacyPage() {
               duty, or the establishment, exercise, or defence of legal claims
               requires it.
             </p>
-            {process.env.SMTP_HOST &&
-            process.env.SMTP_USER &&
-            process.env.INQUIRY_EMAIL_TO ? (
+            {emailNotificationsConfigured ? (
               <p>
                 We use our configured email provider to deliver an internal
                 email notification about a new inquiry. For that delivery,
