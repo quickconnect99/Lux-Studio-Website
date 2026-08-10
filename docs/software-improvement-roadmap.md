@@ -67,7 +67,7 @@ Abnahme:
 - [x] `Retry-After` für Limits senden; interne Secret-Namen nicht öffentlich
   ausgeben.
 - [x] E-Mail-Aufruf begrenzen und gegen doppelte Zustellung absichern.
-- [x] Resend-Datenfluss und konkrete Aufbewahrung in der Privacy-Seite abbilden.
+- [x] E-Mail-Anbieter-Datenfluss und konkrete Aufbewahrung in der Privacy-Seite abbilden.
 - [x] Automatisierten Retention-Pfad für alte Inquiries bereitstellen.
   Status: Migration, geschützte Cron-Route und Zeitplan sind im Repository
   vorhanden; angewendete Production-Migration und tatsächliche Cron-Ausführung
@@ -183,8 +183,8 @@ Repositories und bleiben bis zu einem dokumentierten Nachweis offen:
   Session-Limits und Admin-Allowlist prüfen.
 - [ ] Vercel- und Supabase-Datenregion sowie DPA/SCC verifizieren.
 - [ ] Monitoring-Anbieter, Datenregion, Aufbewahrung und Zugriffsrechte freigeben.
-- [ ] Resend-Datenverarbeitung und Rechtstexte fachlich beziehungsweise juristisch
-  abnehmen.
+- [ ] SMTP-Anbieter-Datenverarbeitung und Rechtstexte fachlich beziehungsweise
+  juristisch abnehmen.
 - [ ] Production-Migrationen anwenden sowie Vercel-Plan und Ausführung beider
   Cron-Jobs nachweisen.
 - [ ] Aufbewahrung bereits zugestellter Inquiry-E-Mails im Empfängerpostfach

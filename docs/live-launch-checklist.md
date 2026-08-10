@@ -34,9 +34,12 @@ TRUSTED_PROXY_IP_HEADER=x-vercel-forwarded-for
 INQUIRY_RETENTION_DAYS=365
 INQUIRY_EMAIL_TIMEOUT_MS=8000
 CRON_SECRET=<mindestens-32-zufaellige-zeichen>
-RESEND_API_KEY=<optional-resend-key>
-INQUIRY_EMAIL_TO=<nur-gemeinsam-mit-resend-key>
-INQUIRY_EMAIL_FROM=<optionaler-verifizierter-absender>
+SMTP_HOST=<optional, z.B. smtp.deinprovider.tld>
+SMTP_PORT=587
+SMTP_USER=<nur-gemeinsam-mit-smtp-host>
+SMTP_PASSWORD=<nur-gemeinsam-mit-smtp-host>
+INQUIRY_EMAIL_TO=<nur-gemeinsam-mit-smtp-host>
+INQUIRY_EMAIL_FROM=<optionaler-absender, faellt sonst auf SMTP_USER zurueck>
 ```
 
 - `npm run env:check` mit den Production-Werten ausfuehren; `npm run build`
@@ -94,7 +97,7 @@ nachvollziehbare Evidenz vorliegt:
       Projekt erfolgreich testen
 - [ ] offene Auth-Signups im Production-Projekt deaktivieren, Admin-Userliste
       pruefen und MFA fuer alle Admins aktivieren
-- [ ] Supabase-, Vercel- und Resend-Regionen sowie DPA/SCC/AV-Vertraege pruefen
+- [ ] Supabase-, Vercel- und E-Mail/SMTP-Provider-Regionen sowie DPA/SCC/AV-Vertraege pruefen
 - [ ] Aufbewahrung im Empfaenger-Postfach auf die freigegebene Frist abstimmen
 - [ ] finale Rechtsfreigabe fuer Impressum, Datenschutzerklaerung,
       Rechtsgrundlagen und Aufbewahrungsfrist dokumentieren

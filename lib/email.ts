@@ -1,24 +1,35 @@
 import "server-only";
 
+import nodemailer from "nodemailer";
 import type { Inquiry } from "@/lib/types";
 
 const DEFAULT_EMAIL_TIMEOUT_MS = 8_000;
 const MINIMUM_EMAIL_TIMEOUT_MS = 1_000;
 const MAXIMUM_EMAIL_TIMEOUT_MS = 30_000;
+const DEFAULT_SMTP_PORT = 587;
 
 function getInquiryEmailConfiguration() {
+  const smtpUser = process.env.SMTP_USER;
+  const smtpPort = Number(process.env.SMTP_PORT ?? DEFAULT_SMTP_PORT);
+
   return {
-    resendApiKey: process.env.RESEND_API_KEY,
+    smtpHost: process.env.SMTP_HOST,
+    smtpPort: Number.isInteger(smtpPort) ? smtpPort : DEFAULT_SMTP_PORT,
+    smtpSecure: process.env.SMTP_SECURE
+      ? process.env.SMTP_SECURE === "true"
+      : smtpPort === 465,
+    smtpUser,
+    smtpPassword: process.env.SMTP_PASSWORD,
     inquiryEmailTo: process.env.INQUIRY_EMAIL_TO,
-    inquiryEmailFrom:
-      process.env.INQUIRY_EMAIL_FROM ?? "Lux Studio <onboarding@resend.dev>"
+    inquiryEmailFrom: process.env.INQUIRY_EMAIL_FROM ?? smtpUser
   };
 }
 
 /** Reports whether all server-only values required for inquiry email are set. */
 export function isInquiryEmailConfigured() {
-  const { resendApiKey, inquiryEmailTo } = getInquiryEmailConfiguration();
-  return Boolean(resendApiKey && inquiryEmailTo);
+  const { smtpHost, smtpUser, smtpPassword, inquiryEmailTo } =
+    getInquiryEmailConfiguration();
+  return Boolean(smtpHost && smtpUser && smtpPassword && inquiryEmailTo);
 }
 
 export function getInquiryEmailTimeoutMs(
@@ -88,47 +99,63 @@ function formatHtmlInquiry(inquiry: Inquiry) {
 }
 
 /**
- * Sends one sanitized inquiry through Resend.
+ * Sends one sanitized inquiry through the configured SMTP mailbox.
  *
  * Missing email configuration is a deliberate skip rather than an error,
  * allowing database persistence to work without the optional notification.
- * Non-success responses throw so the API route can record/report delivery
- * failure separately.
+ * Send failures throw so the API route can record/report delivery failure
+ * separately.
  */
 export async function sendInquiryEmail(
   inquiry: Inquiry,
   {
     idempotencyKey,
-    timeoutMs = getInquiryEmailTimeoutMs()
-  }: { idempotencyKey?: string; timeoutMs?: number } = {}
+    timeoutMs = getInquiryEmailTimeoutMs(),
+    createTransport = nodemailer.createTransport
+  }: {
+    idempotencyKey?: string;
+    timeoutMs?: number;
+    createTransport?: typeof nodemailer.createTransport;
+  } = {}
 ) {
-  const { resendApiKey, inquiryEmailTo, inquiryEmailFrom } =
-    getInquiryEmailConfiguration();
+  const {
+    smtpHost,
+    smtpPort,
+    smtpSecure,
+    smtpUser,
+    smtpPassword,
+    inquiryEmailTo,
+    inquiryEmailFrom
+  } = getInquiryEmailConfiguration();
 
-  if (!resendApiKey || !inquiryEmailTo) {
+  if (!smtpHost || !smtpUser || !smtpPassword || !inquiryEmailTo) {
     return { skipped: true };
   }
 
-  const response = await fetch("https://api.resend.com/emails", {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${resendApiKey}`,
-      "Content-Type": "application/json",
-      ...(idempotencyKey ? { "Idempotency-Key": idempotencyKey } : {})
-    },
-    signal: AbortSignal.timeout(timeoutMs),
-    body: JSON.stringify({
-      from: inquiryEmailFrom,
-      to: inquiryEmailTo,
-      reply_to: inquiry.email,
-      subject: `New inquiry from ${inquiry.name}`,
-      text: formatPlainTextInquiry(inquiry),
-      html: formatHtmlInquiry(inquiry)
-    })
+  const transporter = createTransport({
+    host: smtpHost,
+    port: smtpPort,
+    secure: smtpSecure,
+    auth: { user: smtpUser, pass: smtpPassword },
+    connectionTimeout: timeoutMs,
+    greetingTimeout: timeoutMs,
+    socketTimeout: timeoutMs
   });
 
-  if (!response.ok) {
-    throw new Error(`Resend email failed with status ${response.status}.`);
+  try {
+    await transporter.sendMail({
+      from: inquiryEmailFrom,
+      to: inquiryEmailTo,
+      replyTo: inquiry.email,
+      subject: `New inquiry from ${inquiry.name}`,
+      text: formatPlainTextInquiry(inquiry),
+      html: formatHtmlInquiry(inquiry),
+      ...(idempotencyKey
+        ? { messageId: `<${idempotencyKey}@lux-studio-inquiries>` }
+        : {})
+    });
+  } finally {
+    transporter.close();
   }
 
   return { skipped: false };

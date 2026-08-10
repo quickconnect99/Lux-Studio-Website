@@ -81,11 +81,16 @@ export function getProductionEnvironmentErrors(environment = process.env) {
     );
   }
 
-  const resendConfigured = hasValue(environment.RESEND_API_KEY);
-  const recipientConfigured = hasValue(environment.INQUIRY_EMAIL_TO);
-  if (resendConfigured !== recipientConfigured) {
+  const emailFields = [
+    environment.SMTP_HOST,
+    environment.SMTP_USER,
+    environment.SMTP_PASSWORD,
+    environment.INQUIRY_EMAIL_TO
+  ];
+  const configuredEmailFields = emailFields.filter(hasValue).length;
+  if (configuredEmailFields > 0 && configuredEmailFields < emailFields.length) {
     errors.push(
-      "RESEND_API_KEY and INQUIRY_EMAIL_TO must either both be configured or both be omitted."
+      "SMTP_HOST, SMTP_USER, SMTP_PASSWORD, and INQUIRY_EMAIL_TO must either all be configured or all be omitted."
     );
   }
 

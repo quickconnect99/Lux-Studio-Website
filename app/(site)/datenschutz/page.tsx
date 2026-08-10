@@ -208,14 +208,17 @@ export default async function PrivacyPage() {
               duty, or the establishment, exercise, or defence of legal claims
               requires it.
             </p>
-            {process.env.RESEND_API_KEY && process.env.INQUIRY_EMAIL_TO ? (
+            {process.env.SMTP_HOST &&
+            process.env.SMTP_USER &&
+            process.env.INQUIRY_EMAIL_TO ? (
               <p>
-                We use Resend to deliver an internal email notification about a
-                new inquiry. For that delivery, the same form fields are
-                transmitted to Resend and then delivered to our configured
-                business mailbox. The mailbox copy is subject to the same
-                purpose limitation and must be deleted when it is no longer
-                needed, unless a legal obligation requires longer retention.
+                We use our configured email provider to deliver an internal
+                email notification about a new inquiry. For that delivery,
+                the same form fields are transmitted through that provider
+                and then delivered to our configured business mailbox. The
+                mailbox copy is subject to the same purpose limitation and
+                must be deleted when it is no longer needed, unless a legal
+                obligation requires longer retention.
               </p>
             ) : null}
             <p>

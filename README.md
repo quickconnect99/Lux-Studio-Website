@@ -48,7 +48,7 @@ media storage.
 - SQL schema is in `supabase/schema.sql`.
 - Create a public storage bucket named `projects` or change `NEXT_PUBLIC_SUPABASE_STORAGE_BUCKET`.
 - Add `SUPABASE_SERVICE_ROLE_KEY` on the server so `/api/inquiries` can persist contact requests without exposing open client-side inserts.
-- Add `RESEND_API_KEY`, `INQUIRY_EMAIL_TO`, and optionally `INQUIRY_EMAIL_FROM` so saved inquiries also send an email notification.
+- Add `SMTP_HOST`, `SMTP_USER`, `SMTP_PASSWORD`, `INQUIRY_EMAIL_TO`, and optionally `SMTP_PORT`, `SMTP_SECURE`, `INQUIRY_EMAIL_FROM` so saved inquiries also send an email notification through that mailbox.
 - Production also requires `INQUIRY_RATE_LIMIT_SECRET`, `CRON_SECRET`,
   and an explicit `INQUIRY_RETENTION_DAYS`; `npm run build` validates
   deployment configuration before compiling.

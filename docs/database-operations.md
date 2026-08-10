@@ -81,7 +81,7 @@ service-role-only `delete_expired_inquiries(...)` function once per day.
 Verify each production run through the structured
 `inquiry.retention_completed` event and its `deletedCount`.
 
-The retention process deletes database inquiry rows. Resend delivery and the
+The retention process deletes database inquiry rows. SMTP delivery and the
 recipient mailbox create separate copies; their operational retention must be
 configured and approved separately. Never claim database retention also deletes
 those copies.
@@ -91,7 +91,7 @@ those copies.
 The outbox is stored on `inquiries` through `notification_status`,
 `notification_attempts`, `notification_last_attempt_at`, and
 `notification_sent_at`. Immediate delivery and Cron retries share the
-inquiry UUID as Resend's idempotency key.
+inquiry UUID as the outgoing message's ID.
 
 `claim_inquiry_notifications(...)` atomically claims at most 20 eligible
 rows with `FOR UPDATE SKIP LOCKED`, waits at least five minutes between

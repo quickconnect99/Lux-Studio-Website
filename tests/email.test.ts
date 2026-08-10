@@ -1,11 +1,15 @@
 import assert from "node:assert/strict";
 import { afterEach, test } from "node:test";
+import type nodemailer from "nodemailer";
 import { getInquiryEmailTimeoutMs, sendInquiryEmail } from "../lib/email";
 import type { Inquiry } from "../lib/types";
 
-const originalFetch = globalThis.fetch;
 const originalEnvironment = {
-  RESEND_API_KEY: process.env.RESEND_API_KEY,
+  SMTP_HOST: process.env.SMTP_HOST,
+  SMTP_PORT: process.env.SMTP_PORT,
+  SMTP_SECURE: process.env.SMTP_SECURE,
+  SMTP_USER: process.env.SMTP_USER,
+  SMTP_PASSWORD: process.env.SMTP_PASSWORD,
   INQUIRY_EMAIL_TO: process.env.INQUIRY_EMAIL_TO,
   INQUIRY_EMAIL_FROM: process.env.INQUIRY_EMAIL_FROM
 };
@@ -29,72 +33,73 @@ function restoreEnvironmentValue(
 }
 
 afterEach(() => {
-  globalThis.fetch = originalFetch;
   for (const [key, value] of Object.entries(originalEnvironment)) {
     restoreEnvironmentValue(key as keyof typeof originalEnvironment, value);
   }
 });
 
+function createFakeTransport(sendMail: (mail: unknown) => Promise<unknown>) {
+  return (() => ({
+    sendMail,
+    close: () => {}
+  })) as unknown as typeof nodemailer.createTransport;
+}
+
 test("skips inquiry email when the optional provider is not configured", async () => {
-  delete process.env.RESEND_API_KEY;
+  delete process.env.SMTP_HOST;
+  delete process.env.SMTP_USER;
+  delete process.env.SMTP_PASSWORD;
   delete process.env.INQUIRY_EMAIL_TO;
 
   assert.deepEqual(await sendInquiryEmail(inquiry), { skipped: true });
 });
 
-test("sends escaped HTML and a plain-text copy through Resend", async () => {
-  process.env.RESEND_API_KEY = "test-api-key";
+test("sends escaped HTML and a plain-text copy through SMTP", async () => {
+  process.env.SMTP_HOST = "smtp.example.com";
+  process.env.SMTP_PORT = "587";
+  process.env.SMTP_USER = "studio@example.com";
+  process.env.SMTP_PASSWORD = "app-password";
   process.env.INQUIRY_EMAIL_TO = "studio@example.com";
   process.env.INQUIRY_EMAIL_FROM = "Lux Test <sender@example.com>";
-  let capturedInit: RequestInit | undefined;
 
-  globalThis.fetch = async (_input, init) => {
-    capturedInit = init;
-    return new Response("{}", { status: 200 });
-  };
+  let capturedMail: Record<string, unknown> | undefined;
 
   assert.deepEqual(
     await sendInquiryEmail(inquiry, {
       idempotencyKey: "inquiry-123",
-      timeoutMs: 1_500
+      timeoutMs: 1_500,
+      createTransport: createFakeTransport(async (mail) => {
+        capturedMail = mail as Record<string, unknown>;
+        return { messageId: "test" };
+      })
     }),
     { skipped: false }
   );
-  assert.equal(
-    (capturedInit?.headers as Record<string, string>).Authorization,
-    "Bearer test-api-key"
-  );
-  assert.equal(
-    (capturedInit?.headers as Record<string, string>)["Idempotency-Key"],
-    "inquiry-123"
-  );
-  assert.ok(capturedInit?.signal instanceof AbortSignal);
 
-  const body = JSON.parse(String(capturedInit?.body)) as {
-    from: string;
-    to: string;
-    reply_to: string;
-    text: string;
-    html: string;
-  };
-  assert.equal(body.from, "Lux Test <sender@example.com>");
-  assert.equal(body.to, "studio@example.com");
-  assert.equal(body.reply_to, inquiry.email);
-  assert.match(body.text, /Cars & Co\./);
-  assert.doesNotMatch(body.html, /<script>/);
-  assert.match(body.html, /&lt;script&gt;/);
-  assert.match(body.html, /Cars &amp; Co\./);
+  assert.equal(capturedMail?.from, "Lux Test <sender@example.com>");
+  assert.equal(capturedMail?.to, "studio@example.com");
+  assert.equal(capturedMail?.replyTo, inquiry.email);
+  assert.equal(capturedMail?.messageId, "<inquiry-123@lux-studio-inquiries>");
+  assert.match(String(capturedMail?.text), /Cars & Co\./);
+  assert.doesNotMatch(String(capturedMail?.html), /<script>/);
+  assert.match(String(capturedMail?.html), /&lt;script&gt;/);
+  assert.match(String(capturedMail?.html), /Cars &amp; Co\./);
 });
 
-test("surfaces non-successful Resend responses", async () => {
-  process.env.RESEND_API_KEY = "test-api-key";
+test("surfaces SMTP send failures", async () => {
+  process.env.SMTP_HOST = "smtp.example.com";
+  process.env.SMTP_USER = "studio@example.com";
+  process.env.SMTP_PASSWORD = "app-password";
   process.env.INQUIRY_EMAIL_TO = "studio@example.com";
-  globalThis.fetch = async () =>
-    new Response("provider unavailable", { status: 503 });
 
   await assert.rejects(
-    () => sendInquiryEmail(inquiry),
-    /Resend email failed with status 503/
+    () =>
+      sendInquiryEmail(inquiry, {
+        createTransport: createFakeTransport(async () => {
+          throw new Error("SMTP connection refused");
+        })
+      }),
+    /SMTP connection refused/
   );
 });
 

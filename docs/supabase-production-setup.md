@@ -72,8 +72,7 @@ Die Migrationen `20260801000100` und `20260801000200` ergaenzen:
 - automatische, konfigurierbare Loeschung von Anfragen ueber einen
   service-role-geschuetzten Cron
 - dauerhaften E-Mail-Status und maximal fuenf Retry-Versuche
-- die Inquiry-ID als identischen Resend-Idempotency-Key fuer Erst- und
-  Folgeversuche
+- die Inquiry-ID als identische Message-ID fuer Erst- und Folgeversuche
 
 ## Wenn du das alte Schema schon einmal ausgefuehrt hast
 
@@ -105,8 +104,11 @@ TRUSTED_PROXY_IP_HEADER=x-vercel-forwarded-for
 INQUIRY_RETENTION_DAYS=365
 CRON_SECRET=<zufaelliges-cron-secret>
 INQUIRY_EMAIL_TIMEOUT_MS=8000
-RESEND_API_KEY=<optional>
-INQUIRY_EMAIL_TO=<gemeinsam-mit-resend-key>
+SMTP_HOST=<optional, z.B. smtp.deinprovider.tld>
+SMTP_PORT=587
+SMTP_USER=<gemeinsam-mit-smtp-host>
+SMTP_PASSWORD=<gemeinsam-mit-smtp-host>
+INQUIRY_EMAIL_TO=<gemeinsam-mit-smtp-host>
 ```
 
 ## Admin-Zugriff
