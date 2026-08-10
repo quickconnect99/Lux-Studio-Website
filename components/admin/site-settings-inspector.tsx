@@ -2,6 +2,7 @@
 
 import { Eye, EyeOff, Plus, Trash2 } from "lucide-react";
 import type { SiteSettingsFieldsProps } from "@/components/admin/site-settings-editor-types";
+import { ResilientImage } from "@/components/ui/resilient-image";
 import { cn } from "@/lib/utils";
 
 export function SiteSettingsInspector({
@@ -111,14 +112,26 @@ export function SiteSettingsInspector({
           Brand assets
         </p>
         <div className="mt-4 space-y-4">
-          <label className="block space-y-2 text-xs uppercase tracking-meta text-muted">
-            Brand mark
-            <input
-              value={formState.brandMark}
-              onChange={(event) => updateField("brandMark", event.target.value)}
-              className="input-field text-sm normal-case tracking-normal"
-            />
-          </label>
+          <div className="flex items-center gap-4 rounded-2xl border border-line bg-panel-secondary p-4">
+            <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-2xl border border-line bg-panel">
+              <ResilientImage
+                src="/images/brand/lux-studio-logo.svg"
+                alt=""
+                fill
+                sizes="56px"
+                className="object-cover"
+              />
+            </div>
+            <div>
+              <p className="text-xs uppercase tracking-meta text-foreground">
+                Public logo
+              </p>
+              <p className="mt-1 text-xs leading-5 text-muted">
+                The header mark uses the fixed Lux Studio logo asset so editor
+                and public preview stay consistent.
+              </p>
+            </div>
+          </div>
           <label className="block space-y-2 text-xs uppercase tracking-meta text-muted">
             Hero reel link
             <input

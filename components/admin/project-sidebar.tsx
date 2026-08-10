@@ -19,7 +19,7 @@ const FILTERS: { key: Filter; label: string }[] = [
   { key: "all", label: "All" },
   { key: "published", label: "Live" },
   { key: "draft", label: "Draft" },
-  { key: "featured", label: "★" }
+  { key: "featured", label: "Featured" }
 ];
 
 export function ProjectSidebar({
@@ -145,14 +145,24 @@ export function ProjectSidebar({
       </div>
 
       {/* Search */}
-      <div className="relative mt-4">
-        <Search className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted" />
-        <input
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          placeholder="Search projects…"
-          className="input-field pl-9 text-xs"
-        />
+      <div className="mt-4">
+        <label
+          htmlFor="project-search"
+          className="text-xs uppercase tracking-meta text-muted"
+        >
+          Search projects
+        </label>
+        <div className="relative mt-2">
+          <Search className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted" />
+          <input
+            id="project-search"
+            type="search"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Title, slug, or category"
+            className="input-field pl-9 text-xs"
+          />
+        </div>
       </div>
 
       {/* Filter tabs */}

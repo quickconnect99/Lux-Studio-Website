@@ -17,10 +17,12 @@ import {
   Pencil,
   RefreshCw,
   Settings,
-  UserRound
+  UserRound,
+  Users
 } from "lucide-react";
 import { AdminThemeChip } from "@/components/admin/admin-theme-chip";
 import { AdminErrorBoundary } from "@/components/admin/admin-error-boundary";
+import { ResilientImage } from "@/components/ui/resilient-image";
 import { isSupabaseConfigured, SUPABASE_BUCKET } from "@/lib/supabase";
 import { useAdminData } from "@/hooks/use-admin-data";
 import { AdminConfirmModal } from "@/components/admin/admin-confirm-modal";
@@ -76,6 +78,17 @@ const SiteSettingsForm = dynamic(
   {
     ssr: false,
     loading: () => <AdminModuleLoading label="site settings" />
+  }
+);
+
+const AdminUsersPanel = dynamic(
+  () =>
+    import("@/components/admin/admin-users-panel").then(
+      (module) => module.AdminUsersPanel
+    ),
+  {
+    ssr: false,
+    loading: () => <AdminModuleLoading label="admin access" />
   }
 );
 
@@ -295,8 +308,15 @@ export function AdminDashboard() {
               className="group inline-flex min-h-11 items-center gap-3 rounded-full pr-2"
               aria-label="Open Lux Studio website"
             >
-              <span className="flex h-10 w-10 items-center justify-center rounded-full bg-foreground font-[family-name:var(--font-display)] text-lg text-background">
-                LX
+              <span className="relative flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full border border-line bg-panel shadow-sm">
+                <ResilientImage
+                  data-company-logo
+                  src="/images/brand/lux-studio-logo.svg"
+                  alt=""
+                  width={40}
+                  height={40}
+                  className="h-full w-full object-cover"
+                />
               </span>
               <h1 className="sr-only sm:not-sr-only sm:block">
                 <span className="block text-xs font-medium uppercase tracking-eyebrow text-foreground">
@@ -347,6 +367,20 @@ export function AdminDashboard() {
                     <span className="h-1.5 w-1.5 rounded-full bg-warning" />
                   ) : null}
                 </button>
+                <button
+                  type="button"
+                  onClick={() => setActiveTab("users")}
+                  role="tab"
+                  aria-selected={activeTab === "users"}
+                  className={`inline-flex min-h-11 items-center gap-2 rounded-full px-4 py-2 text-xs uppercase tracking-eyebrow transition-colors ${
+                    activeTab === "users"
+                      ? "bg-foreground text-background"
+                      : "text-muted hover:text-foreground"
+                  }`}
+                >
+                  <Users className="h-3.5 w-3.5" />
+                  Admin Access
+                </button>
               </div>
             ) : null}
             <AdminThemeChip />
@@ -392,7 +426,7 @@ export function AdminDashboard() {
                 Sign Out
               </button>
             ) : null}
-            {canEditCms ? (
+            {canEditCms && activeTab !== "users" ? (
               <button
                 type="button"
                 onClick={handleResetClick}
@@ -444,24 +478,33 @@ export function AdminDashboard() {
                 onSubmit={handleSignIn}
                 className="mt-5 grid items-end gap-3 sm:grid-cols-[1fr_1fr_auto]"
               >
-                <input
-                  type="email"
-                  autoComplete="username"
-                  value={authFormState.email}
-                  onChange={(e) => updateAuthFormField("email", e.target.value)}
-                  className="input-field text-sm"
-                  placeholder="Admin email"
-                />
-                <input
-                  type="password"
-                  autoComplete="current-password"
-                  value={authFormState.password}
-                  onChange={(e) =>
-                    updateAuthFormField("password", e.target.value)
-                  }
-                  className="input-field text-sm"
-                  placeholder="Password"
-                />
+                <label className="space-y-2 text-xs uppercase tracking-meta text-muted">
+                  Admin email
+                  <input
+                    id="admin-email"
+                    type="email"
+                    autoComplete="username"
+                    value={authFormState.email}
+                    onChange={(e) =>
+                      updateAuthFormField("email", e.target.value)
+                    }
+                    className="input-field text-sm normal-case tracking-normal"
+                    placeholder="name@example.com"
+                  />
+                </label>
+                <label className="space-y-2 text-xs uppercase tracking-meta text-muted">
+                  Password
+                  <input
+                    id="admin-password"
+                    type="password"
+                    autoComplete="current-password"
+                    value={authFormState.password}
+                    onChange={(e) =>
+                      updateAuthFormField("password", e.target.value)
+                    }
+                    className="input-field text-sm normal-case tracking-normal"
+                  />
+                </label>
                 <button
                   type="submit"
                   disabled={working}
@@ -758,6 +801,13 @@ export function AdminDashboard() {
             moveAboutTeamMemberImageFile={moveAboutTeamMemberImageFile}
             handleFileSelection={handleFileSelection}
           />
+        </AdminErrorBoundary>
+      ) : null}
+
+      {/* TAB: ADMIN ACCESS */}
+      {canEditCms && activeTab === "users" ? (
+        <AdminErrorBoundary panelLabel="admin access">
+          <AdminUsersPanel />
         </AdminErrorBoundary>
       ) : null}
 

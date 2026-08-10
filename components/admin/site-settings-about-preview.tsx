@@ -172,7 +172,7 @@ export function SiteSettingsAboutPreview({
         onCopyChange={(value) => updateField("aboutPositioning", value)}
       />
       <section className="px-6 pb-12 sm:px-10">
-        <div className="grid gap-5 lg:grid-cols-2">
+        <div data-preview-stack className="grid gap-5 lg:grid-cols-2">
           <div className="panel-2xl p-7">
             <InlineText
               value={formState.copy.about.founderLabel}
@@ -218,7 +218,7 @@ export function SiteSettingsAboutPreview({
             />
           </div>
         </div>
-        <div className="mt-5 grid gap-5 sm:grid-cols-3">
+        <div data-preview-stack className="mt-5 grid gap-5 sm:grid-cols-3">
           {values.map((value, index) => (
             <div
               key={`${value.title}-${index}`}
@@ -281,8 +281,9 @@ export function SiteSettingsAboutPreview({
                 Team Members
               </p>
               <p className="mt-2 max-w-2xl text-xs leading-5 text-muted">
-                Each entry appears as its own team tab on the About page. You
-                can add as many members as needed.
+                Each entry appears as its own profile on the About page. A real
+                portrait is required; legacy vehicle demo images are hidden on
+                the public page.
               </p>
             </div>
             <button
@@ -304,6 +305,7 @@ export function SiteSettingsAboutPreview({
               return (
                 <div
                   data-admin-team-member
+                  data-preview-stack
                   key={index}
                   className="grid gap-5 rounded-[1.75rem] border border-line bg-panel-secondary p-5 lg:grid-cols-[180px_1fr]"
                 >
@@ -377,7 +379,10 @@ export function SiteSettingsAboutPreview({
                       </div>
                     </div>
 
-                    <div className="grid gap-3 sm:grid-cols-2">
+                    <div
+                      data-preview-stack
+                      className="grid gap-3 sm:grid-cols-2"
+                    >
                       <label className="block space-y-2 text-xs uppercase tracking-meta text-muted">
                         Name
                         <input
@@ -463,6 +468,7 @@ export function SiteSettingsAboutPreview({
           <p className="mt-2 max-w-2xl text-xs leading-5 text-muted">
             These photos appear as a separate gallery below the team members on
             the About page. Profile portraits remain managed per member above.
+            Legacy vehicle demo images are never presented as team photography.
           </p>
           <div className="mt-5">
             <GalleryEditor

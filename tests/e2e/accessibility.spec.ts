@@ -52,7 +52,7 @@ test("public pages meet automated WCAG A/AA checks in both themes", async ({
   }
 });
 
-test("interactive light-theme states meet WCAG A/AA checks", async ({
+test("interactive states meet WCAG A/AA checks in both themes", async ({
   page
 }, testInfo) => {
   test.skip(
@@ -61,24 +61,41 @@ test("interactive light-theme states meet WCAG A/AA checks", async ({
   );
   await page.emulateMedia({ reducedMotion: "reduce" });
 
-  await page.setViewportSize({ width: 390, height: 844 });
-  await page.goto("/");
-  await applyTheme(page, "vintage-light");
-  await page.getByRole("button", { name: "Open navigation" }).click();
-  await expectNoWcagViolations(page, "open mobile navigation");
+  for (const theme of themes) {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.goto("/", { waitUntil: "networkidle" });
+    await applyTheme(page, theme);
+    await page.getByRole("button", { name: "Open navigation" }).click();
+    await expect(
+      page.getByRole("dialog", { name: "Navigation" })
+    ).toBeVisible();
+    await expectNoWcagViolations(page, `open mobile navigation (${theme})`);
 
-  await page.goto("/contact");
-  await applyTheme(page, "vintage-light");
-  await page.locator('button[type="submit"]').click();
-  await expectNoWcagViolations(page, "inquiry validation errors");
+    await page.goto("/contact", { waitUntil: "networkidle" });
+    await applyTheme(page, theme);
+    await page
+      .getByRole("button", { name: "Send Inquiry", exact: true })
+      .first()
+      .click();
+    await expect(page.getByLabel("Name")).toHaveAttribute(
+      "aria-invalid",
+      "true"
+    );
+    await expect(page.locator("#inquiry-name-error")).toBeVisible();
+    await expectNoWcagViolations(page, `inquiry validation errors (${theme})`);
 
-  await page.setViewportSize({ width: 1440, height: 1000 });
-  await page.goto("/work/midnight-aeroline");
-  await applyTheme(page, "vintage-light");
-  await page.locator("[data-project-carousel-open]").click();
-  await expectNoWcagViolations(page, "project lightbox");
+    await page.setViewportSize({ width: 1440, height: 1000 });
+    await page.goto("/work/midnight-aeroline", { waitUntil: "networkidle" });
+    await applyTheme(page, theme);
+    await page.locator("[data-project-carousel-open]").first().click();
+    await expect(
+      page.getByRole("dialog", { name: "Image lightbox" })
+    ).toBeVisible();
+    await expectNoWcagViolations(page, `project lightbox (${theme})`);
 
-  await page.goto("/admin");
-  await applyTheme(page, "vintage-light");
-  await expectNoWcagViolations(page, "admin workspace");
+    await page.goto("/admin", { waitUntil: "networkidle" });
+    await applyTheme(page, theme);
+    await expect(page.locator("[data-admin-workspace]")).toBeVisible();
+    await expectNoWcagViolations(page, `admin workspace (${theme})`);
+  }
 });

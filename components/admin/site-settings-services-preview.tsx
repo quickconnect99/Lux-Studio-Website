@@ -114,6 +114,7 @@ export function SiteSettingsServicesPreview({
         {services.map((service, index) => (
           <div
             key={`${service.number}-${index}`}
+            data-preview-stack
             className="grid gap-5 rounded-[2rem] border border-line bg-panel-secondary p-6 lg:grid-cols-[100px_1fr_0.8fr]"
           >
             <div className="flex justify-end gap-1 lg:col-span-3">

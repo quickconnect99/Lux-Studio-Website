@@ -29,14 +29,32 @@ const telemetryRateLimitStore =
 let pruneCallCount = 0;
 
 export async function POST(request: Request) {
+  const requestId = getRequestId(request.headers);
+
+  function response(body: Record<string, unknown> | null, status: number) {
+    const headers = {
+      "cache-control": "no-store",
+      "x-request-id": requestId
+    };
+
+    return body
+      ? NextResponse.json(body, { status, headers })
+      : new NextResponse(null, { status, headers });
+  }
+
   if (process.env.NEXT_PUBLIC_ENABLE_TELEMETRY !== "true") {
-    return new NextResponse(null, { status: 204 });
+    return response(null, 204);
   }
 
   if (!isAllowedRequestOrigin(request)) {
-    return NextResponse.json(
+    logServerEvent({
+      level: "warn",
+      event: "web_vital.origin_rejected",
+      requestId
+    });
+    return response(
       { message: "Metrics cannot be submitted from this origin." },
-      { status: 403 }
+      403
     );
   }
 
@@ -55,17 +73,20 @@ export async function POST(request: Request) {
       windowMs: TELEMETRY_RATE_LIMIT_WINDOW_MS
     })
   ) {
-    return NextResponse.json(
+    logServerEvent({
+      level: "warn",
+      event: "web_vital.rate_limited",
+      requestId
+    });
+    const limitedResponse = response(
       { message: "Too many metric submissions." },
-      {
-        status: 429,
-        headers: { "retry-after": "60" }
-      }
+      429
     );
+    limitedResponse.headers.set("retry-after", "60");
+    return limitedResponse;
   }
 
   try {
-    const requestId = getRequestId(request.headers);
     const payload = (await readLimitedJson(request, 2 * 1024)) as Record<
       string,
       unknown
@@ -77,10 +98,12 @@ export async function POST(request: Request) {
         : null;
 
     if (!allowedMetricNames.has(name) || value === null) {
-      return NextResponse.json(
-        { message: "Invalid web-vital metric." },
-        { status: 400 }
-      );
+      logServerEvent({
+        level: "warn",
+        event: "web_vital.invalid",
+        requestId
+      });
+      return response({ message: "Invalid web-vital metric." }, 400);
     }
 
     logServerEvent({
@@ -101,18 +124,22 @@ export async function POST(request: Request) {
       }
     });
 
-    return new NextResponse(null, { status: 204 });
+    return response(null, 204);
   } catch (error) {
-    return NextResponse.json(
+    const tooLarge = error instanceof RequestBodyTooLargeError;
+    logServerEvent({
+      level: "warn",
+      event: tooLarge ? "web_vital.too_large" : "web_vital.parse_failed",
+      requestId,
+      error
+    });
+    return response(
       {
-        message:
-          error instanceof RequestBodyTooLargeError
-            ? "Metric payload is too large."
-            : "Metric payload could not be parsed."
+        message: tooLarge
+          ? "Metric payload is too large."
+          : "Metric payload could not be parsed."
       },
-      {
-        status: error instanceof RequestBodyTooLargeError ? 413 : 400
-      }
+      tooLarge ? 413 : 400
     );
   }
 }

@@ -1,5 +1,5 @@
 import type { Project } from "@/lib/types";
-import { isLocalFileReference } from "@/lib/media-url";
+import { normalizePublicMediaUrl } from "@/lib/media-url";
 
 export type VideoSource = {
   kind: "youtube" | "vimeo" | "file";
@@ -10,10 +10,23 @@ export type VideoSource = {
 
 function parseUrl(value: string) {
   try {
-    return new URL(value);
+    const url = new URL(value);
+    return url.protocol === "https:" || url.protocol === "http:" ? url : null;
   } catch {
     return null;
   }
+}
+
+function matchesHost(hostname: string, canonicalHost: string) {
+  const normalized = hostname.toLowerCase();
+  return (
+    normalized === canonicalHost || normalized.endsWith(`.${canonicalHost}`)
+  );
+}
+
+function normalizeYouTubeId(value: string | null | undefined) {
+  const id = value?.trim() ?? "";
+  return /^[a-zA-Z0-9_-]{1,64}$/.test(id) ? id : null;
 }
 
 function getYouTubeId(value: string) {
@@ -23,19 +36,19 @@ function getYouTubeId(value: string) {
     return null;
   }
 
-  if (url.hostname.includes("youtu.be")) {
-    return url.pathname.split("/").filter(Boolean)[0] ?? null;
+  if (url.hostname.toLowerCase() === "youtu.be") {
+    return normalizeYouTubeId(url.pathname.split("/").filter(Boolean)[0]);
   }
 
-  if (url.hostname.includes("youtube.com")) {
+  if (matchesHost(url.hostname, "youtube.com")) {
     if (url.pathname === "/watch") {
-      return url.searchParams.get("v");
+      return normalizeYouTubeId(url.searchParams.get("v"));
     }
 
     const segments = url.pathname.split("/").filter(Boolean);
 
     if (segments[0] === "embed" || segments[0] === "shorts") {
-      return segments[1] ?? null;
+      return normalizeYouTubeId(segments[1]);
     }
   }
 
@@ -45,7 +58,7 @@ function getYouTubeId(value: string) {
 function getVimeoId(value: string) {
   const url = parseUrl(value);
 
-  if (!url || !url.hostname.includes("vimeo.com")) {
+  if (!url || !matchesHost(url.hostname, "vimeo.com")) {
     return null;
   }
 
@@ -56,9 +69,16 @@ function getVimeoId(value: string) {
 }
 
 export function resolveVideoSource(value: string | undefined) {
-  const source = value?.trim();
+  const source = normalizePublicMediaUrl(value);
 
-  if (!source || isLocalFileReference(source)) {
+  if (!source) {
+    return null;
+  }
+
+  const isRepositoryPath = source.startsWith("/") && !source.startsWith("//");
+  const publicUrl = parseUrl(source);
+
+  if (!isRepositoryPath && !publicUrl) {
     return null;
   }
 

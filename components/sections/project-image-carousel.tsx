@@ -80,6 +80,7 @@ export function ProjectImageCarousel({
               >
                 <Image
                   src={activeImage}
+                  fallbackSrc="/images/hero-poster.svg"
                   alt={imageAlts[activeIndex]}
                   fill
                   sizes="(min-width: 1440px) 1360px, 100vw"
@@ -180,6 +181,7 @@ export function ProjectImageCarousel({
                   <div className="aspect-[4/3]" />
                   <Image
                     src={image}
+                    fallbackSrc="/images/hero-poster.svg"
                     alt={`${title} thumbnail ${index + 1}`}
                     fill
                     sizes="(min-width: 1024px) 15vw, 112px"
@@ -208,6 +210,7 @@ export function ProjectImageCarousel({
         <Lightbox
           images={images}
           imageAlts={imageAlts}
+          fallbackImages={["/images/hero-poster.svg"]}
           activeIndex={fullscreenIndex}
           onClose={() => setFullscreenIndex(null)}
           onPrev={() =>

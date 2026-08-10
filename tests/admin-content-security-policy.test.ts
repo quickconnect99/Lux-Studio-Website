@@ -27,6 +27,9 @@ test("builds a strict production script policy for the admin route", () => {
   assert.doesNotMatch(scriptDirective ?? "", /'unsafe-inline'/);
   assert.doesNotMatch(scriptDirective ?? "", /'unsafe-eval'/);
   assert.match(policy, /connect-src 'self' https:\/\/project\.supabase\.co/);
+  assert.match(policy, /script-src-attr 'none'/);
+  assert.match(policy, /worker-src 'self' blob:/);
+  assert.match(policy, /manifest-src 'self'/);
   assert.match(policy, /upgrade-insecure-requests/);
 });
 

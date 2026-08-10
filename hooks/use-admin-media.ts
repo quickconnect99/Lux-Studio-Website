@@ -3,6 +3,16 @@
 import { type ChangeEvent, useCallback, useEffect, useState } from "react";
 import { getInvalidMediaFiles } from "@/lib/admin-persistence";
 
+export type AdminMediaQueueScope = "project" | "siteSettings";
+
+/** Defines the queue boundary used by reset, save, and session workflows. */
+export function getAdminMediaQueueResetPlan(scope: AdminMediaQueueScope) {
+  return {
+    project: scope === "project",
+    siteSettings: scope === "siteSettings"
+  };
+}
+
 /**
  * Holds local files selected in the admin UI before they are uploaded.
  *
@@ -93,22 +103,35 @@ export function useAdminMedia({
     [onChange]
   );
 
-  const clearMedia = useCallback(() => {
-    replaceCoverFile(null);
-    setGalleryFiles([]);
-    setVideoFileState(null);
-    setSiteHeroVideoFileState(null);
-    setSelectedFrameFiles([]);
-    setAboutTeamGalleryFiles([]);
-    setAboutTeamMemberImageFiles([]);
-  }, [replaceCoverFile]);
+  const clearMediaQueues = useCallback(
+    (scope: AdminMediaQueueScope) => {
+      const plan = getAdminMediaQueueResetPlan(scope);
 
-  const clearSiteSettingsMedia = useCallback(() => {
-    setSiteHeroVideoFileState(null);
-    setSelectedFrameFiles([]);
-    setAboutTeamGalleryFiles([]);
-    setAboutTeamMemberImageFiles([]);
-  }, []);
+      if (plan.project) {
+        replaceCoverFile(null);
+        setGalleryFiles([]);
+        setVideoFileState(null);
+      }
+
+      if (plan.siteSettings) {
+        setSiteHeroVideoFileState(null);
+        setSelectedFrameFiles([]);
+        setAboutTeamGalleryFiles([]);
+        setAboutTeamMemberImageFiles([]);
+      }
+    },
+    [replaceCoverFile]
+  );
+
+  const clearProjectMedia = useCallback(
+    () => clearMediaQueues("project"),
+    [clearMediaQueues]
+  );
+
+  const clearSiteSettingsMedia = useCallback(
+    () => clearMediaQueues("siteSettings"),
+    [clearMediaQueues]
+  );
 
   const addGalleryFiles = useCallback(
     (newFiles: File[]) => {
@@ -267,7 +290,7 @@ export function useAdminMedia({
     removeAboutTeamMemberImageFile,
     moveAboutTeamMemberImageFile,
     handleFileSelection,
-    clearMedia,
+    clearProjectMedia,
     clearSiteSettingsMedia
   };
 }

@@ -5,6 +5,7 @@ import {
   getInvalidMediaFiles
 } from "../lib/admin-persistence";
 import { getAdminStoragePath } from "../lib/admin-storage";
+import { getAdminMediaQueueResetPlan } from "../hooks/use-admin-media";
 
 test("accepts supported image media and rejects spoofed or oversized files", () => {
   const valid = {
@@ -38,4 +39,15 @@ test("extracts only paths from the configured public storage bucket", () => {
     "gallery/id.webp"
   );
   assert.equal(getAdminStoragePath("https://example.com/image.webp"), null);
+});
+
+test("keeps project and site settings media reset scopes disjoint", () => {
+  assert.deepEqual(getAdminMediaQueueResetPlan("project"), {
+    project: true,
+    siteSettings: false
+  });
+  assert.deepEqual(getAdminMediaQueueResetPlan("siteSettings"), {
+    project: false,
+    siteSettings: true
+  });
 });

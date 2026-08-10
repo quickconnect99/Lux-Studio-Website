@@ -1,5 +1,3 @@
-"use client";
-
 import { ResilientImage as Image } from "@/components/ui/resilient-image";
 import { LinkButton } from "@/components/ui/link-button";
 import { Reveal } from "@/components/ui/reveal";
@@ -80,9 +78,9 @@ export function FeaturedProjects({ projects }: FeaturedProjectsProps) {
                   <div className="film-frame grain relative aspect-[4/3] overflow-hidden bg-panel-dark sm:aspect-[4/5]">
                     <Image
                       src={project.coverImage}
-                      alt={project.title}
+                      fallbackSrc="/images/hero-poster.svg"
+                      alt={`${project.title}, ${project.carModel || project.category} in ${project.location}`}
                       fill
-                      preload={index === 0}
                       sizes="(min-width: 1024px) 52vw, 100vw"
                       className="object-cover"
                     />

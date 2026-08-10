@@ -11,20 +11,16 @@ import {
   buildSharingMetadata,
   resolveSharingImage
 } from "@/lib/sharing-metadata";
-import { getPublishedProjects, getSiteSettings } from "@/lib/supabase";
+import { getSiteSettings } from "@/lib/supabase";
 
 const pageTitle = "Legal Notice";
 const pageDescription =
   "Company, contact, and media ownership details for this website.";
 
 export async function generateMetadata(): Promise<Metadata> {
-  const [projects, settings] = await Promise.all([
-    getPublishedProjects(),
-    getSiteSettings()
-  ]);
+  const settings = await getSiteSettings();
   const image = resolveSharingImage({
     preferredImages: settings.selectedFrames,
-    projects,
     settings
   });
 

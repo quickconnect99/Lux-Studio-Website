@@ -35,7 +35,7 @@
   }
 
   .metadata-label {
-    @apply text-[0.65rem] uppercase tracking-meta text-muted;
+    @apply text-[0.72rem] uppercase tracking-meta text-muted;
   }
 
   .metadata-value {
@@ -49,7 +49,7 @@
   /* Monospace number / index styling (project numbers, year, tech metadata) */
   .metadata-number {
     font-family: var(--font-mono);
-    @apply text-[0.65rem] uppercase tracking-meta text-accent-text;
+    @apply text-[0.72rem] uppercase tracking-meta text-accent-text;
   }
 
   /* ─── Buttons / pills ──────────────────────────────────────────────── */
@@ -254,9 +254,74 @@ select:focus-visible {
   @apply py-8 sm:py-8 lg:py-10;
 }
 
+/* Device insets for installed/PWA layouts and notched phones. */
+.safe-area-top {
+  padding-top: env(safe-area-inset-top);
+}
+
+.mobile-navigation-panel {
+  top: calc(4.5rem + env(safe-area-inset-top));
+  padding-bottom: max(1.25rem, env(safe-area-inset-bottom));
+}
+
+.site-footer-safe-area {
+  padding-bottom: max(6rem, calc(1rem + env(safe-area-inset-bottom)));
+}
+
+.lightbox-safe-area {
+  padding-top: max(0.5rem, env(safe-area-inset-top));
+  padding-right: max(0.5rem, env(safe-area-inset-right));
+  padding-bottom: max(0.5rem, env(safe-area-inset-bottom));
+  padding-left: max(0.5rem, env(safe-area-inset-left));
+}
+
+.lightbox-close-safe {
+  top: max(1rem, calc(0.5rem + env(safe-area-inset-top)));
+  right: max(1rem, calc(0.5rem + env(safe-area-inset-right)));
+}
+
+@media (min-width: 640px) {
+  .mobile-navigation-panel {
+    top: calc(5.5rem + env(safe-area-inset-top));
+  }
+
+  .site-footer-safe-area {
+    padding-bottom: max(2rem, calc(1rem + env(safe-area-inset-bottom)));
+  }
+
+  .lightbox-safe-area {
+    padding-top: max(1rem, env(safe-area-inset-top));
+    padding-right: max(1rem, env(safe-area-inset-right));
+    padding-bottom: max(1rem, env(safe-area-inset-bottom));
+    padding-left: max(1rem, env(safe-area-inset-left));
+  }
+
+  .lightbox-close-safe {
+    top: max(1.5rem, calc(0.75rem + env(safe-area-inset-top)));
+    right: max(1.5rem, calc(0.75rem + env(safe-area-inset-right)));
+  }
+}
+
 /* Typography utilities */
 .eyebrow {
-  @apply inline-flex items-center gap-3 text-[0.7rem] uppercase tracking-eyebrow text-muted;
+  @apply inline-flex items-center gap-3 text-[0.75rem] uppercase tracking-eyebrow text-muted;
+}
+
+/* Admin page previews must respond to their simulated viewport, not the
+   browser viewport surrounding the editor. */
+.site-settings-preview-canvas {
+  container-name: site-preview;
+  container-type: inline-size;
+}
+
+@container site-preview (max-width: 520px) {
+  [data-preview-stack] {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+
+  [data-preview-stack] > * {
+    grid-column: auto !important;
+  }
 }
 
 .eyebrow::before {
@@ -535,7 +600,9 @@ select:focus-visible {
 
   .control-pill:active,
   .action-button:active,
-  .pressable:active {
+  .pressable:active,
+  a:active,
+  button:active {
     transform: none;
   }
 }

@@ -13,20 +13,17 @@ import {
   buildSharingMetadata,
   resolveSharingImage
 } from "@/lib/sharing-metadata";
-import { getPublishedProjects, getSiteSettings } from "@/lib/supabase";
+import { getInquiryRetentionDays } from "@/lib/inquiry-retention";
+import { getSiteSettings } from "@/lib/supabase";
 
 const pageTitle = "Privacy Policy";
 const pageDescription =
   "Information about personal data processing, project inquiries, and third-party video embeds.";
 
 export async function generateMetadata(): Promise<Metadata> {
-  const [projects, settings] = await Promise.all([
-    getPublishedProjects(),
-    getSiteSettings()
-  ]);
+  const settings = await getSiteSettings();
   const image = resolveSharingImage({
     preferredImages: settings.selectedFrames,
-    projects,
     settings
   });
 
@@ -70,6 +67,7 @@ export default async function PrivacyPage() {
   const identity = getPublicLegalIdentity(settings);
   const missingFields = getMissingPrivacyFields();
   const businessAddress = getFormattedBusinessAddress();
+  const inquiryRetentionDays = getInquiryRetentionDays();
 
   return (
     <>
@@ -200,9 +198,31 @@ export default async function PrivacyPage() {
                 : `, location: ${legalProfile.databaseProviderLocation}.`}
             </p>
             <p>
-              The data is stored only as long as necessary to process the
-              inquiry, continue related communication, or meet legal retention
-              and documentation obligations.
+              Inquiry records in the project database are automatically deleted
+              after{" "}
+              <strong className="text-foreground">
+                {inquiryRetentionDays} days
+              </strong>
+              . A record may be retained longer only where an active
+              pre-contractual or contractual relationship, a legal retention
+              duty, or the establishment, exercise, or defence of legal claims
+              requires it.
+            </p>
+            {process.env.RESEND_API_KEY && process.env.INQUIRY_EMAIL_TO ? (
+              <p>
+                We use Resend to deliver an internal email notification about a
+                new inquiry. For that delivery, the same form fields are
+                transmitted to Resend and then delivered to our configured
+                business mailbox. The mailbox copy is subject to the same
+                purpose limitation and must be deleted when it is no longer
+                needed, unless a legal obligation requires longer retention.
+              </p>
+            ) : null}
+            <p>
+              To prevent abuse, the service processes the client IP address for
+              rate limiting. Only a keyed pseudonymous value is stored in the
+              rate-limit database; the raw IP address and browser User-Agent are
+              not stored there.
             </p>
           </PrivacyBlock>
 

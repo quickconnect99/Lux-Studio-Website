@@ -30,7 +30,11 @@ create table if not exists public.inquiries (
   email text not null,
   company text,
   brief text not null,
-  created_at timestamptz not null default now()
+  created_at timestamptz not null default now(),
+  notification_status text not null default 'pending',
+  notification_attempts integer not null default 0,
+  notification_last_attempt_at timestamptz,
+  notification_sent_at timestamptz
 );
 
 create table if not exists public.inquiry_rate_limits (
@@ -87,6 +91,12 @@ add column if not exists business text not null default 'Automotive';
 alter table public.inquiries
 add column if not exists service_type text;
 
+alter table public.inquiries
+add column if not exists notification_status text not null default 'pending',
+add column if not exists notification_attempts integer not null default 0,
+add column if not exists notification_last_attempt_at timestamptz,
+add column if not exists notification_sent_at timestamptz;
+
 do $$
 begin
   if not exists (
@@ -137,8 +147,36 @@ begin
         )
       ) not valid;
   end if;
+
+  if not exists (
+    select 1
+    from pg_constraint
+    where conrelid = 'public.inquiries'::regclass
+      and conname = 'inquiries_notification_status_check'
+  ) then
+    alter table public.inquiries
+      add constraint inquiries_notification_status_check
+      check (
+        notification_status in ('pending', 'sent', 'failed', 'skipped')
+      );
+  end if;
+
+  if not exists (
+    select 1
+    from pg_constraint
+    where conrelid = 'public.inquiries'::regclass
+      and conname = 'inquiries_notification_attempts_check'
+  ) then
+    alter table public.inquiries
+      add constraint inquiries_notification_attempts_check
+      check (notification_attempts >= 0);
+  end if;
 end;
 $$;
+
+create index if not exists inquiries_notification_retry_idx
+on public.inquiries (notification_last_attempt_at, created_at)
+where notification_status in ('pending', 'failed');
 
 alter table public.projects enable row level security;
 alter table public.inquiries enable row level security;
@@ -200,6 +238,102 @@ grant execute on function public.consume_inquiry_rate_limit(
   integer,
   integer
 ) to service_role;
+
+create or replace function public.delete_expired_inquiries(
+  p_retention_days integer
+)
+returns bigint
+language plpgsql
+volatile
+security definer
+set search_path = public
+as $$
+declare
+  deleted_count bigint;
+begin
+  if p_retention_days < 30 or p_retention_days > 3650 then
+    raise exception 'Retention days must be between 30 and 3650.';
+  end if;
+
+  with deleted as (
+    delete from public.inquiries
+    where created_at < now() - make_interval(days => p_retention_days)
+    returning 1
+  )
+  select count(*)::bigint into deleted_count from deleted;
+
+  return deleted_count;
+end;
+$$;
+
+revoke all on function public.delete_expired_inquiries(integer)
+from public, anon, authenticated;
+grant execute on function public.delete_expired_inquiries(integer)
+to service_role;
+
+create or replace function public.claim_inquiry_notifications(
+  p_batch_size integer default 20,
+  p_max_attempts integer default 5
+)
+returns table (
+  inquiry_id uuid,
+  name text,
+  email text,
+  company text,
+  service_type text,
+  brief text,
+  notification_attempts integer
+)
+language plpgsql
+volatile
+security definer
+set search_path = public
+as $$
+begin
+  if p_batch_size < 1 or p_batch_size > 100 then
+    raise exception 'Batch size must be between 1 and 100.';
+  end if;
+
+  if p_max_attempts < 1 or p_max_attempts > 20 then
+    raise exception 'Maximum attempts must be between 1 and 20.';
+  end if;
+
+  return query
+  with candidates as (
+    select i.id
+    from public.inquiries as i
+    where i.notification_status in ('pending', 'failed')
+      and i.notification_attempts < p_max_attempts
+      and (
+        i.notification_last_attempt_at is null
+        or i.notification_last_attempt_at < now() - interval '5 minutes'
+      )
+    order by i.created_at
+    for update skip locked
+    limit p_batch_size
+  )
+  update public.inquiries as i
+  set
+    notification_status = 'pending',
+    notification_attempts = i.notification_attempts + 1,
+    notification_last_attempt_at = now()
+  from candidates
+  where i.id = candidates.id
+  returning
+    i.id,
+    i.name,
+    i.email,
+    i.company,
+    i.service_type,
+    i.brief,
+    i.notification_attempts;
+end;
+$$;
+
+revoke all on function public.claim_inquiry_notifications(integer, integer)
+from public, anon, authenticated;
+grant execute on function public.claim_inquiry_notifications(integer, integer)
+to service_role;
 
 drop policy if exists "Public can read published projects" on public.projects;
 create policy "Public can read published projects"

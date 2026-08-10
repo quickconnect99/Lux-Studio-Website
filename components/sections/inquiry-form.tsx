@@ -1,19 +1,25 @@
 "use client";
 
 import Link from "next/link";
+import { useEffect, useRef } from "react";
 import { CheckCircle2, LoaderCircle } from "lucide-react";
 import { BRIEF_MAX } from "@/lib/inquiry";
 import { useInquiryForm } from "@/hooks/use-inquiry-form";
 import { FieldError } from "@/components/ui/field-error";
 import { cn } from "@/lib/utils";
 import type { InquiryServiceType } from "@/lib/types";
+import type { InquiryServiceOption } from "@/components/sections/service-inquiry-options";
 
 export function InquiryForm({
   label = "Project inquiry",
-  submitLabel = "Send Inquiry"
+  submitLabel = "Send Inquiry",
+  serviceOptions,
+  initialServiceType = ""
 }: {
   label?: string;
   submitLabel?: string;
+  serviceOptions: InquiryServiceOption[];
+  initialServiceType?: InquiryServiceType | "";
 }) {
   const {
     formState,
@@ -30,6 +36,13 @@ export function InquiryForm({
     briefNearLimit,
     briefAtLimit
   } = useInquiryForm();
+  const initialServiceApplied = useRef(false);
+
+  useEffect(() => {
+    if (initialServiceApplied.current || !initialServiceType) return;
+    initialServiceApplied.current = true;
+    updateField("serviceType", initialServiceType);
+  }, [initialServiceType, updateField]);
 
   return (
     <form
@@ -135,11 +148,11 @@ export function InquiryForm({
           <option value="" disabled>
             Select a service type
           </option>
-          <option value="Commercial Shoot">Commercial Shoot</option>
-          <option value="Social Content">Social Content</option>
-          <option value="Event Coverage">Event Coverage</option>
-          <option value="Brand Campaign">Brand Campaign</option>
-          <option value="Other">Other</option>
+          {serviceOptions.map((option) => (
+            <option key={option.value} value={option.value}>
+              {option.label}
+            </option>
+          ))}
         </select>
         {errors.serviceType && (
           <FieldError id="inquiry-service-error" message={errors.serviceType} />

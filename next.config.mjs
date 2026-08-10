@@ -1,3 +1,7 @@
+import { validateProductionEnvironment } from "./scripts/validate-production-env.mjs";
+
+validateProductionEnvironment();
+
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL?.trim();
 const remotePatterns = [];
 let supabaseOrigin = "";
@@ -28,11 +32,14 @@ const contentSecurityPolicy = [
   "frame-ancestors 'none'",
   "form-action 'self'",
   `script-src 'self' 'unsafe-inline'${isProduction ? "" : " 'unsafe-eval'"}`,
+  "script-src-attr 'none'",
   "style-src 'self' 'unsafe-inline'",
   "font-src 'self' data:",
   `img-src 'self' data: blob: https:${supabaseOrigin ? ` ${supabaseOrigin}` : ""}`,
   `media-src 'self' blob: https:${supabaseOrigin ? ` ${supabaseOrigin}` : ""}`,
   `connect-src 'self'${supabaseOrigin ? ` ${supabaseOrigin}` : ""}`,
+  "worker-src 'self' blob:",
+  "manifest-src 'self'",
   "frame-src https://www.youtube-nocookie.com https://www.youtube.com https://player.vimeo.com",
   isProduction ? "upgrade-insecure-requests" : ""
 ]

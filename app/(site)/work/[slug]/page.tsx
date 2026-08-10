@@ -216,44 +216,49 @@ export default async function ProjectPage({
         />
       </section>
 
-      {nextProject ? (
-        <section className="section-shell section-space-tight pt-0">
-          <div className="dark-panel rounded-[1.5rem] p-5 text-white sm:rounded-[2.5rem] sm:p-12">
-            <div className="grid gap-8 lg:grid-cols-[1fr_auto] lg:items-end">
-              <div className="space-y-4">
-                <p className="eyebrow text-white/70 before:bg-accent">
-                  Next project
-                </p>
-                <h2 className="font-[family-name:var(--font-display)] text-4xl uppercase leading-none sm:text-5xl">
-                  {nextProject.title}
-                </h2>
-                <p className="description-copy-compact max-w-xl text-white/80">
-                  {nextProject.shortDescription}
-                </p>
-              </div>
+      <section className="section-shell section-space-tight pt-0">
+        <div className="dark-panel rounded-[1.5rem] p-5 text-white sm:rounded-[2.5rem] sm:p-12">
+          <div className="grid gap-8 lg:grid-cols-[1fr_auto] lg:items-end">
+            <div className="space-y-4">
+              <p className="eyebrow text-white/70 before:bg-accent">
+                Your next production
+              </p>
+              <h2 className="font-[family-name:var(--font-display)] text-4xl uppercase leading-none sm:text-5xl">
+                Create Something Similar
+              </h2>
+              <p className="description-copy-compact max-w-xl text-white/80">
+                Tell us what should feel as distinctive as {project.title}. We
+                will shape the format, scope, and production plan with you.
+              </p>
+            </div>
 
-              <div className="grid gap-3 sm:flex sm:flex-wrap sm:gap-4">
+            <div className="grid gap-3 sm:flex sm:flex-wrap sm:items-center sm:gap-4">
+              <LinkButton href="/contact" className="w-full sm:w-auto">
+                Start A Brief
+              </LinkButton>
+              {nextProject ? (
                 <LinkButton
                   href={`${`/work/${nextProject.slug}`}${
                     activeBusiness
                       ? `?business=${projectBusinessToParam(activeBusiness)}`
                       : ""
                   }`}
+                  variant="secondary"
                   className="w-full sm:w-auto"
                 >
-                  View Next
+                  Next: {nextProject.title}
                 </LinkButton>
-                <Link
-                  href={backHref}
-                  className="inline-flex min-h-12 items-center justify-center rounded-full border border-white/15 px-5 text-xs uppercase tracking-eyebrow text-white/80 hover:text-accent sm:min-h-0 sm:justify-start sm:border-0 sm:px-0"
-                >
-                  Back to Work
-                </Link>
-              </div>
+              ) : null}
+              <Link
+                href={backHref}
+                className="inline-flex min-h-12 items-center justify-center rounded-full border border-white/15 px-5 text-xs uppercase tracking-eyebrow text-white/80 hover:text-accent sm:min-h-0 sm:justify-start sm:border-0 sm:px-0"
+              >
+                Back to Work
+              </Link>
             </div>
           </div>
-        </section>
-      ) : null}
+        </div>
+      </section>
     </div>
   );
 }

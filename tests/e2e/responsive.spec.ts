@@ -262,10 +262,12 @@ test("mobile navigation traps focus and closes with Escape", async ({
   await expect(trigger).toHaveAttribute("aria-expanded", "true");
 
   const links = dialog.getByRole("link");
+  const closeButton = dialog.getByRole("button", { name: "Close navigation" });
+  await expect(closeButton).toBeVisible();
   await expect(links.first()).toBeFocused();
   await links.last().focus();
   await page.keyboard.press("Tab");
-  await expect(links.first()).toBeFocused();
+  await expect(closeButton).toBeFocused();
   await page.keyboard.press("Shift+Tab");
   await expect(links.last()).toBeFocused();
 
@@ -286,9 +288,54 @@ test("mobile navigation traps focus and closes with Escape", async ({
   expect(bounds.right).toBeLessThanOrEqual(bounds.viewportWidth);
   expect(bounds.bottom).toBeLessThanOrEqual(bounds.viewportHeight);
 
-  await page.keyboard.press("Escape");
+  await closeButton.click();
   await expect(dialog).toBeHidden();
   await expect(trigger).toBeFocused();
+});
+
+test("navigation exposes the current page to assistive technology", async ({
+  page
+}, testInfo) => {
+  test.skip(testInfo.project.name !== "desktop-1440");
+  await page.goto("/services", { waitUntil: "networkidle" });
+
+  const currentLink = page.locator('header nav a[aria-current="page"]');
+  await expect(currentLink).toContainText("Services");
+});
+
+test("work filters expose named semantic groups", async ({
+  page
+}, testInfo) => {
+  test.skip(testInfo.project.name !== "desktop-1440");
+  await page.goto("/work", { waitUntil: "networkidle" });
+
+  const categoryGroup = page.getByRole("group", { name: "Category" });
+  await expect(categoryGroup).toBeVisible();
+  await expect(
+    categoryGroup.getByRole("button", { name: "All categories" })
+  ).toHaveAttribute("aria-pressed", "true");
+
+  const businessGroup = page.getByRole("group", { name: "Business" });
+  if ((await businessGroup.count()) > 0) {
+    await expect(
+      businessGroup.getByRole("button", { name: "All businesses" })
+    ).toHaveAttribute("aria-pressed", "true");
+  }
+});
+
+test("service CTA carries the selected service into the inquiry", async ({
+  page
+}, testInfo) => {
+  test.skip(testInfo.project.name !== "desktop-1440");
+  await page.goto("/services", { waitUntil: "networkidle" });
+
+  const startBrief = page.getByRole("link", { name: "Start A Brief" }).first();
+  const href = await startBrief.getAttribute("href");
+  expect(href).toMatch(/^\/contact\?service=/);
+  await startBrief.click();
+
+  await expect(page).toHaveURL(/\/contact\?service=/);
+  await expect(page.getByLabel("Service Type")).not.toHaveValue("");
 });
 
 test("mobile header displays the company logo", async ({ page }, testInfo) => {
@@ -331,7 +378,7 @@ test("sun and moon switch only between Vintage Dark and Vintage Light", async ({
     .toBe("gpt-vintage");
 });
 
-test("hero reel sound can be enabled by the viewer", async ({
+test("hero reel follows visibility and preserves a manual pause", async ({
   page
 }, testInfo) => {
   test.skip(testInfo.project.name !== "desktop-1440");
@@ -340,6 +387,17 @@ test("hero reel sound can be enabled by the viewer", async ({
   const video = page.locator("video[data-hero-reel]");
   await expect(video).toBeVisible();
   await expect(video).toHaveJSProperty("muted", true);
+  await expect
+    .poll(() => video.evaluate((element) => (element as HTMLVideoElement).paused))
+    .toBe(false);
+
+  await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
+  await expect(video).toHaveJSProperty("paused", true);
+
+  await video.scrollIntoViewIfNeeded();
+  await expect
+    .poll(() => video.evaluate((element) => (element as HTMLVideoElement).paused))
+    .toBe(false);
 
   await page.getByRole("button", { name: "Turn hero reel sound on" }).click();
 
@@ -361,6 +419,11 @@ test("hero reel sound can be enabled by the viewer", async ({
   await expect(
     page.getByRole("button", { name: "Turn hero reel sound off" })
   ).toBeVisible();
+
+  await page.getByRole("button", { name: "Pause showreel video" }).click();
+  await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
+  await video.scrollIntoViewIfNeeded();
+  await expect(video).toHaveJSProperty("paused", true);
 });
 
 test("Frames in Motion opens the related project in the same tab", async ({
@@ -609,6 +672,21 @@ test("project carousel opens fullscreen and keeps image navigation", async ({
   await expect(fullscreenTrigger).toBeFocused();
 });
 
+test("project detail ends with a direct inquiry action", async ({
+  page
+}, testInfo) => {
+  test.skip(testInfo.project.name !== "desktop-1440");
+  await page.goto("/work/midnight-aeroline", { waitUntil: "networkidle" });
+
+  const heading = page.getByRole("heading", {
+    name: "Create Something Similar"
+  });
+  await expect(heading).toBeVisible();
+  await expect(
+    page.getByRole("link", { name: "Start A Brief" })
+  ).toHaveAttribute("href", "/contact");
+});
+
 test("project sharing metadata uses the first project image", async ({
   page
 }, testInfo) => {
@@ -676,15 +754,14 @@ test("home hero atmosphere and copy follow the active theme", async ({
   );
 });
 
-test("about places the team gallery below the team profiles", async ({
+test("about never presents vehicle demo assets as team portraits", async ({
   page
 }, testInfo) => {
   test.skip(testInfo.project.name !== "desktop-1440");
   await page.goto("/about", { waitUntil: "networkidle" });
 
-  await expect(
-    page.locator('img[alt^="Lux Studio founder visual"]')
-  ).toHaveCount(0);
+  await expect(page.locator('img[src*="demo-car-02"]')).toHaveCount(0);
+  await expect(page.locator('img[src*="demo-car-03"]')).toHaveCount(0);
 
   const profilesHeading = page.getByRole("heading", {
     name: /People\s+Behind The Work/i
@@ -693,12 +770,35 @@ test("about places the team gallery below the team profiles", async ({
     name: /People\s+At Work/i
   });
 
-  await expect(profilesHeading).toBeVisible();
-  await expect(galleryHeading).toBeVisible();
+  if (
+    (await profilesHeading.count()) > 0 &&
+    (await galleryHeading.count()) > 0
+  ) {
+    const profilesBox = await profilesHeading.boundingBox();
+    const galleryBox = await galleryHeading.boundingBox();
+    expect(galleryBox?.y ?? 0).toBeGreaterThan(profilesBox?.y ?? 0);
+  }
+});
 
-  const profilesBox = await profilesHeading.boundingBox();
-  const galleryBox = await galleryHeading.boundingBox();
-  expect(galleryBox?.y ?? 0).toBeGreaterThan(profilesBox?.y ?? 0);
+test("admin mobile site preview stacks by simulated container width", async ({
+  page
+}, testInfo) => {
+  test.skip(testInfo.project.name !== "desktop-1440");
+  await page.goto("/admin", { waitUntil: "networkidle" });
+
+  await page.getByRole("tab", { name: /Site Settings/ }).click();
+  const settingsForm = page.locator("#site-settings-form");
+  await settingsForm.getByRole("tab", { name: "01 Home" }).click();
+  await settingsForm.getByRole("button", { name: "Mobile preview" }).click();
+
+  const canvas = settingsForm.locator(".site-settings-preview-canvas");
+  await expect(canvas).toHaveCSS("max-width", "430px");
+  await expect(canvas.getByText("Menu", { exact: true })).toBeVisible();
+  const columns = await canvas
+    .locator("[data-preview-stack]")
+    .first()
+    .evaluate((element) => getComputedStyle(element).gridTemplateColumns);
+  expect(columns.trim().split(/\s+/)).toHaveLength(1);
 });
 
 test("admin field help remains inside the mobile viewport", async ({

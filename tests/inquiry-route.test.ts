@@ -4,7 +4,8 @@ import { POST } from "../app/api/inquiries/route";
 
 const originalEnvironment = {
   NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL,
-  SUPABASE_SERVICE_ROLE_KEY: process.env.SUPABASE_SERVICE_ROLE_KEY
+  SUPABASE_SERVICE_ROLE_KEY: process.env.SUPABASE_SERVICE_ROLE_KEY,
+  INQUIRY_RATE_LIMIT_SECRET: process.env.INQUIRY_RATE_LIMIT_SECRET
 };
 const validPayload = {
   name: "Ada Lovelace",
@@ -59,10 +60,11 @@ test("returns a clear unavailable response for valid requests without service cr
   const response = await POST(createRequest(JSON.stringify(validPayload)));
 
   assert.equal(response.status, 503);
-  assert.match(
-    String((await response.json()).message),
-    /SUPABASE_SERVICE_ROLE_KEY/
-  );
+  assert.deepEqual(await response.json(), {
+    message: "The inquiry service is temporarily unavailable."
+  });
+  assert.equal(response.headers.get("retry-after"), "60");
+  assert.equal(response.headers.get("cache-control"), "no-store");
   assert.match(response.headers.get("x-request-id") ?? "", /^[0-9a-f-]{36}$/);
 });
 

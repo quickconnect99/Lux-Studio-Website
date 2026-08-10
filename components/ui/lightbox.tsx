@@ -125,7 +125,7 @@ export function Lightbox({
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: motionDuration.state }}
-          className="fixed inset-0 z-[100] flex items-center justify-center bg-black/90 p-2 backdrop-blur-sm sm:p-4"
+          className="lightbox-safe-area fixed inset-0 z-[100] flex items-center justify-center bg-black/90 p-2 backdrop-blur-sm sm:p-4"
           onClick={onClose}
           role="dialog"
           aria-modal="true"
@@ -235,7 +235,7 @@ export function Lightbox({
               onClose();
             }}
             className={cn(
-              "absolute right-4 top-4 z-40 sm:right-6 sm:top-6",
+              "lightbox-close-safe absolute z-40",
               "flex h-11 w-11 items-center justify-center rounded-full",
               "border border-white/25 bg-black/55 text-white backdrop-blur",
               "transition-colors duration-150 hover:border-accent hover:bg-white/20"

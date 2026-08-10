@@ -40,7 +40,10 @@ export function SiteSettingsContactPreview({
           })
         }
       />
-      <section className="grid gap-5 px-6 pb-12 sm:px-10 lg:grid-cols-[0.8fr_1.2fr]">
+      <section
+        data-preview-stack
+        className="grid gap-5 px-6 pb-12 sm:px-10 lg:grid-cols-[0.8fr_1.2fr]"
+      >
         <div className="panel-2xl p-7">
           <InlineText
             value={formState.copy.contact.directLabel}
@@ -124,7 +127,7 @@ export function SiteSettingsContactPreview({
             }
             className="w-fit px-1 py-0.5 text-[0.62rem] uppercase tracking-eyebrow text-muted"
           />
-          <div className="mt-5 grid gap-3 sm:grid-cols-2">
+          <div data-preview-stack className="mt-5 grid gap-3 sm:grid-cols-2">
             {["Name", "Email", "Company", "Service type"].map((label) => (
               <div
                 key={label}

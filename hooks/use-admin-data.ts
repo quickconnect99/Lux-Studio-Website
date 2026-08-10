@@ -154,7 +154,7 @@ export function useAdminData() {
     removeAboutTeamMemberImageFile,
     moveAboutTeamMemberImageFile,
     handleFileSelection,
-    clearMedia,
+    clearProjectMedia,
     clearSiteSettingsMedia
   } = useAdminMedia({
     onChange: clearSaveReport,
@@ -201,7 +201,7 @@ export function useAdminData() {
     videoFile,
     coverPreviewUrl,
     working,
-    clearMedia,
+    clearProjectMedia,
     clearSaveReport,
     showStatus
   });
@@ -270,7 +270,8 @@ export function useAdminData() {
     setProjects([]);
     hasAppliedInitialProject.current = false;
     applyProject(defaultTemplate);
-  }, [applyProject, defaultTemplate]);
+    clearSiteSettingsMedia();
+  }, [applyProject, clearSiteSettingsMedia, defaultTemplate]);
 
   const handleSignInSuccess = useCallback(() => {
     // Project-scoped recovery drafts remain available after authentication.
@@ -470,17 +471,16 @@ export function useAdminData() {
             ? "Sign in to persist changes to Supabase."
             : isTemplateSource
               ? "New project created locally from template."
-              : "Draft saved to browser storage."
+              : "Draft saved in this browser session."
         );
         nextReport = buildLocalProjectSaveReport({
-          isSupabaseConfigured,
           coverFile,
           galleryFiles,
           videoFile
         });
       }
 
-      if (shouldClearQueuedMedia) clearMedia();
+      if (shouldClearQueuedMedia) clearProjectMedia();
       setSaveReport(nextReport);
       return true;
     } catch (error) {

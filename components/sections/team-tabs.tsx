@@ -6,8 +6,18 @@ type TeamTabsProps = {
   members: TeamMember[];
 };
 
+export function isPlaceholderTeamImage(source: string) {
+  return /^\/images\/demo-car-\d+\.(?:avif|jpe?g|png|webp)$/i.test(
+    source.trim()
+  );
+}
+
 export function TeamTabs({ members }: TeamTabsProps) {
-  if (members.length === 0) return null;
+  const visibleMembers = members.filter(
+    (member) => member.image.trim() && !isPlaceholderTeamImage(member.image)
+  );
+
+  if (visibleMembers.length === 0) return null;
 
   return (
     <section className="section-shell section-space-tight pt-0">
@@ -23,7 +33,7 @@ export function TeamTabs({ members }: TeamTabsProps) {
         </div>
 
         <div className="space-y-10 sm:space-y-14">
-          {members.map((member, index) => {
+          {visibleMembers.map((member, index) => {
             const isReversed = index % 2 === 1;
 
             return (
@@ -43,7 +53,7 @@ export function TeamTabs({ members }: TeamTabsProps) {
                 >
                   <Image
                     src={member.image}
-                    alt={`${member.name} portrait`}
+                    alt={`${member.name}, ${member.title}`}
                     fill
                     sizes="(min-width: 1024px) 36vw, 100vw"
                     className="object-cover"

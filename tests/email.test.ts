@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { afterEach, test } from "node:test";
-import { sendInquiryEmail } from "../lib/email";
+import { getInquiryEmailTimeoutMs, sendInquiryEmail } from "../lib/email";
 import type { Inquiry } from "../lib/types";
 
 const originalFetch = globalThis.fetch;
@@ -53,11 +53,22 @@ test("sends escaped HTML and a plain-text copy through Resend", async () => {
     return new Response("{}", { status: 200 });
   };
 
-  assert.deepEqual(await sendInquiryEmail(inquiry), { skipped: false });
+  assert.deepEqual(
+    await sendInquiryEmail(inquiry, {
+      idempotencyKey: "inquiry-123",
+      timeoutMs: 1_500
+    }),
+    { skipped: false }
+  );
   assert.equal(
     (capturedInit?.headers as Record<string, string>).Authorization,
     "Bearer test-api-key"
   );
+  assert.equal(
+    (capturedInit?.headers as Record<string, string>)["Idempotency-Key"],
+    "inquiry-123"
+  );
+  assert.ok(capturedInit?.signal instanceof AbortSignal);
 
   const body = JSON.parse(String(capturedInit?.body)) as {
     from: string;
@@ -83,6 +94,13 @@ test("surfaces non-successful Resend responses", async () => {
 
   await assert.rejects(
     () => sendInquiryEmail(inquiry),
-    /Resend email failed: 503 provider unavailable/
+    /Resend email failed with status 503/
   );
+});
+
+test("bounds configurable email timeouts", () => {
+  assert.equal(getInquiryEmailTimeoutMs("1500"), 1_500);
+  assert.equal(getInquiryEmailTimeoutMs("999"), 8_000);
+  assert.equal(getInquiryEmailTimeoutMs("30001"), 8_000);
+  assert.equal(getInquiryEmailTimeoutMs("not-a-number"), 8_000);
 });

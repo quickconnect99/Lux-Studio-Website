@@ -108,9 +108,9 @@ export function InlineText({
       <span className={cn(!value && "italic text-muted")}>
         {value || placeholder}
       </span>
-      <span className="pointer-events-none absolute -right-2 -top-2 inline-flex items-center gap-1 rounded-full bg-accent px-2 py-1 text-[0.5rem] uppercase tracking-ui text-accent-contrast opacity-70 shadow-sm transition-opacity group-hover/edit:opacity-100">
+      <span className="pointer-events-none absolute -right-2 -top-2 inline-flex items-center gap-1 rounded-full bg-accent px-2 py-1 text-[0.65rem] uppercase tracking-ui text-accent-contrast opacity-80 shadow-sm transition-opacity group-hover/edit:opacity-100">
         <Pencil className="h-2.5 w-2.5" />
-        Editierbar
+        Editable
       </span>
     </button>
   );

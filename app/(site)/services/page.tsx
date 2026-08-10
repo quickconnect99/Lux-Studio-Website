@@ -1,28 +1,29 @@
 import type { Metadata } from "next";
 import Script from "next/script";
 import { Film } from "lucide-react";
+import { LinkButton } from "@/components/ui/link-button";
 import { PageHeader } from "@/components/sections/page-header";
+import { getInquiryServiceType } from "@/components/sections/service-inquiry-options";
 import { RevealList } from "@/components/ui/reveal-list";
 import { serviceIcons } from "@/lib/content";
 import { serializeJsonLd } from "@/lib/json-ld";
-import { adaptSiteSettingsToPublishedProjects } from "@/lib/public-portfolio";
 import {
   buildSharingMetadata,
   resolveSharingImage
 } from "@/lib/sharing-metadata";
 import { buildPageStructuredData } from "@/lib/site-structured-data";
-import { getPublishedProjects, getSiteSettings } from "@/lib/supabase";
+import { getSiteSettings } from "@/lib/supabase";
 
 const pageTitle = "Services";
 const pageDescription =
   "Commercial shoots, social content, event coverage, and brand campaigns.";
 
 export async function generateMetadata(): Promise<Metadata> {
-  const [projects, settings] = await Promise.all([
-    getPublishedProjects(),
-    getSiteSettings()
-  ]);
-  const image = resolveSharingImage({ projects, settings });
+  const settings = await getSiteSettings();
+  const image = resolveSharingImage({
+    preferredImages: settings.selectedFrames,
+    settings
+  });
 
   return {
     title: pageTitle,
@@ -41,11 +42,7 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function ServicesPage() {
-  const [rawSettings, projects] = await Promise.all([
-    getSiteSettings(),
-    getPublishedProjects()
-  ]);
-  const settings = adaptSiteSettingsToPublishedProjects(rawSettings, projects);
+  const settings = await getSiteSettings();
   const structuredData = buildPageStructuredData({
     name: pageTitle,
     description: pageDescription,
@@ -97,15 +94,34 @@ export default async function ServicesPage() {
                   </div>
 
                   {/* Deliverables */}
-                  <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-1">
-                    {service.deliverables.map((item) => (
-                      <div
-                        key={item}
-                        className="metadata-card metadata-label border-l-2 border-l-accent pl-4"
+                  <div className="space-y-5">
+                    <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-1">
+                      {service.deliverables.map((item) => (
+                        <div
+                          key={item}
+                          className="metadata-card metadata-label border-l-2 border-l-accent pl-4"
+                        >
+                          {item}
+                        </div>
+                      ))}
+                    </div>
+                    <div className="grid gap-2 sm:flex sm:flex-wrap">
+                      <LinkButton
+                        href={`/contact?service=${encodeURIComponent(
+                          getInquiryServiceType(service)
+                        )}`}
+                        className="w-full sm:w-auto"
                       >
-                        {item}
-                      </div>
-                    ))}
+                        Start A Brief
+                      </LinkButton>
+                      <LinkButton
+                        href="/work"
+                        variant="secondary"
+                        className="w-full sm:w-auto"
+                      >
+                        Related Work
+                      </LinkButton>
+                    </div>
                   </div>
                 </>
               );

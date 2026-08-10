@@ -18,6 +18,8 @@ type HomeHeroProps = {
 export function HomeHero({ hero, copy }: HomeHeroProps) {
   const shouldReduceMotion = useReducedMotion();
   const videoRef = useRef<HTMLVideoElement>(null);
+  const isVideoVisibleRef = useRef(false);
+  const manuallyPausedRef = useRef(false);
   const [isPlaying, setIsPlaying] = useState(false);
   const [isMuted, setIsMuted] = useState(true);
   const [heroRevealed, setHeroRevealed] = useState(false);
@@ -34,19 +36,70 @@ export function HomeHero({ hero, copy }: HomeHeroProps) {
       }
     ).connection;
 
-    if (!video || !fileVideoSrc || shouldReduceMotion || connection?.saveData) {
+    if (!video || !fileVideoSrc) {
       video?.pause();
       return;
     }
 
-    void video
-      .play()
-      .then(() => {
-        setIsPlaying(true);
-      })
-      .catch(() => {
+    let disposed = false;
+    manuallyPausedRef.current = false;
+
+    function canAutoPlay() {
+      return (
+        isVideoVisibleRef.current &&
+        document.visibilityState === "visible" &&
+        !shouldReduceMotion &&
+        !connection?.saveData &&
+        !manuallyPausedRef.current
+      );
+    }
+
+    function syncPlayback() {
+      if (!canAutoPlay()) {
+        video.pause();
         setIsPlaying(false);
-      });
+        return;
+      }
+
+      void video
+        .play()
+        .then(() => {
+          if (disposed || !canAutoPlay()) {
+            video.pause();
+            return;
+          }
+
+          setIsPlaying(true);
+        })
+        .catch(() => {
+          if (!disposed) setIsPlaying(false);
+        });
+    }
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        isVideoVisibleRef.current = Boolean(
+          entry?.isIntersecting && entry.intersectionRatio >= 0.35
+        );
+        syncPlayback();
+      },
+      { threshold: [0, 0.35] }
+    );
+
+    function handleVisibilityChange() {
+      syncPlayback();
+    }
+
+    observer.observe(video);
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+
+    return () => {
+      disposed = true;
+      observer.disconnect();
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+      video.pause();
+      isVideoVisibleRef.current = false;
+    };
   }, [fileVideoSrc, shouldReduceMotion]);
 
   async function togglePlayback() {
@@ -57,6 +110,8 @@ export function HomeHero({ hero, copy }: HomeHeroProps) {
     }
 
     if (video.paused) {
+      manuallyPausedRef.current = false;
+
       try {
         await video.play();
         setIsPlaying(true);
@@ -67,6 +122,7 @@ export function HomeHero({ hero, copy }: HomeHeroProps) {
       return;
     }
 
+    manuallyPausedRef.current = true;
     video.pause();
     setIsPlaying(false);
   }
@@ -83,6 +139,7 @@ export function HomeHero({ hero, copy }: HomeHeroProps) {
       video.defaultMuted = false;
       video.muted = false;
       setIsMuted(false);
+      manuallyPausedRef.current = false;
 
       try {
         await video.play();
@@ -183,57 +240,59 @@ export function HomeHero({ hero, copy }: HomeHeroProps) {
             />
           ) : null}
 
-          <div className="relative z-10 flex h-full flex-col justify-between p-5 sm:p-8">
-            <div className="flex justify-end gap-2">
-              {fileVideoSrc ? (
-                <>
-                  <button
-                    type="button"
-                    onClick={togglePlayback}
-                    aria-pressed={isPlaying}
-                    aria-label={
-                      isPlaying ? "Pause showreel video" : "Play showreel video"
-                    }
-                    className="inline-flex min-h-11 items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3 py-2 text-[0.62rem] tracking-[0.18em] text-white/85 backdrop-blur disabled:opacity-50"
-                  >
-                    {isPlaying ? (
-                      <Pause className="h-3.5 w-3.5" />
-                    ) : (
-                      <Play className="h-3.5 w-3.5" />
-                    )}
-                    {isPlaying ? "Pause Reel" : "Play Reel"}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => void toggleMute()}
-                    aria-pressed={!isMuted}
-                    aria-label={
-                      isMuted
-                        ? "Turn hero reel sound on"
-                        : "Turn hero reel sound off"
-                    }
-                    className="inline-flex min-h-11 shrink-0 items-center justify-center gap-2 rounded-full border border-white/20 bg-white/10 px-3 py-2 text-[0.62rem] tracking-[0.14em] text-white/85 backdrop-blur"
-                  >
-                    {isMuted ? (
-                      <VolumeX className="h-3.5 w-3.5" />
-                    ) : (
-                      <Volume2 className="h-3.5 w-3.5" />
-                    )}
-                    <span>{isMuted ? "Sound On" : "Sound Off"}</span>
-                  </button>
-                </>
-              ) : null}
-            </div>
+          {!isExternalEmbed ? (
+            <div className="relative z-10 flex h-full flex-col justify-between p-5 sm:p-8">
+              <div className="flex justify-end gap-2">
+                {fileVideoSrc ? (
+                  <>
+                    <button
+                      type="button"
+                      onClick={togglePlayback}
+                      aria-pressed={isPlaying}
+                      aria-label={
+                        isPlaying
+                          ? "Pause showreel video"
+                          : "Play showreel video"
+                      }
+                      className="inline-flex min-h-11 items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3 py-2 text-[0.62rem] tracking-[0.18em] text-white/85 backdrop-blur disabled:opacity-50"
+                    >
+                      {isPlaying ? (
+                        <Pause className="h-3.5 w-3.5" />
+                      ) : (
+                        <Play className="h-3.5 w-3.5" />
+                      )}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => void toggleMute()}
+                      aria-pressed={!isMuted}
+                      aria-label={
+                        isMuted
+                          ? "Turn hero reel sound on"
+                          : "Turn hero reel sound off"
+                      }
+                      className="inline-flex min-h-11 shrink-0 items-center justify-center gap-2 rounded-full border border-white/20 bg-white/10 px-3 py-2 text-[0.62rem] tracking-[0.14em] text-white/85 backdrop-blur"
+                    >
+                      {isMuted ? (
+                        <VolumeX className="h-3.5 w-3.5" />
+                      ) : (
+                        <Volume2 className="h-3.5 w-3.5" />
+                      )}
+                    </button>
+                  </>
+                ) : null}
+              </div>
 
-            <div className="max-w-xl space-y-5">
-              <h2 className="font-[family-name:var(--font-display)] text-[2.65rem] uppercase leading-[0.92] sm:text-6xl">
-                {copy.videoHeadlineLead}
-                <span className="block pl-5 text-accent sm:pl-10">
-                  {copy.videoHeadlineTrail}
-                </span>
-              </h2>
+              <div className="max-w-xl space-y-5">
+                <h2 className="font-[family-name:var(--font-display)] text-[2.65rem] uppercase leading-[0.92] sm:text-6xl">
+                  {copy.videoHeadlineLead}
+                  <span className="block pl-5 text-accent sm:pl-10">
+                    {copy.videoHeadlineTrail}
+                  </span>
+                </h2>
+              </div>
             </div>
-          </div>
+          ) : null}
         </m.div>
       </div>
     </section>

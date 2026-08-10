@@ -103,7 +103,10 @@ export function SiteSettingsHomePreview({
     <>
       <section className="relative overflow-hidden px-6 py-12 sm:px-10 sm:py-16">
         <div className="absolute inset-x-8 top-8 -z-10 h-80 rounded-[3rem] bg-hero-radial blur-3xl" />
-        <div className="grid gap-10 xl:grid-cols-[0.95fr_1.05fr] xl:items-center">
+        <div
+          data-preview-stack
+          className="grid gap-10 xl:grid-cols-[0.95fr_1.05fr] xl:items-center"
+        >
           <div className="space-y-7">
             <InlineText
               value={formState.heroEyebrow}

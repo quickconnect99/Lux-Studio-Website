@@ -132,50 +132,66 @@ export function ProjectGrid({
   return (
     <section className="section-shell pb-14 sm:pb-20">
       {availableBusinesses.length > 1 ? (
-        <div className="mobile-scroll-affordance no-scrollbar -mx-4 flex gap-2 overflow-x-auto border-y border-line px-4 py-4 sm:mx-0 sm:flex-wrap sm:gap-3 sm:px-0 sm:py-5">
-          {businessFilters.map((business) => (
+        <fieldset className="border-y border-line py-4 sm:py-5">
+          <legend className="px-0 text-xs font-medium uppercase tracking-eyebrow text-muted">
+            Business
+          </legend>
+          <div className="mobile-scroll-affordance no-scrollbar -mx-4 mt-3 flex gap-2 overflow-x-auto px-4 sm:mx-0 sm:flex-wrap sm:gap-3 sm:px-0">
+            {businessFilters.map((business) => (
+              <m.button
+                key={business}
+                type="button"
+                aria-label={
+                  business === ALL ? "All businesses" : `Business: ${business}`
+                }
+                aria-pressed={activeBusiness === business}
+                onClick={() => selectBusiness(business)}
+                whileTap={{ scale: 0.94 }}
+                transition={{ duration: 0.15 }}
+                className={cn(
+                  "min-h-11 shrink-0 whitespace-nowrap rounded-full border px-4 py-2 text-xs font-medium uppercase tracking-ui",
+                  "transition-colors duration-150",
+                  activeBusiness === business
+                    ? "border-foreground bg-foreground text-background"
+                    : "border-line bg-panel-secondary text-muted hover:border-accent hover:bg-panel hover:text-foreground"
+                )}
+              >
+                {business}
+              </m.button>
+            ))}
+          </div>
+        </fieldset>
+      ) : null}
+
+      <fieldset className="py-4 sm:py-5">
+        <legend className="px-0 text-xs font-medium uppercase tracking-eyebrow text-muted">
+          Category
+        </legend>
+        <div className="mobile-scroll-affordance no-scrollbar -mx-4 mt-3 flex gap-2 overflow-x-auto px-4 sm:mx-0 sm:flex-wrap sm:gap-3 sm:px-0">
+          {categories.map((category) => (
             <m.button
-              key={business}
+              key={category}
               type="button"
-              aria-pressed={activeBusiness === business}
-              onClick={() => selectBusiness(business)}
+              aria-label={
+                category === ALL ? "All categories" : `Category: ${category}`
+              }
+              aria-pressed={activeCategory === category}
+              onClick={() => selectCategory(category)}
               whileTap={{ scale: 0.94 }}
               transition={{ duration: 0.15 }}
               className={cn(
                 "min-h-11 shrink-0 whitespace-nowrap rounded-full border px-4 py-2 text-xs font-medium uppercase tracking-ui",
                 "transition-colors duration-150",
-                activeBusiness === business
+                activeCategory === category
                   ? "border-foreground bg-foreground text-background"
                   : "border-line bg-panel-secondary text-muted hover:border-accent hover:bg-panel hover:text-foreground"
               )}
             >
-              {business}
+              {category}
             </m.button>
           ))}
         </div>
-      ) : null}
-
-      <div className="mobile-scroll-affordance no-scrollbar -mx-4 flex gap-2 overflow-x-auto px-4 py-4 sm:mx-0 sm:flex-wrap sm:gap-3 sm:px-0 sm:py-5">
-        {categories.map((category) => (
-          <m.button
-            key={category}
-            type="button"
-            aria-pressed={activeCategory === category}
-            onClick={() => selectCategory(category)}
-            whileTap={{ scale: 0.94 }}
-            transition={{ duration: 0.15 }}
-            className={cn(
-              "min-h-11 shrink-0 whitespace-nowrap rounded-full border px-4 py-2 text-xs font-medium uppercase tracking-ui",
-              "transition-colors duration-150",
-              activeCategory === category
-                ? "border-foreground bg-foreground text-background"
-                : "border-line bg-panel-secondary text-muted hover:border-accent hover:bg-panel hover:text-foreground"
-            )}
-          >
-            {category}
-          </m.button>
-        ))}
-      </div>
+      </fieldset>
 
       <p
         className="border-t border-line py-3 text-[0.68rem] font-medium uppercase tracking-meta text-muted sm:py-4"
@@ -243,7 +259,8 @@ export function ProjectGrid({
                   <div className="relative aspect-[4/3] overflow-hidden sm:aspect-[4/5]">
                     <Image
                       src={project.coverImage}
-                      alt={project.title}
+                      fallbackSrc="/images/hero-poster.svg"
+                      alt={`${project.title}, ${project.carModel || project.category} in ${project.location}`}
                       fill
                       preload={index === 0}
                       sizes="(min-width: 1280px) 33vw, (min-width: 768px) 50vw, 100vw"
@@ -268,26 +285,26 @@ export function ProjectGrid({
 
                   <div className="grid grid-cols-2 gap-4 border-t border-line p-4 sm:grid-cols-[1.1fr_1fr_1fr_auto] sm:p-5">
                     <div>
-                      <p className="text-[0.58rem] uppercase tracking-[0.22em] text-muted">
+                      <p className="text-[0.68rem] uppercase tracking-[0.2em] text-muted">
                         {getProjectPrimaryMetaLabel(project.business)}
                       </p>
-                      <p className="mt-2 text-[0.72rem] font-medium uppercase tracking-[0.12em] text-foreground">
+                      <p className="mt-2 text-[0.78rem] font-medium uppercase tracking-[0.1em] text-foreground">
                         {project.carModel || project.category}
                       </p>
                     </div>
                     <div>
-                      <p className="text-[0.58rem] uppercase tracking-[0.22em] text-muted">
+                      <p className="text-[0.68rem] uppercase tracking-[0.2em] text-muted">
                         Category
                       </p>
-                      <p className="mt-2 text-[0.72rem] font-medium uppercase tracking-[0.12em] text-foreground">
+                      <p className="mt-2 text-[0.78rem] font-medium uppercase tracking-[0.1em] text-foreground">
                         {project.category}
                       </p>
                     </div>
                     <div>
-                      <p className="text-[0.58rem] uppercase tracking-[0.22em] text-muted">
+                      <p className="text-[0.68rem] uppercase tracking-[0.2em] text-muted">
                         Location
                       </p>
-                      <p className="mt-2 text-[0.72rem] uppercase tracking-[0.12em] text-foreground">
+                      <p className="mt-2 text-[0.78rem] uppercase tracking-[0.1em] text-foreground">
                         {project.location}
                       </p>
                     </div>

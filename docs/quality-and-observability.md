@@ -6,6 +6,9 @@ Set `NEXT_PUBLIC_ENABLE_TELEMETRY=true` at build and runtime to send CLS, FCP,
 INP, LCP and TTFB to `/api/telemetry`. The endpoint records only metric name,
 numeric value, rating and navigation type in the existing structured server
 log. It does not record the visited URL, form contents or advertising IDs.
+All Telemetry responses include `x-request-id` and
+`cache-control: no-store`; rejected origins, invalid metrics, parsing
+failures, and rate limits emit PII-free structured events.
 
 Keep the flag disabled until log retention and operational access have been
 approved. The public privacy page automatically documents collection whenever
@@ -31,6 +34,21 @@ verifies the save, and restores the original value in a `finally` block.
 
 `NEXT_PUBLIC_ENABLE_ADMIN_DEMO=true` exists only for deterministic local and CI
 browser tests without Supabase. Never set it in a public deployment.
+
+## Server operations
+
+- Inquiry, Telemetry, Revalidate, Retention, and notification-retry responses
+  carry a request ID that can be matched to structured logs.
+- `inquiry.notification_retry_completed` reports only aggregate counts; it
+  does not include names, addresses, companies, or briefs.
+- `inquiry.retention_completed` reports the configured days and deleted
+  row count.
+- Alert on repeated `inquiry.rate_limit_unavailable`,
+  `inquiry.notification_claim_failed`,
+  `inquiry.notification_retry_failed`, and
+  `inquiry.retention_failed` events.
+- Confirm both Cron schedules in the deployment platform. Repository
+  configuration alone is not execution evidence.
 
 ## Release evidence
 

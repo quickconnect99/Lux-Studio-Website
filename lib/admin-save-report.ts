@@ -115,20 +115,17 @@ export function buildRemoteProjectSaveReport({
  * require a signed-in Supabase upload.
  */
 export function buildLocalProjectSaveReport({
-  isSupabaseConfigured,
   coverFile,
   galleryFiles,
   videoFile
-}: MediaFiles & { isSupabaseConfigured: boolean }): AdminSaveReport {
+}: MediaFiles): AdminSaveReport {
   return {
-    title: isSupabaseConfigured ? "Saved locally only" : "Local draft saved",
+    title: "Saved locally only",
     items: [
       {
         id: "project",
-        label: isSupabaseConfigured
-          ? "Project data saved in this browser session"
-          : "Project data saved in browser storage",
-        detail: isSupabaseConfigured ? "Session only" : "localStorage",
+        label: "Project data saved in this browser session",
+        detail: "Session only",
         tone: "info"
       },
       ...(coverFile

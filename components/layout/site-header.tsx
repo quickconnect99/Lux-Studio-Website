@@ -31,7 +31,7 @@ export function SiteHeader({ settings }: SiteHeaderProps) {
   });
 
   return (
-    <header className="sticky top-0 z-50 border-b border-line bg-[var(--header-bg)]">
+    <header className="safe-area-top sticky top-0 z-50 border-b border-line bg-[var(--header-bg)]">
       <div className="backdrop-blur-xl">
         <div className="section-shell flex min-h-[4.5rem] items-center justify-between gap-4 py-2.5 sm:min-h-[5.5rem] sm:gap-6 sm:py-4">
           {/* Brand / logo lockup */}
@@ -43,7 +43,7 @@ export function SiteHeader({ settings }: SiteHeaderProps) {
               className={cn(
                 "relative flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-[1rem]",
                 "border border-line bg-panel shadow-sm sm:h-16 sm:w-16",
-                "transition-transform duration-300 ease-out group-hover:scale-105"
+                "transition-transform duration-300 ease-out group-hover:scale-105 motion-reduce:group-hover:scale-100"
               )}
             >
               <Image
@@ -79,6 +79,7 @@ export function SiteHeader({ settings }: SiteHeaderProps) {
                 <Link
                   key={item.href}
                   href={item.href}
+                  aria-current={active ? "page" : undefined}
                   className={cn(
                     "group inline-flex items-center gap-3 text-sm font-medium uppercase tracking-[0.2em] text-muted",
                     active && "text-foreground"
@@ -159,12 +160,23 @@ export function SiteHeader({ settings }: SiteHeaderProps) {
               duration: motionDuration.state,
               ease: motionEase
             }}
-            className="bg-background/95 fixed inset-x-0 bottom-0 top-[4.5rem] overflow-y-auto border-t border-line shadow-card backdrop-blur-2xl sm:top-[5.5rem] lg:hidden"
+            className="mobile-navigation-panel bg-background/95 fixed inset-x-0 bottom-0 overflow-y-auto border-t border-line shadow-card backdrop-blur-2xl lg:hidden"
           >
-            <div className="section-shell flex min-h-full flex-col py-5">
-              <p id="mobile-navigation-title" className="eyebrow mb-5">
-                Navigation
-              </p>
+            <div className="section-shell flex min-h-full flex-col pb-5 pt-4">
+              <div className="mb-4 flex items-center justify-between gap-4">
+                <p id="mobile-navigation-title" className="eyebrow">
+                  Navigation
+                </p>
+                <button
+                  type="button"
+                  data-mobile-navigation-close
+                  onClick={() => setOpen(false)}
+                  className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-line bg-panel text-foreground transition-colors hover:border-accent hover:bg-panel-secondary"
+                  aria-label="Close navigation"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
               <div className="flex flex-col gap-2">
                 {navigation.map((item, index) => {
                   const active =
@@ -177,6 +189,7 @@ export function SiteHeader({ settings }: SiteHeaderProps) {
                     <Link
                       key={item.href}
                       href={item.href}
+                      aria-current={active ? "page" : undefined}
                       className={cn(
                         "flex min-h-16 items-center justify-between rounded-[1.25rem] border px-5 py-4",
                         "font-[family-name:var(--font-display)] text-2xl font-medium uppercase leading-none tracking-[0.04em]",

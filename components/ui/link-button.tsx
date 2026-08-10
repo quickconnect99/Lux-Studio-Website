@@ -26,7 +26,7 @@ export function LinkButton({
         "group inline-flex min-h-12 items-center justify-center gap-3 rounded-full border px-5 py-3 sm:min-h-11",
         "text-xs font-medium uppercase tracking-ui",
         // press feedback (scale defined in globals.css via a:active)
-        "active:scale-95",
+        "active:scale-95 motion-reduce:active:scale-100",
         // variants
         variant === "primary" && [
           "border-foreground bg-foreground text-background",
@@ -49,7 +49,7 @@ export function LinkButton({
         className={cn(
           "h-4 w-4 shrink-0",
           "transition-transform duration-300 ease-out",
-          "group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-hover:scale-110"
+          "group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-hover:scale-110 motion-reduce:transform-none"
         )}
       />
     </Link>

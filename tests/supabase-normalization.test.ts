@@ -4,9 +4,65 @@ import { defaultSiteSettings } from "../lib/site-config";
 import {
   normalizeProjectRecord,
   normalizeSiteSettingsRecord,
+  PUBLIC_PROJECT_COLUMNS,
+  PUBLIC_SITE_SETTINGS_COLUMNS,
   type SupabaseProjectRow,
   type SupabaseSiteSettingsRow
 } from "../lib/supabase";
+
+test("public Supabase reads use explicit column allowlists", () => {
+  assert.deepEqual(PUBLIC_PROJECT_COLUMNS.split(","), [
+    "id",
+    "business",
+    "title",
+    "slug",
+    "short_description",
+    "full_description",
+    "category",
+    "car_model",
+    "location",
+    "year",
+    "cover_image",
+    "gallery_images",
+    "gallery_captions",
+    "gallery_items",
+    "video_url",
+    "uploaded_video",
+    "featured",
+    "published",
+    "created_at",
+    "updated_at",
+    "behind_the_scenes"
+  ]);
+  assert.deepEqual(PUBLIC_SITE_SETTINGS_COLUMNS.split(","), [
+    "id",
+    "updated_at",
+    "brand_name",
+    "brand_mark",
+    "brand_strapline",
+    "contact_email",
+    "contact_phone",
+    "contact_city",
+    "social_links",
+    "seo_title",
+    "seo_description",
+    "hero_eyebrow",
+    "hero_headline_lead",
+    "hero_headline_trail",
+    "hero_copy",
+    "hero_video_url",
+    "about_founder_note",
+    "about_positioning",
+    "about_team_images",
+    "about_team_members",
+    "about_values",
+    "services",
+    "selected_frames",
+    "motion_frames",
+    "navigation_visibility",
+    "site_copy"
+  ]);
+});
 
 function projectRow(
   overrides: Partial<SupabaseProjectRow> = {}
@@ -108,7 +164,8 @@ test("normalizes partial site settings with safe defaults and stable arrays", ()
       brand_name: "  Custom Studio  ",
       social_links: [
         { label: " Instagram ", href: " https://instagram.com/lux " },
-        { label: "", href: "https://invalid.example" }
+        { label: "", href: "https://invalid.example" },
+        { label: "Unsafe", href: "javascript:alert(1)" }
       ],
       services: [
         {
@@ -143,6 +200,12 @@ test("normalizes partial site settings with safe defaults and stable arrays", ()
       title: "Film",
       description: "Production",
       deliverables: ["Hero"]
+    },
+    {
+      number: "02",
+      title: "Motion Direction",
+      description: "Legacy",
+      deliverables: []
     }
   ]);
   assert.deepEqual(settings.selectedFrames, [
@@ -151,4 +214,105 @@ test("normalizes partial site settings with safe defaults and stable arrays", ()
   ]);
   assert.deepEqual(settings.motionFrames, []);
   assert.equal(settings.contact.email, defaultSiteSettings.contact.email);
+});
+
+test("ignores malformed CMS service entries without crashing public pages", () => {
+  const settings = normalizeSiteSettingsRecord(
+    siteSettingsRow({
+      services: [
+        null,
+        { title: 42 },
+        {
+          title: "  Photography  ",
+          description: "  Campaign stills  ",
+          deliverables: ["  Hero selects  ", 12, ""]
+        }
+      ] as unknown as SupabaseSiteSettingsRow["services"]
+    })
+  );
+
+  assert.deepEqual(settings.services, [
+    {
+      number: "01",
+      title: "Photography",
+      description: "Campaign stills",
+      deliverables: ["Hero selects"]
+    }
+  ]);
+});
+
+test("normalizes malformed JSON settings fields at the public boundary", () => {
+  const settings = normalizeSiteSettingsRecord(
+    siteSettingsRow({
+      about_team_members: [
+        null,
+        { name: 42, image: "/images/invalid.jpg" },
+        {
+          name: "  Producer  ",
+          title: 99,
+          position: "  Production  ",
+          description: "  Coordinates the set  ",
+          image: " /images/producer.jpg "
+        }
+      ] as unknown as SupabaseSiteSettingsRow["about_team_members"],
+      about_values: [
+        { title: 42, copy: "Invalid" },
+        { title: "  Craft  ", copy: "  Details matter.  " }
+      ] as unknown as SupabaseSiteSettingsRow["about_values"],
+      selected_frames: [42, " /images/still.jpg "] as unknown as string[],
+      motion_frames: [{}, " /images/motion.jpg "] as unknown as string[],
+      navigation_visibility: {
+        home: "yes",
+        work: false
+      } as unknown as SupabaseSiteSettingsRow["navigation_visibility"],
+      site_copy: {
+        home: {
+          selectedWorkLabel: "Curated work",
+          heroPrimaryCta: 42
+        },
+        footer: "invalid"
+      } as unknown as SupabaseSiteSettingsRow["site_copy"]
+    })
+  );
+
+  assert.deepEqual(settings.about.teamMembers, [
+    {
+      name: "Producer",
+      title: "",
+      position: "Production",
+      description: "Coordinates the set",
+      image: "/images/producer.jpg"
+    }
+  ]);
+  assert.deepEqual(settings.about.values, [
+    { title: "Craft", copy: "Details matter." }
+  ]);
+  assert.deepEqual(settings.selectedFrames, ["/images/still.jpg"]);
+  assert.deepEqual(settings.motionFrames, ["/images/motion.jpg"]);
+  assert.equal(settings.navigation.home, defaultSiteSettings.navigation.home);
+  assert.equal(settings.navigation.work, false);
+  assert.equal(settings.copy.home.selectedWorkLabel, "Curated work");
+  assert.equal(
+    settings.copy.home.heroPrimaryCta,
+    defaultSiteSettings.copy.home.heroPrimaryCta
+  );
+  assert.deepEqual(settings.copy.footer, defaultSiteSettings.copy.footer);
+});
+
+test("ignores malformed structured project gallery values", () => {
+  const project = normalizeProjectRecord(
+    projectRow({
+      gallery_images: [42, "/images/legacy.jpg"] as unknown as string[],
+      gallery_captions: [42, "Legacy caption"] as unknown as string[],
+      gallery_items: [
+        null,
+        { image: 42, caption: { trim: 1 } },
+        { image: "/images/valid.jpg", caption: 42, alt: 42 }
+      ] as unknown as SupabaseProjectRow["gallery_items"]
+    })
+  );
+
+  assert.deepEqual(project.galleryItems, [
+    { image: "/images/valid.jpg", caption: "", alt: undefined }
+  ]);
 });

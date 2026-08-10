@@ -18,6 +18,7 @@ import {
 import { saveAdminSiteSettingsRecord } from "@/lib/admin-site-settings-repository";
 import {
   createAdminUploadSession,
+  getAdminSiteSettingsMediaUrls,
   removeAdminFiles,
   removeUnreferencedAdminFiles,
   revalidateAdminPublicContent
@@ -33,7 +34,6 @@ import {
 } from "@/lib/admin-utils";
 import { defaultSiteSettings } from "@/lib/site-config";
 import { SITE_SETTINGS_ID, normalizeSiteSettingsRecord } from "@/lib/supabase";
-import { buildFrameItems } from "@/lib/project-images";
 
 const DRAFT_PERSIST_DELAY_MS = 250;
 
@@ -239,16 +239,9 @@ export function useAdminSiteSettings({
           formState.aboutTeamGalleryText
         );
         const aboutTeamMembers = [...formState.aboutTeamMembers];
-        const previousMediaUrls = [
-          formState.heroVideoUrl,
-          ...buildFrameItems({
-            selectedFrames,
-            fallbackImages: [],
-            galleryImages: []
-          }).map((frame) => frame.image),
-          ...aboutTeamGallery,
-          ...formState.aboutTeamMembers.map((member) => member.image)
-        ].filter(Boolean);
+        const previousMediaUrls = getAdminSiteSettingsMediaUrls(
+          savedFormStateRef.current
+        );
         const totalFiles =
           (siteHeroVideoFile ? 1 : 0) +
           selectedFrameFiles.length +
@@ -328,16 +321,7 @@ export function useAdminSiteSettings({
         const savedState = toSiteSettingsFormState(
           normalizeSiteSettingsRecord(saveResult.data)
         );
-        const currentMediaUrls = [
-          heroVideoUrl,
-          ...buildFrameItems({
-            selectedFrames,
-            fallbackImages: [],
-            galleryImages: []
-          }).map((frame) => frame.image),
-          ...aboutTeamGallery,
-          ...aboutTeamMembers.map((member) => member.image)
-        ].filter(Boolean);
+        const currentMediaUrls = getAdminSiteSettingsMediaUrls(nextFormState);
         const replacedMediaUrls = previousMediaUrls.filter(
           (url) => !currentMediaUrls.includes(url)
         );

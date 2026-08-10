@@ -46,16 +46,16 @@ export function SiteSettingsToolbar({
             </>
           )}
         </p>
-        <p className="border-accent/40 bg-accent/10 mt-2 inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-[0.62rem] uppercase tracking-ui text-foreground">
+        <p className="border-accent/40 bg-accent/10 mt-2 inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-[0.72rem] uppercase tracking-ui text-foreground">
           <Pencil className="h-3 w-3 text-accent-text" />
-          Green-highlighted content is directly editable
+          Dashed accent fields are directly editable
         </p>
       </div>
       <div className="flex flex-wrap items-center gap-2">
         <div
           role="tablist"
           aria-label="Site settings preview page"
-          className="no-scrollbar flex max-w-full overflow-x-auto rounded-full border border-line bg-panel-secondary p-1"
+          className="mobile-scroll-affordance no-scrollbar flex max-w-full overflow-x-auto rounded-full border border-line bg-panel-secondary p-1"
         >
           {(
             [
@@ -74,7 +74,7 @@ export function SiteSettingsToolbar({
               aria-selected={page === previewPage}
               onClick={() => onPageChange(previewPage)}
               className={cn(
-                "min-h-11 rounded-full px-3 py-2 text-[0.58rem] uppercase tracking-ui",
+                "min-h-11 rounded-full px-3 py-2 text-[0.68rem] uppercase tracking-ui",
                 page === previewPage
                   ? "bg-foreground text-background"
                   : "text-muted"

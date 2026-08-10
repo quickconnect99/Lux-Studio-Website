@@ -38,6 +38,7 @@ export function createAdminContentSecurityPolicy({
     `script-src 'self' 'nonce-${nonce}' '${themeInitScriptSha256}' 'strict-dynamic'${
       isProduction ? "" : " 'unsafe-eval'"
     }`,
+    "script-src-attr 'none'",
     "style-src 'self' 'unsafe-inline'",
     "font-src 'self' data:",
     `img-src 'self' data: blob: https:${supabaseOrigin ? ` ${supabaseOrigin}` : ""}`,
@@ -45,6 +46,8 @@ export function createAdminContentSecurityPolicy({
     `connect-src 'self'${isProduction ? "" : " ws: wss:"}${
       supabaseOrigin ? ` ${supabaseOrigin}` : ""
     }`,
+    "worker-src 'self' blob:",
+    "manifest-src 'self'",
     "frame-src https://www.youtube-nocookie.com https://www.youtube.com https://player.vimeo.com",
     isProduction ? "upgrade-insecure-requests" : ""
   ]

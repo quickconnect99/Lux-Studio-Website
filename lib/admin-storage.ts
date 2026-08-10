@@ -1,5 +1,10 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
-import type { AdminUploadProgress } from "@/lib/admin-types";
+import type {
+  AdminUploadProgress,
+  SiteSettingsFormState
+} from "@/lib/admin-types";
+import { parseMultilineInput } from "@/lib/admin-utils";
+import { buildFrameItems } from "@/lib/project-images";
 import { SUPABASE_BUCKET } from "@/lib/supabase";
 
 export type AdminStorageFolder =
@@ -10,7 +15,80 @@ export type AdminStorageFolder =
   | "selected-frames"
   | "videos";
 
+type SiteSettingsMediaFields = Pick<
+  SiteSettingsFormState,
+  | "heroVideoUrl"
+  | "selectedFramesText"
+  | "motionFramesText"
+  | "aboutTeamGalleryText"
+  | "aboutTeamMembers"
+>;
+
 const RESUMABLE_UPLOAD_THRESHOLD_BYTES = 6 * 1024 * 1024;
+
+/** Collects every Storage-capable URL represented by Site Settings media. */
+export function getAdminSiteSettingsMediaUrls(
+  formState: SiteSettingsMediaFields
+) {
+  const frameImages = [
+    formState.selectedFramesText,
+    formState.motionFramesText
+  ].flatMap((value) =>
+    buildFrameItems({
+      selectedFrames: parseMultilineInput(value),
+      fallbackImages: [],
+      galleryImages: []
+    }).map((frame) => frame.image)
+  );
+
+  return Array.from(
+    new Set(
+      [
+        formState.heroVideoUrl,
+        ...frameImages,
+        ...parseMultilineInput(formState.aboutTeamGalleryText),
+        ...formState.aboutTeamMembers.map((member) => member.image)
+      ].filter(Boolean)
+    )
+  );
+}
+
+type ResumableUploadRecord = {
+  metadata?: Record<string, string>;
+};
+
+/**
+ * Returns the object path that an earlier TUS upload actually targets.
+ *
+ * TUS fingerprints identify the local file and endpoint, not the fresh UUID
+ * generated for a later retry. Resuming is therefore safe only when the stored
+ * metadata belongs to this bucket and the same logical media folder.
+ */
+export function getResumableAdminObjectName(
+  previousUpload: ResumableUploadRecord,
+  requestedFilePath: string
+) {
+  const objectName = previousUpload.metadata?.objectName?.trim() ?? "";
+  const bucketName = previousUpload.metadata?.bucketName?.trim() ?? "";
+  const folderSeparator = requestedFilePath.indexOf("/");
+  const expectedFolder =
+    folderSeparator >= 0 ? requestedFilePath.slice(0, folderSeparator + 1) : "";
+  const pathSegments = objectName.split("/");
+
+  if (
+    bucketName !== SUPABASE_BUCKET ||
+    !expectedFolder ||
+    !objectName.startsWith(expectedFolder) ||
+    objectName.includes("\\") ||
+    pathSegments.some(
+      (segment) => !segment || segment === "." || segment === ".."
+    )
+  ) {
+    return null;
+  }
+
+  return objectName;
+}
 
 function getResumableUploadEndpoint() {
   const configuredUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -50,6 +128,8 @@ async function uploadAdminFileResumably(
 
   const { Upload } = await import("tus-js-client");
 
+  let uploadedFilePath = filePath;
+
   await new Promise<void>((resolve, reject) => {
     const upload = new Upload(file, {
       endpoint,
@@ -74,13 +154,21 @@ async function uploadAdminFileResumably(
     void upload
       .findPreviousUploads()
       .then((previousUploads) => {
-        if (previousUploads.length > 0) {
-          upload.resumeFromPreviousUpload(previousUploads[0]);
+        const previousUpload = previousUploads.find((candidate) =>
+          Boolean(getResumableAdminObjectName(candidate, filePath))
+        );
+
+        if (previousUpload) {
+          uploadedFilePath =
+            getResumableAdminObjectName(previousUpload, filePath) ?? filePath;
+          upload.resumeFromPreviousUpload(previousUpload);
         }
         upload.start();
       })
       .catch(reject);
   });
+
+  return uploadedFilePath;
 }
 
 /**
@@ -101,9 +189,10 @@ export async function uploadAdminFile(
   const extension = file.name.split(".").pop()?.toLowerCase() ?? "bin";
   const filePath = `${folder}/${crypto.randomUUID()}.${extension}`;
   const resumableEndpoint = getResumableUploadEndpoint();
+  let uploadedFilePath = filePath;
 
   if (file.size > RESUMABLE_UPLOAD_THRESHOLD_BYTES && resumableEndpoint) {
-    await uploadAdminFileResumably(
+    uploadedFilePath = await uploadAdminFileResumably(
       supabase,
       file,
       filePath,
@@ -126,7 +215,7 @@ export async function uploadAdminFile(
 
   const {
     data: { publicUrl }
-  } = supabase.storage.from(SUPABASE_BUCKET).getPublicUrl(filePath);
+  } = supabase.storage.from(SUPABASE_BUCKET).getPublicUrl(uploadedFilePath);
 
   return publicUrl;
 }
@@ -295,12 +384,25 @@ export async function removeAdminFiles(
 
 function collectReferencedStrings(value: unknown, references: Set<string>) {
   if (typeof value === "string") {
-    references.add(value.trim());
-    value
+    const normalizedValue = value.trim();
+    references.add(normalizedValue);
+    normalizedValue
       .split(/\s*(?:\||->)\s*/)
       .map((part) => part.trim())
       .filter(Boolean)
       .forEach((part) => references.add(part));
+
+    try {
+      const structuredValue = JSON.parse(normalizedValue) as unknown;
+      if (
+        structuredValue &&
+        (typeof structuredValue === "object" || Array.isArray(structuredValue))
+      ) {
+        collectReferencedStrings(structuredValue, references);
+      }
+    } catch {
+      // Plain URLs and legacy delimiter formats are expected here.
+    }
     return;
   }
 
@@ -314,6 +416,30 @@ function collectReferencedStrings(value: unknown, references: Set<string>) {
       collectReferencedStrings(item, references)
     );
   }
+}
+
+async function loadAdminMediaReferences(supabase: SupabaseClient) {
+  const [projectsResult, settingsResult] = await Promise.all([
+    supabase
+      .from("projects")
+      .select(
+        "cover_image, gallery_images, gallery_items, video_url, uploaded_video"
+      ),
+    supabase
+      .from("site_settings")
+      .select(
+        "hero_video_url, selected_frames, motion_frames, about_team_images, about_team_members"
+      )
+  ]);
+
+  if (projectsResult.error || settingsResult.error) {
+    return null;
+  }
+
+  const references = new Set<string>();
+  collectReferencedStrings(projectsResult.data, references);
+  collectReferencedStrings(settingsResult.data, references);
+  return references;
 }
 
 /**
@@ -333,28 +459,29 @@ export async function removeUnreferencedAdminFiles(
     return true;
   }
 
-  const [projectsResult, settingsResult] = await Promise.all([
-    supabase
-      .from("projects")
-      .select("cover_image, gallery_images, gallery_items, uploaded_video"),
-    supabase
-      .from("site_settings")
-      .select(
-        "hero_video_url, selected_frames, motion_frames, about_team_images, about_team_members"
-      )
-  ]);
-
-  if (projectsResult.error || settingsResult.error) {
+  const initialReferences = await loadAdminMediaReferences(supabase);
+  if (!initialReferences) {
     return false;
   }
 
-  const references = new Set<string>();
-  collectReferencedStrings(projectsResult.data, references);
-  collectReferencedStrings(settingsResult.data, references);
+  const initiallyUnreferenced = candidates.filter(
+    (url) => !initialReferences.has(url)
+  );
+  if (initiallyUnreferenced.length === 0) {
+    return true;
+  }
+
+  // Storage deletion cannot share a transaction with Postgres. Re-read all
+  // references immediately before removal to narrow the remaining TOCTOU
+  // window and retain anything another editor referenced after the first read.
+  const latestReferences = await loadAdminMediaReferences(supabase);
+  if (!latestReferences) {
+    return false;
+  }
 
   return removeAdminFiles(
     supabase,
-    candidates.filter((url) => !references.has(url))
+    initiallyUnreferenced.filter((url) => !latestReferences.has(url))
   );
 }
 

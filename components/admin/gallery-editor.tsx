@@ -532,6 +532,7 @@ export function GalleryEditor({
           type="file"
           accept="image/*"
           multiple
+          aria-label="Upload gallery images"
           onChange={handleFileChange}
           className="sr-only"
         />

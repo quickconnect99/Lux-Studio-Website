@@ -12,7 +12,7 @@ const LOCAL_PATH_PATTERNS = [
  * persisted as if they were web-accessible media.
  */
 export function isLocalFileReference(value: string | null | undefined) {
-  const source = value?.trim();
+  const source = typeof value === "string" ? value.trim() : "";
 
   if (!source) {
     return false;
@@ -26,25 +26,48 @@ export function isLocalFileReference(value: string | null | undefined) {
   }
 }
 
+function isSafeRepositoryPath(value: string) {
+  if (!value.startsWith("/") || value.startsWith("//")) {
+    return false;
+  }
+
+  // Browsers normalize backslashes in special URLs. Reject them (including
+  // percent-encoded variants) so a value such as `/\\host/path` can never be
+  // reinterpreted as a protocol-relative URL.
+  try {
+    return !/[\\\u0000-\u001f\u007f]/.test(decodeURIComponent(value));
+  } catch {
+    return false;
+  }
+}
+
 /**
  * Returns a trimmed public media reference or the supplied fallback when the
  * value is blank or points to a local filesystem.
  */
-export function normalizePublicMediaUrl(
-  value: string | null | undefined,
-  fallback = ""
-) {
-  const source = value?.trim();
+export function normalizePublicMediaUrl(value: unknown, fallback = "") {
+  const source = typeof value === "string" ? value.trim() : "";
 
   if (!source || isLocalFileReference(source)) {
     return fallback;
   }
 
-  return source;
+  if (isSafeRepositoryPath(source)) {
+    return source;
+  }
+
+  try {
+    const url = new URL(source);
+    return url.protocol === "https:" || url.protocol === "http:"
+      ? url.href
+      : fallback;
+  } catch {
+    return fallback;
+  }
 }
 
 /** Normalizes a list and removes every blank or unsafe local media reference. */
-export function filterPublicMediaUrls(values: string[] | null | undefined) {
+export function filterPublicMediaUrls(values: unknown) {
   if (!Array.isArray(values)) {
     return [];
   }

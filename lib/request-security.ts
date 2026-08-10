@@ -1,13 +1,48 @@
-/**
- * Builds a privacy-minimal rate-limit key from proxy IP headers and a bounded
- * user-agent fragment.
- */
-export function getRequestClientKey(headers: Headers) {
-  const forwardedFor = headers.get("x-forwarded-for")?.split(",")[0]?.trim();
-  const realIp = headers.get("x-real-ip")?.trim();
-  const userAgent = headers.get("user-agent")?.trim() ?? "unknown";
+import { isIP } from "node:net";
 
-  return `${forwardedFor || realIp || "unknown"}:${userAgent.slice(0, 120)}`;
+const supportedProxyIpHeaders = new Set([
+  "x-forwarded-for",
+  "x-real-ip",
+  "x-vercel-forwarded-for"
+]);
+
+function resolveTrustedProxyIpHeader(configuredHeader?: string) {
+  const normalized = configuredHeader?.trim().toLowerCase();
+
+  if (normalized && supportedProxyIpHeaders.has(normalized)) {
+    return normalized;
+  }
+
+  return process.env.VERCEL ? "x-vercel-forwarded-for" : "x-forwarded-for";
+}
+
+function normalizeForwardedIp(value: string | null) {
+  const candidate = value?.split(",")[0]?.trim();
+  if (!candidate) {
+    return null;
+  }
+
+  const unwrapped =
+    candidate.startsWith("[") && candidate.endsWith("]")
+      ? candidate.slice(1, -1)
+      : candidate;
+
+  return isIP(unwrapped) ? unwrapped : null;
+}
+
+/**
+ * Builds a privacy-minimal rate-limit key from one explicitly trusted proxy
+ * header. User-Agent is intentionally excluded because clients can vary it to
+ * create unlimited rate-limit partitions.
+ */
+export function getRequestClientKey(
+  headers: Headers,
+  configuredHeader = process.env.TRUSTED_PROXY_IP_HEADER
+) {
+  const trustedHeader = resolveTrustedProxyIpHeader(configuredHeader);
+  const clientIp = normalizeForwardedIp(headers.get(trustedHeader));
+
+  return `ip:${clientIp ?? "unknown"}`;
 }
 
 /**
@@ -27,15 +62,15 @@ export function isAllowedRequestOrigin(
   }
 
   try {
-    const originHost = new URL(origin).host;
-    const requestHost = request.headers.get("host");
+    const parsedOrigin = new URL(origin).origin;
+    const requestOrigin = new URL(request.url).origin;
 
-    if (requestHost && originHost === requestHost) {
+    if (parsedOrigin === requestOrigin) {
       return true;
     }
 
     return configuredSiteUrl
-      ? new URL(configuredSiteUrl).host === originHost
+      ? new URL(configuredSiteUrl).origin === parsedOrigin
       : false;
   } catch {
     return false;

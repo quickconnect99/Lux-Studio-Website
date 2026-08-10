@@ -1,30 +1,27 @@
 import type { Metadata } from "next";
 import Script from "next/script";
 import { InquiryForm } from "@/components/sections/inquiry-form";
+import { buildInquiryServiceOptions } from "@/components/sections/service-inquiry-options";
 import { PageHeader } from "@/components/sections/page-header";
 import { ContactInfo } from "@/components/ui/contact-info";
 import { SocialLinks } from "@/components/ui/social-links";
 import { serializeJsonLd } from "@/lib/json-ld";
-import { adaptSiteSettingsToPublishedProjects } from "@/lib/public-portfolio";
 import {
   buildSharingMetadata,
   resolveSharingImage
 } from "@/lib/sharing-metadata";
 import { buildPageStructuredData } from "@/lib/site-structured-data";
-import { getPublishedProjects, getSiteSettings } from "@/lib/supabase";
+import { getSiteSettings } from "@/lib/supabase";
+import type { InquiryServiceType } from "@/lib/types";
 
 const pageTitle = "Contact";
 const pageDescription =
   "Contact Lux Studio for films, stills, launches, and campaign work.";
 
 export async function generateMetadata(): Promise<Metadata> {
-  const [projects, settings] = await Promise.all([
-    getPublishedProjects(),
-    getSiteSettings()
-  ]);
+  const settings = await getSiteSettings();
   const image = resolveSharingImage({
     preferredImages: settings.selectedFrames,
-    projects,
     settings
   });
 
@@ -44,12 +41,22 @@ export async function generateMetadata(): Promise<Metadata> {
   };
 }
 
-export default async function ContactPage() {
-  const [rawSettings, projects] = await Promise.all([
-    getSiteSettings(),
-    getPublishedProjects()
-  ]);
-  const settings = adaptSiteSettingsToPublishedProjects(rawSettings, projects);
+type ContactPageProps = {
+  searchParams?: Promise<{ service?: string | string[] }>;
+};
+
+export default async function ContactPage({ searchParams }: ContactPageProps) {
+  const settings = await getSiteSettings();
+  const serviceOptions = buildInquiryServiceOptions(settings.services);
+  const resolvedSearchParams = searchParams ? await searchParams : {};
+  const requestedService = Array.isArray(resolvedSearchParams.service)
+    ? resolvedSearchParams.service[0]
+    : resolvedSearchParams.service;
+  const initialServiceType = serviceOptions.some(
+    (option) => option.value === requestedService
+  )
+    ? (requestedService as InquiryServiceType)
+    : "";
   const structuredData = buildPageStructuredData({
     name: pageTitle,
     description: pageDescription,
@@ -94,6 +101,8 @@ export default async function ContactPage() {
           <InquiryForm
             label={settings.copy.contact.formLabel}
             submitLabel={settings.copy.contact.submitLabel}
+            serviceOptions={serviceOptions}
+            initialServiceType={initialServiceType}
           />
         </div>
       </section>

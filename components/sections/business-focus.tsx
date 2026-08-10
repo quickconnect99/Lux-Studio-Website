@@ -61,6 +61,7 @@ export function BusinessFocus({ cards }: BusinessFocusProps) {
                 <div className="relative aspect-[4/3] overflow-hidden sm:aspect-[4/5]">
                   <Image
                     src={card.imageSrc}
+                    fallbackSrc="/images/hero-poster.svg"
                     alt={card.imageAlt}
                     fill
                     sizes="(min-width: 1024px) 33vw, (min-width: 768px) 50vw, 100vw"

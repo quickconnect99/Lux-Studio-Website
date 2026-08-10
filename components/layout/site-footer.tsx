@@ -12,7 +12,7 @@ export function SiteFooter({ settings }: SiteFooterProps) {
   const navigation = getVisibleNavigation(settings.navigation);
 
   return (
-    <footer className="border-t border-line pb-24 pt-9 sm:pb-8 sm:pt-10">
+    <footer className="site-footer-safe-area border-t border-line pb-24 pt-9 sm:pb-8 sm:pt-10">
       {/*
        * Layout:
        *   mobile  – single column
@@ -74,7 +74,7 @@ export function SiteFooter({ settings }: SiteFooterProps) {
             Privacy Policy
           </Link>
         </div>
-        <p className="max-w-sm text-[0.62rem] leading-5 tracking-[0.18em] text-muted sm:text-right sm:text-[0.68rem] sm:tracking-[0.22em]">
+        <p className="max-w-sm text-[0.72rem] leading-5 tracking-[0.16em] text-muted sm:text-right sm:tracking-[0.18em]">
           {settings.copy.footer.mediaNotice}
         </p>
       </div>

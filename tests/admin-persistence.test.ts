@@ -200,7 +200,6 @@ test("builds remote and local save reports from queued media", () => {
     videoFile: null
   });
   const local = buildLocalProjectSaveReport({
-    isSupabaseConfigured: true,
     coverFile,
     galleryFiles,
     videoFile: null
@@ -214,6 +213,15 @@ test("builds remote and local save reports from queued media", () => {
     local.items.map((item) => item.id),
     ["project", "cover-warning", "gallery-warning"]
   );
+  assert.equal(local.items[0].detail, "Session only");
+
+  const unconfiguredLocal = buildLocalProjectSaveReport({
+    coverFile: null,
+    galleryFiles: [],
+    videoFile: null
+  });
+  assert.equal(unconfiguredLocal.items[0].detail, "Session only");
+  assert.match(unconfiguredLocal.items[0].label, /browser session/i);
 });
 
 test("builds site settings reports and shared follow-up warnings", () => {

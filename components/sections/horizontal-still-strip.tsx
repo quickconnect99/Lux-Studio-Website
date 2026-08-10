@@ -247,6 +247,13 @@ export function HorizontalStillStrip({
           type="button"
           data-motion-strip-toggle
           aria-pressed={shouldReduceMotion || userPaused}
+          aria-label={
+            shouldReduceMotion
+              ? "Motion reduced"
+              : userPaused
+                ? "Play strip"
+                : "Pause strip"
+          }
           onClick={togglePlayback}
           disabled={shouldReduceMotion}
           className="control-pill shrink-0 active:!scale-100 disabled:cursor-not-allowed disabled:opacity-60"
@@ -256,11 +263,6 @@ export function HorizontalStillStrip({
           ) : (
             <Pause className="h-4 w-4" />
           )}
-          {shouldReduceMotion
-            ? "Motion reduced"
-            : userPaused
-              ? "Play strip"
-              : "Pause strip"}
         </button>
       </div>
 

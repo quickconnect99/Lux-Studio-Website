@@ -15,8 +15,8 @@ test("@cms-mutation authenticated site settings can be saved and restored", asyn
   );
 
   await page.goto("/admin");
-  await page.getByPlaceholder("Admin email").fill(email!);
-  await page.getByPlaceholder("Password").fill(password!);
+  await page.getByLabel("Admin email").fill(email!);
+  await page.getByLabel("Password").fill(password!);
   await page.getByRole("button", { name: "Sign In" }).click();
   await expect(page.getByText(email!)).toBeVisible();
 

@@ -1,3 +1,4 @@
+import { randomUUID } from "node:crypto";
 import { NextResponse } from "next/server";
 import {
   INQUIRY_RATE_LIMIT_MAX_REQUESTS,
@@ -61,13 +62,19 @@ function prepareLocalRateLimitStore() {
  */
 export async function POST(request: Request) {
   const requestId = getRequestId(request.headers);
+  const startedAt = Date.now();
 
-  function json(body: Record<string, unknown>, init?: { status?: number }) {
+  function json(
+    body: Record<string, unknown>,
+    init?: { status?: number; headers?: HeadersInit }
+  ) {
+    const headers = new Headers(init?.headers);
+    headers.set("x-request-id", requestId);
+    headers.set("cache-control", "no-store");
+
     return NextResponse.json(body, {
       ...init,
-      headers: {
-        "x-request-id": requestId
-      }
+      headers
     });
   }
 
@@ -135,11 +142,8 @@ export async function POST(request: Request) {
       requestId
     });
     return json(
-      {
-        message:
-          "Inquiry endpoint is not configured. Add SUPABASE_SERVICE_ROLE_KEY on the server."
-      },
-      { status: 503 }
+      { message: "The inquiry service is temporarily unavailable." },
+      { status: 503, headers: { "retry-after": "60" } }
     );
   }
 
@@ -152,8 +156,8 @@ export async function POST(request: Request) {
       requestId
     });
     return json(
-      { message: "Supabase admin client could not be created." },
-      { status: 503 }
+      { message: "The inquiry service is temporarily unavailable." },
+      { status: 503, headers: { "retry-after": "60" } }
     );
   }
 
@@ -165,7 +169,9 @@ export async function POST(request: Request) {
     windowMs: INQUIRY_RATE_LIMIT_WINDOW_MS,
     localStore: rateLimitStore,
     persistentConsume: (parameters) =>
-      supabase.rpc("consume_inquiry_rate_limit", parameters)
+      supabase.rpc("consume_inquiry_rate_limit", parameters),
+    hashSecret: process.env.INQUIRY_RATE_LIMIT_SECRET,
+    allowMemoryFallback: process.env.NODE_ENV !== "production"
   });
 
   if (
@@ -183,12 +189,32 @@ export async function POST(request: Request) {
     });
   }
 
+  if (rateLimit.source === "unavailable") {
+    logServerEvent({
+      level: "error",
+      event: "inquiry.rate_limit_unavailable",
+      requestId,
+      context: {
+        fallbackReason: rateLimit.fallbackReason
+      }
+    });
+    return json(
+      { message: "The inquiry service is temporarily unavailable." },
+      { status: 503, headers: { "retry-after": "60" } }
+    );
+  }
+
   if (!rateLimit.allowed) {
     return json(
       {
         message: "Too many inquiries from this browser. Please try again later."
       },
-      { status: 429 }
+      {
+        status: 429,
+        headers: {
+          "retry-after": String(Math.ceil(INQUIRY_RATE_LIMIT_WINDOW_MS / 1_000))
+        }
+      }
     );
   }
 
@@ -213,7 +239,9 @@ export async function POST(request: Request) {
     );
   }
 
+  const inquiryId = randomUUID();
   const { error } = await supabase.from("inquiries").insert({
+    id: inquiryId,
     name: inquiry.name,
     email: inquiry.email,
     company: inquiry.company,
@@ -234,8 +262,46 @@ export async function POST(request: Request) {
     );
   }
 
+  const notificationAttemptedAt = new Date().toISOString();
+  const { error: attemptStatusError } = await supabase
+    .from("inquiries")
+    .update({
+      notification_attempts: 1,
+      notification_last_attempt_at: notificationAttemptedAt
+    })
+    .eq("id", inquiryId);
+
+  if (attemptStatusError) {
+    logServerEvent({
+      level: "warn",
+      event: "inquiry.notification_attempt_status_failed",
+      requestId,
+      error: attemptStatusError
+    });
+  }
+
   try {
-    const email = await sendInquiryEmail(inquiry);
+    const email = await sendInquiryEmail(inquiry, {
+      idempotencyKey: inquiryId
+    });
+    const notificationStatus = email.skipped ? "skipped" : "sent";
+    const { error: notificationStatusError } = await supabase
+      .from("inquiries")
+      .update({
+        notification_status: notificationStatus,
+        notification_sent_at: email.skipped ? null : new Date().toISOString()
+      })
+      .eq("id", inquiryId);
+
+    if (notificationStatusError) {
+      logServerEvent({
+        level: "error",
+        event: "inquiry.notification_status_update_failed",
+        requestId,
+        error: notificationStatusError
+      });
+    }
+
     if (email.skipped) {
       logServerEvent({
         level: "warn",
@@ -247,13 +313,32 @@ export async function POST(request: Request) {
       });
     }
   } catch (emailError) {
+    const { error: notificationStatusError } = await supabase
+      .from("inquiries")
+      .update({
+        notification_status: "failed",
+        notification_sent_at: null
+      })
+      .eq("id", inquiryId);
     logServerEvent({
       level: "error",
       event: "inquiry.email_failed",
       requestId,
-      error: emailError
+      error: emailError,
+      context: {
+        statusUpdateFailed: Boolean(notificationStatusError)
+      }
     });
   }
+
+  logServerEvent({
+    level: "info",
+    event: "inquiry.accepted",
+    requestId,
+    context: {
+      durationMs: Date.now() - startedAt
+    }
+  });
 
   return json({
     message: "Inquiry received - we'll be in touch within 24-48 hours."

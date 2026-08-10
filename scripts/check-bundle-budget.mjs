@@ -1,6 +1,7 @@
 import { readFile, readdir, stat } from "node:fs/promises";
 import path from "node:path";
 import process from "node:process";
+import { brotliCompressSync, constants, gzipSync } from "node:zlib";
 
 const workspace = process.cwd();
 const chunksDirectory = path.join(workspace, ".next", "static", "chunks");
@@ -8,6 +9,15 @@ const mediaDirectory = path.join(workspace, "public", "media");
 const imageDirectory = path.join(workspace, "public", "images");
 const maximumTotalJavaScriptBytes = 1_650_000;
 const maximumSingleJavaScriptBytes = 320_000;
+const maximumTotalGzipJavaScriptBytes = 525_000;
+const maximumTotalBrotliJavaScriptBytes = 460_000;
+const maximumSingleGzipJavaScriptBytes = 90_000;
+const maximumSingleBrotliJavaScriptBytes = 80_000;
+const maximumTotalCssBytes = 100_000;
+// next/font emits separate subset files for the configured families and
+// weights. Keep enough headroom above the current 284 KB baseline to avoid a
+// permanently failing budget while still catching another large family.
+const maximumTotalFontBytes = 320_000;
 const maximumSingleVideoBytes = 8 * 1024 * 1024;
 const maximumSingleRepositoryImageBytes = 1024 * 1024;
 
@@ -26,10 +36,19 @@ const javaScriptFiles = (await listFiles(chunksDirectory)).filter((file) =>
   file.endsWith(".js")
 );
 const javaScriptSizes = await Promise.all(
-  javaScriptFiles.map(async (file) => ({
-    file,
-    bytes: (await stat(file)).size
-  }))
+  javaScriptFiles.map(async (file) => {
+    const contents = await readFile(file);
+    return {
+      file,
+      bytes: contents.length,
+      gzipBytes: gzipSync(contents, { level: 9 }).length,
+      brotliBytes: brotliCompressSync(contents, {
+        // Quality 9 is a closer production transfer proxy than the much slower
+        // offline-max setting while remaining deterministic across CI runs.
+        params: { [constants.BROTLI_PARAM_QUALITY]: 9 }
+      }).length
+    };
+  })
 );
 const totalJavaScriptBytes = javaScriptSizes.reduce(
   (total, item) => total + item.bytes,
@@ -38,6 +57,33 @@ const totalJavaScriptBytes = javaScriptSizes.reduce(
 const largestJavaScript = javaScriptSizes.sort(
   (left, right) => right.bytes - left.bytes
 )[0];
+const totalGzipJavaScriptBytes = javaScriptSizes.reduce(
+  (total, item) => total + item.gzipBytes,
+  0
+);
+const totalBrotliJavaScriptBytes = javaScriptSizes.reduce(
+  (total, item) => total + item.brotliBytes,
+  0
+);
+const largestGzipJavaScript = [...javaScriptSizes].sort(
+  (left, right) => right.gzipBytes - left.gzipBytes
+)[0];
+const largestBrotliJavaScript = [...javaScriptSizes].sort(
+  (left, right) => right.brotliBytes - left.brotliBytes
+)[0];
+const staticFiles = await listFiles(path.join(workspace, ".next", "static"));
+const cssSizes = await Promise.all(
+  staticFiles
+    .filter((file) => file.endsWith(".css"))
+    .map(async (file) => ({ file, bytes: (await stat(file)).size }))
+);
+const fontSizes = await Promise.all(
+  staticFiles
+    .filter((file) => file.endsWith(".woff2"))
+    .map(async (file) => ({ file, bytes: (await stat(file)).size }))
+);
+const totalCssBytes = cssSizes.reduce((total, item) => total + item.bytes, 0);
+const totalFontBytes = fontSizes.reduce((total, item) => total + item.bytes, 0);
 const videoSizes = await Promise.all(
   (await listFiles(mediaDirectory))
     .filter((file) => /\.(?:mp4|webm|mov)$/i.test(file))
@@ -98,6 +144,36 @@ if (largestJavaScript?.bytes > maximumSingleJavaScriptBytes) {
     `Largest JavaScript chunk ${path.basename(largestJavaScript.file)} is ${largestJavaScript.bytes} bytes (budget ${maximumSingleJavaScriptBytes}).`
   );
 }
+if (totalGzipJavaScriptBytes > maximumTotalGzipJavaScriptBytes) {
+  failures.push(
+    `Gzip JavaScript total ${totalGzipJavaScriptBytes} bytes (budget ${maximumTotalGzipJavaScriptBytes}).`
+  );
+}
+if (totalBrotliJavaScriptBytes > maximumTotalBrotliJavaScriptBytes) {
+  failures.push(
+    `Brotli JavaScript total ${totalBrotliJavaScriptBytes} bytes (budget ${maximumTotalBrotliJavaScriptBytes}).`
+  );
+}
+if (largestGzipJavaScript?.gzipBytes > maximumSingleGzipJavaScriptBytes) {
+  failures.push(
+    `Largest gzip JavaScript chunk ${path.basename(largestGzipJavaScript.file)} is ${largestGzipJavaScript.gzipBytes} bytes (budget ${maximumSingleGzipJavaScriptBytes}).`
+  );
+}
+if (largestBrotliJavaScript?.brotliBytes > maximumSingleBrotliJavaScriptBytes) {
+  failures.push(
+    `Largest Brotli JavaScript chunk ${path.basename(largestBrotliJavaScript.file)} is ${largestBrotliJavaScript.brotliBytes} bytes (budget ${maximumSingleBrotliJavaScriptBytes}).`
+  );
+}
+if (totalCssBytes > maximumTotalCssBytes) {
+  failures.push(
+    `CSS total ${totalCssBytes} bytes (budget ${maximumTotalCssBytes}).`
+  );
+}
+if (totalFontBytes > maximumTotalFontBytes) {
+  failures.push(
+    `Font total ${totalFontBytes} bytes (budget ${maximumTotalFontBytes}).`
+  );
+}
 if (oversizedVideos.length > 0) {
   failures.push(
     `Video budget exceeded: ${oversizedVideos
@@ -124,6 +200,12 @@ if (oversizedRepositoryImages.length > 0) {
 
 console.log(
   `Bundle budget: ${javaScriptFiles.length} JS chunks, ${totalJavaScriptBytes} bytes total, largest ${largestJavaScript?.bytes ?? 0} bytes.`
+);
+console.log(
+  `Compressed JavaScript: gzip ${totalGzipJavaScriptBytes} bytes total / ${largestGzipJavaScript?.gzipBytes ?? 0} largest; Brotli ${totalBrotliJavaScriptBytes} bytes total / ${largestBrotliJavaScript?.brotliBytes ?? 0} largest.`
+);
+console.log(
+  `Styles and fonts: ${totalCssBytes} CSS bytes, ${fontSizes.length} WOFF2 files / ${totalFontBytes} bytes.`
 );
 console.log(
   `Media budget: ${videoSizes.length} videos, largest ${

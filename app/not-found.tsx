@@ -2,8 +2,7 @@ import type { Metadata } from "next";
 import { SiteFooter } from "@/components/layout/site-footer";
 import { SiteHeader } from "@/components/layout/site-header";
 import { NotFoundContent } from "@/components/sections/not-found-content";
-import { adaptSiteSettingsToPublishedProjects } from "@/lib/public-portfolio";
-import { getPublishedProjects, getSiteSettings } from "@/lib/supabase";
+import { getSiteSettings } from "@/lib/supabase";
 
 export const metadata: Metadata = {
   title: "Page Not Found",
@@ -11,11 +10,7 @@ export const metadata: Metadata = {
 };
 
 export default async function NotFound() {
-  const [rawSettings, projects] = await Promise.all([
-    getSiteSettings(),
-    getPublishedProjects()
-  ]);
-  const settings = adaptSiteSettingsToPublishedProjects(rawSettings, projects);
+  const settings = await getSiteSettings();
 
   return (
     <div className="texture-grid min-h-screen">

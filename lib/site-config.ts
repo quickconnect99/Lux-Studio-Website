@@ -174,7 +174,7 @@ export const defaultSiteSettings: SiteSettings = {
       ctaHeadlineTrail: "To Launch",
       ctaCopy:
         "Tell us about your next launch, campaign, or event and we'll shape the shoot around it.",
-      ctaButton: "Browse Work"
+      ctaButton: "Start A Project"
     },
     work: {
       eyebrow: "Portfolio",

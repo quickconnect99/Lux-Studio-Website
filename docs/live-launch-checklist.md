@@ -2,14 +2,18 @@
 
 ## 1. Supabase
 
-- [x] alle versionierten Migrationen aus `supabase/migrations` anwenden
-- [x] `npm run migrations:check` ausfuehren
+- [ ] alle versionierten Migrationen aus `supabase/migrations` bis
+      `20260801000200` anwenden
+- [ ] `npm run migrations:check` ausfuehren
 - pruefen, dass der Bucket `projects` existiert und public ist
 - in Auth mindestens einen Admin-User anlegen
 - UUID des Admin-Users in `public.admin_users` eintragen
 - `site_settings` mit echten Brand-/Kontaktdaten fuellen
 - pruefen, dass `public.consume_inquiry_rate_limit(...)` existiert und nur
   `service_role` darauf zugreifen kann
+- pruefen, dass `public.delete_expired_inquiries(...)` und
+  `public.claim_inquiry_notifications(...)` nur fuer `service_role`
+  ausfuehrbar sind
 
 ## 2. Vercel
 
@@ -24,7 +28,21 @@ SUPABASE_SERVICE_ROLE_KEY=<service-role-key>
 NEXT_PUBLIC_SUPABASE_STORAGE_BUCKET=projects
 NEXT_PUBLIC_ENABLE_ADMIN=true
 NEXT_PUBLIC_SHOW_ADMIN_LINK=false
+NEXT_PUBLIC_ENABLE_TELEMETRY=false
+INQUIRY_RATE_LIMIT_SECRET=<mindestens-32-zufaellige-zeichen>
+TRUSTED_PROXY_IP_HEADER=x-vercel-forwarded-for
+INQUIRY_RETENTION_DAYS=365
+INQUIRY_EMAIL_TIMEOUT_MS=8000
+CRON_SECRET=<mindestens-32-zufaellige-zeichen>
+RESEND_API_KEY=<optional-resend-key>
+INQUIRY_EMAIL_TO=<nur-gemeinsam-mit-resend-key>
+INQUIRY_EMAIL_FROM=<optionaler-verifizierter-absender>
 ```
+
+- `npm run env:check` mit den Production-Werten ausfuehren; `npm run build`
+  fuehrt denselben Fail-Closed-Check automatisch vor Next.js aus
+- im Vercel-Projekt pruefen, dass beide Cron-Jobs aus `vercel.json` vom
+  gebuchten Plan unterstuetzt und aktiviert werden
 
 ## 3. Domain
 
@@ -54,9 +72,31 @@ Zusatzchecks im Browser:
 - API-Antworten enthalten einen `x-request-id`-Header
 - Function-Logs enthalten nach der Migration kein
   `inquiry.rate_limit_fallback`
+- eine Testanfrage erreicht `notification_status = 'sent'` oder bei
+  bewusst deaktivierter E-Mail-Zustellung `notification_status = 'skipped'`
+- ein kontrolliert fehlgeschlagener Versand wird hoechstens fuenfmal erneut
+  versucht; Cron-Logs enthalten keine Formularinhalte
+- der Retention-Cron loescht einen eigens angelegten, abgelaufenen Testdatensatz
 
 ## 5. Sicherheitsnachlauf
 
 - Git-Remote ohne eingebetteten Token konfigurieren
 - GitHub-Token rotieren, falls noch aktiv
 - starke Supabase-Passwoerter verwenden und `public.admin_users` regelmaessig pruefen
+
+## 6. Externe Launch-Gates
+
+Diese Punkte koennen nicht im Repository ausgefuehrt oder als erledigt
+behauptet werden. Der Livegang bleibt blockiert, bis fuer jeden Punkt
+nachvollziehbare Evidenz vorliegt:
+
+- [ ] Supabase Backup/PITR aktivieren und einen Restore in ein isoliertes
+      Projekt erfolgreich testen
+- [ ] offene Auth-Signups im Production-Projekt deaktivieren, Admin-Userliste
+      pruefen und MFA fuer alle Admins aktivieren
+- [ ] Supabase-, Vercel- und Resend-Regionen sowie DPA/SCC/AV-Vertraege pruefen
+- [ ] Aufbewahrung im Empfaenger-Postfach auf die freigegebene Frist abstimmen
+- [ ] finale Rechtsfreigabe fuer Impressum, Datenschutzerklaerung,
+      Rechtsgrundlagen und Aufbewahrungsfrist dokumentieren
+- [ ] Vercel-Plan und Cron-Ausfuehrung fuer 15-Minuten-Retries sowie taegliche
+      Retention verifizieren

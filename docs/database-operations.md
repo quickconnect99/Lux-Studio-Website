@@ -1,11 +1,17 @@
 # Supabase database operations
 
-Stand: 30. Juli 2026
+Stand: 1. August 2026
 
 ## Production migration status
 
 The linked production project is synchronized through migration
 `20260729000200`.
+
+The repository additionally contains `20260801000100_inquiry_retention.sql`
+and `20260801000200_inquiry_notification_outbox.sql`. They are
+implementation artifacts only until a reviewed `supabase db push` applies
+them to the linked project. This document does not claim that either migration,
+PITR, or a restore test has been executed externally.
 
 - On 30 July 2026, the existing baseline objects were verified through the
   remote schema linter and core-table inspection. Migration
@@ -66,6 +72,45 @@ the application or CI.
 Any migration containing `drop table`, `drop column`, destructive type changes,
 or irreversible data rewrites requires a restorable backup before production.
 The existing obsolete sharing-image removal falls into this category.
+
+## Inquiry retention
+
+`INQUIRY_RETENTION_DAYS` defaults to 365 and is constrained to 30-3650
+days. The protected `/api/admin/retention` Cron route invokes the
+service-role-only `delete_expired_inquiries(...)` function once per day.
+Verify each production run through the structured
+`inquiry.retention_completed` event and its `deletedCount`.
+
+The retention process deletes database inquiry rows. Resend delivery and the
+recipient mailbox create separate copies; their operational retention must be
+configured and approved separately. Never claim database retention also deletes
+those copies.
+
+## Inquiry notification outbox
+
+The outbox is stored on `inquiries` through `notification_status`,
+`notification_attempts`, `notification_last_attempt_at`, and
+`notification_sent_at`. Immediate delivery and Cron retries share the
+inquiry UUID as Resend's idempotency key.
+
+`claim_inquiry_notifications(...)` atomically claims at most 20 eligible
+rows with `FOR UPDATE SKIP LOCKED`, waits at least five minutes between
+claims, and stops after five attempts. The Cron route runs every 15 minutes.
+Existing rows are marked `skipped` by the migration so deployment does
+not send historical inquiries.
+
+The outbox tracks and retries notification delivery; it is not a general
+message queue and does not make the initial API response asynchronous.
+
+## Future public-data boundary
+
+Public reads currently use RLS policies on the base `projects` and
+`site_settings` tables. Application selects now use explicit column
+allowlists. Moving anonymous reads to dedicated security-invoker views or
+narrow RPCs is a separate schema/API rollout: introduce the new endpoints,
+migrate public queries, verify authenticated Admin reads/writes, and only then
+revoke base table access. Do not combine this with an untested direct GRANT
+change.
 
 ## Rollback strategy
 

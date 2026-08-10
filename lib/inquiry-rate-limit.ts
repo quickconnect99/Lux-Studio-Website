@@ -1,4 +1,4 @@
-import { createHash } from "node:crypto";
+import { createHash, createHmac } from "node:crypto";
 import { consumeRateLimitAttempt, type RateLimitStore } from "@/lib/rate-limit";
 
 type PersistentRateLimitParameters = {
@@ -22,18 +22,27 @@ type ConsumeInquiryRateLimitOptions = {
   windowMs: number;
   localStore: RateLimitStore;
   persistentConsume?: PersistentRateLimitConsume;
+  hashSecret?: string;
+  allowMemoryFallback?: boolean;
   now?: number;
 };
 
 export type InquiryRateLimitDecision = {
   allowed: boolean;
-  source: "persistent" | "memory";
+  source: "persistent" | "memory" | "unavailable";
   fallbackReason: "unavailable" | "rpc-error" | "invalid-response" | null;
 };
 
-/** Hashes the client key before it crosses the persistent database boundary. */
-export function hashRateLimitKey(key: string) {
-  return createHash("sha256").update(key).digest("hex");
+/**
+ * Pseudonymizes the client key before it crosses the database boundary.
+ * Production supplies an HMAC secret so low-entropy IP addresses cannot be
+ * recovered through a precomputed hash table. The plain hash is retained only
+ * as a deterministic local/test fallback.
+ */
+export function hashRateLimitKey(key: string, secret?: string) {
+  return secret
+    ? createHmac("sha256", secret).update(key).digest("hex")
+    : createHash("sha256").update(key).digest("hex");
 }
 
 /**
@@ -49,6 +58,8 @@ export async function consumeInquiryRateLimit({
   windowMs,
   localStore,
   persistentConsume,
+  hashSecret,
+  allowMemoryFallback = true,
   now
 }: ConsumeInquiryRateLimitOptions): Promise<InquiryRateLimitDecision> {
   let fallbackReason: InquiryRateLimitDecision["fallbackReason"] =
@@ -57,7 +68,7 @@ export async function consumeInquiryRateLimit({
   if (persistentConsume) {
     try {
       const { data, error } = await persistentConsume({
-        p_client_key_hash: hashRateLimitKey(key),
+        p_client_key_hash: hashRateLimitKey(key, hashSecret),
         p_max_attempts: maxAttempts,
         p_window_seconds: Math.max(1, Math.ceil(windowMs / 1_000))
       });
@@ -76,6 +87,14 @@ export async function consumeInquiryRateLimit({
     } catch {
       fallbackReason = "rpc-error";
     }
+  }
+
+  if (!allowMemoryFallback) {
+    return {
+      allowed: false,
+      source: "unavailable",
+      fallbackReason
+    };
   }
 
   return {

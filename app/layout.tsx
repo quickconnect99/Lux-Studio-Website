@@ -9,13 +9,13 @@ import { DEFAULT_THEME } from "@/lib/themes";
 const barlow = Barlow_Condensed({
   subsets: ["latin"],
   variable: "--font-barlow",
-  weight: ["300", "400", "500", "600", "700"]
+  weight: ["400", "500", "600"]
 });
 
 const bodoniModa = Bodoni_Moda({
   subsets: ["latin"],
   variable: "--font-bodoni",
-  weight: ["400", "500", "600", "700"]
+  weight: ["400", "500", "600"]
 });
 
 const mono = IBM_Plex_Mono({

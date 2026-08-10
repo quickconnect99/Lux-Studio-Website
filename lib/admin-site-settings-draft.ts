@@ -68,10 +68,14 @@ export function parseSiteSettingsDraft(
 export function readSiteSettingsDraft(baseSnapshot: string) {
   if (typeof window === "undefined") return null;
 
-  return parseSiteSettingsDraft(
-    window.localStorage.getItem(SITE_SETTINGS_DRAFT_STORAGE_KEY),
-    baseSnapshot
-  );
+  try {
+    return parseSiteSettingsDraft(
+      window.localStorage.getItem(SITE_SETTINGS_DRAFT_STORAGE_KEY),
+      baseSnapshot
+    );
+  } catch {
+    return null;
+  }
 }
 
 /**
@@ -83,20 +87,31 @@ export function readSiteSettingsDraft(baseSnapshot: string) {
 export function persistSiteSettingsDraft(
   draft: Omit<SiteSettingsDraft, "version" | "updatedAt">
 ) {
-  if (typeof window === "undefined") return;
+  if (typeof window === "undefined") return false;
 
-  window.localStorage.setItem(
-    SITE_SETTINGS_DRAFT_STORAGE_KEY,
-    JSON.stringify({
-      version: 1,
-      updatedAt: new Date().toISOString(),
-      ...draft
-    } satisfies SiteSettingsDraft)
-  );
+  try {
+    window.localStorage.setItem(
+      SITE_SETTINGS_DRAFT_STORAGE_KEY,
+      JSON.stringify({
+        version: 1,
+        updatedAt: new Date().toISOString(),
+        ...draft
+      } satisfies SiteSettingsDraft)
+    );
+    return true;
+  } catch {
+    return false;
+  }
 }
 
 /** Removes the Site Settings recovery draft after save or explicit reset. */
 export function clearSiteSettingsDraft() {
-  if (typeof window === "undefined") return;
-  window.localStorage.removeItem(SITE_SETTINGS_DRAFT_STORAGE_KEY);
+  if (typeof window === "undefined") return false;
+
+  try {
+    window.localStorage.removeItem(SITE_SETTINGS_DRAFT_STORAGE_KEY);
+    return true;
+  } catch {
+    return false;
+  }
 }

@@ -33,6 +33,11 @@ Mindestens ausfuellen:
 - `hostingProviderLocation`
 - `databaseProviderLocation`
 
+Ausserdem muessen Resend als optionaler E-Mail-Dienstleister, die konkrete
+`INQUIRY_RETENTION_DAYS`-Frist sowie die getrennte Aufbewahrung im
+Empfaenger-Postfach rechtlich und organisatorisch freigegeben werden. Die
+Datenbankloeschung entfernt keine bereits zugestellte E-Mail.
+
 Optional, aber oft relevant:
 
 - `registerCourt`
@@ -106,3 +111,8 @@ Minimalstand fuer eine Portfolio-/Kontaktseite ausgerichtet. Sie ersetzt keine
 individuelle Rechtsberatung. Wenn dein Unternehmenssitz, deine Zielmaerkte oder
 deine Prozesse von diesem Setup abweichen, musst du die Seiten entsprechend
 anpassen.
+
+Vor dem Livegang sind DPA/SCC/AV-Vertraege und Datenregionen fuer Supabase,
+Vercel und Resend sowie die finale Fassung dieser Seiten durch eine
+qualifizierte Stelle zu pruefen. Diese externen Freigaben wurden durch die
+Codeaenderungen nicht ausgefuehrt.

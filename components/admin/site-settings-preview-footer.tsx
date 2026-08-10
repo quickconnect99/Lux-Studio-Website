@@ -25,7 +25,10 @@ export function SiteSettingsPreviewFooter({
 
   return (
     <footer className="border-t border-line px-6 py-10 sm:px-10">
-      <div className="grid gap-8 md:grid-cols-[1.2fr_0.8fr_0.9fr]">
+      <div
+        data-preview-stack
+        className="grid gap-8 md:grid-cols-[1.2fr_0.8fr_0.9fr]"
+      >
         <div className="space-y-4">
           <InlineText
             value={formState.brandName}

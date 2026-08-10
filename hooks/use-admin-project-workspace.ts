@@ -39,7 +39,7 @@ type UseAdminProjectWorkspaceOptions = {
   videoFile: File | null;
   coverPreviewUrl: string | null;
   working: boolean;
-  clearMedia(): void;
+  clearProjectMedia(): void;
   clearSaveReport(): void;
   showStatus(message: string): void;
 };
@@ -68,7 +68,7 @@ export function useAdminProjectWorkspace({
   videoFile,
   coverPreviewUrl,
   working,
-  clearMedia,
+  clearProjectMedia,
   clearSaveReport,
   showStatus
 }: UseAdminProjectWorkspaceOptions) {
@@ -120,11 +120,11 @@ export function useAdminProjectWorkspace({
       replaceForm(state);
       setSavedFormSnapshot(serializeProjectFormState(state));
       clearSaveReport();
-      clearMedia();
+      clearProjectMedia();
       setConfirmDialog(null);
       resetSlugValidation();
     },
-    [clearMedia, clearSaveReport, replaceForm, resetSlugValidation]
+    [clearProjectMedia, clearSaveReport, replaceForm, resetSlugValidation]
   );
 
   const resetToNewProject = useCallback(() => {
@@ -133,10 +133,10 @@ export function useAdminProjectWorkspace({
     replaceForm(fresh);
     setSavedFormSnapshot(serializeProjectFormState(fresh));
     clearSaveReport();
-    clearMedia();
+    clearProjectMedia();
     setConfirmDialog(null);
     resetSlugValidation();
-  }, [clearMedia, clearSaveReport, replaceForm, resetSlugValidation]);
+  }, [clearProjectMedia, clearSaveReport, replaceForm, resetSlugValidation]);
 
   const updateField = useCallback(
     <K extends keyof ProjectFormState>(key: K, value: ProjectFormState[K]) => {
@@ -194,12 +194,12 @@ export function useAdminProjectWorkspace({
     replaceForm(copy);
     setSavedFormSnapshot("");
     clearSaveReport();
-    clearMedia();
+    clearProjectMedia();
     setConfirmDialog(null);
     resetSlugValidation();
     showStatus("Project duplicated. Update the title and slug, then save.");
   }, [
-    clearMedia,
+    clearProjectMedia,
     clearSaveReport,
     formState,
     replaceForm,

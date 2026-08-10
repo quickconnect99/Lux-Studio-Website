@@ -647,6 +647,7 @@ export function ProjectEditor({
                 <input
                   type="file"
                   accept="image/*"
+                  aria-label="Upload project cover image"
                   onChange={(e) => handleFileSelection(e, "cover")}
                   className="block w-full text-xs uppercase tracking-meta text-muted"
                 />
@@ -743,6 +744,7 @@ export function ProjectEditor({
               </FieldLabel>
               <input
                 value={formState.uploadedVideo}
+                aria-label="Uploaded video URL"
                 onChange={(e) => {
                   updateField("uploadedVideo", e.target.value);
                   if (e.target.value) updateField("videoUrl", "");
@@ -752,6 +754,7 @@ export function ProjectEditor({
               <input
                 type="file"
                 accept="video/*"
+                aria-label="Upload project video"
                 onChange={(e) => {
                   handleFileSelection(e, "video");
                   if ((e.target.files?.length ?? 0) > 0)
@@ -790,6 +793,7 @@ export function ProjectEditor({
               <FieldLabel fieldKey="createdAt" />
               <input
                 type="date"
+                aria-label="Project publication date"
                 value={dateValue}
                 onChange={(e) => handleDateChange(e.target.value)}
                 className="input-field"

@@ -8,7 +8,15 @@ import type {
   TeamMember
 } from "@/lib/types";
 
-export type AdminTab = "projects" | "settings";
+export type AdminTab = "projects" | "settings" | "users";
+
+export type AdminAccountSummary = {
+  id: string;
+  email: string | null;
+  createdAt: string;
+  lastSignInAt: string | null;
+  isAdmin: boolean;
+};
 
 export type AdminProjectFieldKey =
   | "business"

@@ -12,6 +12,11 @@ test("hashes client identifiers without retaining their raw value", () => {
   assert.equal(hash.length, 64);
   assert.equal(hash.includes(raw), false);
   assert.equal(hash, hashRateLimitKey(raw));
+  assert.equal(
+    hashRateLimitKey(raw, "secret"),
+    hashRateLimitKey(raw, "secret")
+  );
+  assert.notEqual(hashRateLimitKey(raw, "secret"), hash);
 });
 
 test("uses the persistent decision when the RPC succeeds", async () => {
@@ -72,4 +77,22 @@ test("treats a malformed RPC response as a safe local fallback", async () => {
   assert.equal(decision.allowed, true);
   assert.equal(decision.source, "memory");
   assert.equal(decision.fallbackReason, "invalid-response");
+});
+
+test("fails closed when the persistent limiter is unavailable in production", async () => {
+  const decision = await consumeInquiryRateLimit({
+    key: "client",
+    hashSecret: "deployment-secret",
+    maxAttempts: 3,
+    windowMs: 60_000,
+    localStore: new Map(),
+    allowMemoryFallback: false,
+    persistentConsume: async () => ({ data: null, error: { code: "503" } })
+  });
+
+  assert.deepEqual(decision, {
+    allowed: false,
+    source: "unavailable",
+    fallbackReason: "rpc-error"
+  });
 });

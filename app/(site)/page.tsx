@@ -6,7 +6,6 @@ import { SelectedFrames } from "@/components/sections/selected-frames";
 import { LinkButton } from "@/components/ui/link-button";
 import { buildFrameItems, buildProjectFrameItems } from "@/lib/project-images";
 import { projectBusinessToParam } from "@/lib/project-business";
-import { adaptSiteSettingsToPublishedProjects } from "@/lib/public-portfolio";
 import { isPublicAdminEnabled } from "@/lib/site-config";
 import { getPublishedProjects, getSiteSettings } from "@/lib/supabase";
 
@@ -25,22 +24,15 @@ export default async function HomePage() {
     getSiteSettings()
   ]);
 
-  const publicSettings = adaptSiteSettingsToPublishedProjects(
-    settings,
-    projects
-  );
   const featuredProjects = projects
     .filter((project) => project.featured)
-    .slice(0, 5);
+    .slice(0, 3);
   const galleryFrames = buildFrameItems({
-    selectedFrames: publicSettings.selectedFrames,
+    selectedFrames: settings.selectedFrames,
     fallbackImages: homepageFrameFallbacks,
     galleryImages: projects.flatMap((project) => project.galleryImages)
   });
-  const motionFrames = buildProjectFrameItems(
-    projects,
-    publicSettings.motionFrames
-  );
+  const motionFrames = buildProjectFrameItems(projects, settings.motionFrames);
   const businessCards = Array.from(
     new Map(projects.map((project) => [project.business, project])).values()
   )
@@ -51,18 +43,22 @@ export default async function HomePage() {
       eyebrow: project.title,
       description: project.shortDescription,
       imageSrc: project.coverImage,
-      imageAlt: project.title,
+      imageAlt: `${project.title}, ${project.business.toLowerCase()} project in ${project.location}`,
       href: `/work?business=${projectBusinessToParam(project.business)}`
     }));
 
   return (
     <>
-      <HomeHero hero={publicSettings.hero} copy={publicSettings.copy.home} />
+      <HomeHero hero={settings.hero} copy={settings.copy.home} />
 
       <SelectedFrames
         frames={galleryFrames}
-        label={publicSettings.copy.home.selectedWorkLabel}
+        label={settings.copy.home.selectedWorkLabel}
       />
+
+      <BusinessFocus cards={businessCards} />
+
+      <FeaturedProjects projects={featuredProjects} />
 
       <HorizontalStillStrip
         frames={motionFrames}
@@ -74,31 +70,27 @@ export default async function HomePage() {
         imageAltPrefix="Project frame"
       />
 
-      <FeaturedProjects projects={featuredProjects} />
-
-      <BusinessFocus cards={businessCards} />
-
       <section className="section-shell section-space-tight pt-0">
         <div className="dark-panel rounded-[1.5rem] p-5 text-white sm:rounded-[2.5rem] sm:p-12">
           <div className="grid gap-8 lg:grid-cols-[1.2fr_0.8fr]">
             <div className="space-y-5">
               <p className="eyebrow text-white/70 before:bg-accent">
-                {publicSettings.copy.home.ctaEyebrow}
+                {settings.copy.home.ctaEyebrow}
               </p>
               <h2 className="font-[family-name:var(--font-display)] text-[2.5rem] uppercase leading-[0.92] sm:text-6xl">
-                {publicSettings.copy.home.ctaHeadlineLead}
+                {settings.copy.home.ctaHeadlineLead}
                 <span className="block pl-5 text-accent sm:pl-12">
-                  {publicSettings.copy.home.ctaHeadlineTrail}
+                  {settings.copy.home.ctaHeadlineTrail}
                 </span>
               </h2>
               <p className="max-w-2xl text-base leading-8 text-white/80">
-                {publicSettings.copy.home.ctaCopy}
+                {settings.copy.home.ctaCopy}
               </p>
             </div>
             <div className="flex flex-col justify-end gap-6">
               <div className="grid gap-3 sm:flex sm:flex-wrap sm:gap-4">
-                <LinkButton href="/work" className="w-full sm:w-auto">
-                  {publicSettings.copy.home.ctaButton}
+                <LinkButton href="/contact" className="w-full sm:w-auto">
+                  {settings.copy.home.ctaButton}
                 </LinkButton>
                 {isPublicAdminEnabled ? (
                   <LinkButton

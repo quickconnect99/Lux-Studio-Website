@@ -2,9 +2,9 @@
 
 import { useState } from "react";
 import dynamic from "next/dynamic";
-import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { AnimatePresence, m, useReducedMotion } from "framer-motion";
-import { ChevronLeft, ChevronRight, Expand } from "lucide-react";
+import { ArrowUpRight, ChevronLeft, ChevronRight, Expand } from "lucide-react";
 import { FallbackImage } from "@/components/ui/fallback-image";
 import { Reveal } from "@/components/ui/reveal";
 import { motionDuration, motionEase } from "@/lib/motion";
@@ -34,7 +34,6 @@ export function SelectedFrames({ frames, label }: SelectedFramesProps) {
   const frameAlts = frameItems.map(
     (frame, index) => frame.alt ?? `Selected project still ${index + 1}`
   );
-  const router = useRouter();
   const shouldReduceMotion = useReducedMotion();
   const [focusedIndex, setFocusedIndex] = useState(0);
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
@@ -48,17 +47,6 @@ export function SelectedFrames({ frames, label }: SelectedFramesProps) {
   const nextIndex = (focusedIndex + 1) % frameItems.length;
 
   function openFrame(index: number) {
-    const href = frameItems[index]?.href;
-
-    if (href) {
-      if (/^https?:\/\//i.test(href)) {
-        window.open(href, "_blank", "noopener,noreferrer");
-      } else {
-        router.push(href);
-      }
-      return;
-    }
-
     setHasOpenedLightbox(true);
     setActiveIndex(index);
   }
@@ -167,9 +155,9 @@ export function SelectedFrames({ frames, label }: SelectedFramesProps) {
 
   function renderCenterFrame(index: number) {
     const frame = frameItems[index];
-    const openLabel = frame.href
-      ? `Open still link ${index + 1}`
-      : `Expand still ${index + 1}`;
+    const openLabel = `Expand still ${index + 1}`;
+    const projectLinkClass =
+      "absolute bottom-4 left-1/2 z-40 inline-flex min-h-11 -translate-x-1/2 items-center gap-2 whitespace-nowrap rounded-full border border-white/30 bg-black/60 px-4 py-2 text-xs uppercase tracking-ui text-white backdrop-blur transition-colors hover:border-accent hover:bg-black/80";
 
     return (
       <div
@@ -252,10 +240,29 @@ export function SelectedFrames({ frames, label }: SelectedFramesProps) {
             onClick={() => openFrame(index)}
             className="group/expand absolute inset-y-0 left-[15%] right-[15%] z-20 flex items-center justify-center bg-black/0 transition-colors duration-300 hover:bg-black/25 focus-visible:bg-black/25 active:!scale-100"
           >
-            <span className="flex h-12 w-12 items-center justify-center rounded-full border border-white/30 bg-white/10 opacity-0 backdrop-blur transition-opacity duration-300 group-hover/expand:opacity-100 group-focus-visible/expand:opacity-100">
+            <span className="flex h-12 w-12 items-center justify-center rounded-full border border-white/30 bg-black/35 opacity-100 backdrop-blur transition-opacity duration-300 sm:opacity-0 sm:group-hover/expand:opacity-100 sm:group-focus-visible/expand:opacity-100">
               <Expand className="h-5 w-5 text-white" />
             </span>
           </button>
+
+          {frame.href ? (
+            /^https?:\/\//i.test(frame.href) ? (
+              <a
+                href={frame.href}
+                target="_blank"
+                rel="noreferrer"
+                className={projectLinkClass}
+              >
+                View Project
+                <ArrowUpRight className="h-4 w-4" />
+              </a>
+            ) : (
+              <Link href={frame.href} className={projectLinkClass}>
+                View Project
+                <ArrowUpRight className="h-4 w-4" />
+              </Link>
+            )
+          ) : null}
 
           {frameItems.length > 1 ? (
             <>

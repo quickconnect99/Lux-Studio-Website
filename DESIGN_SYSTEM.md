@@ -1,6 +1,6 @@
 # Lux Studio Design System
 
-> Last verified: 2026-07-30
+> Last verified: 2026-08-01
 > Stack: Next.js 16 · React 19 · Tailwind CSS 3 · Framer Motion 12
 
 This document describes the current public-site design system. It is a usage
@@ -134,6 +134,12 @@ Common responsive compositions include:
 The project uses Tailwind's standard breakpoints: `sm` 640px, `md` 768px,
 `lg` 1024px, `xl` 1280px, and `2xl` 1536px.
 
+Safe-area utilities (`.safe-area-top`, `.mobile-navigation-panel`,
+`.site-footer-safe-area`, `.lightbox-safe-area`, and `.lightbox-close-safe`)
+must be used for fixed or edge-aligned UI. The admin site preview uses a named
+inline-size container; layouts marked with `data-preview-stack` collapse from
+the simulated preview width rather than the surrounding browser width.
+
 ## 4. Surfaces, borders, and shadows
 
 | Class/token     | Purpose                                                       |
@@ -184,7 +190,21 @@ All interactive controls must retain at least a 44px touch target where their
 layout permits it. Error messages use `FieldError` and connect to their field
 with `aria-describedby`.
 
-## 6. Motion
+## 6. Media and content gates
+
+- Public project images use a neutral branded poster if the configured asset
+  cannot be delivered. Alt text describes the project subject and location;
+  captions remain separate visible copy.
+- Team portraits and the team gallery require real team photography. Legacy
+  `/images/demo-car-*` placeholders are deliberately hidden on the public
+  About page and must not be described as people. Supply approved portraits
+  through Site Settings before expecting the Team section to appear.
+- Native video metadata belongs at the top of the frame so it cannot obscure
+  browser playback controls. External embeds own their consent and playback UI.
+- A selected still always opens its lightbox. A related project, when present,
+  is a separate, explicitly labelled link.
+
+## 7. Motion
 
 Shared Framer Motion values live in `lib/motion.ts`:
 
@@ -238,7 +258,7 @@ The image lightbox is dynamically imported by `ProjectImageCarousel` and
 time; after that it remains mounted so its close animation and focus
 restoration continue to work.
 
-## 7. UI components
+## 8. UI components
 
 ### `LinkButton`
 
@@ -274,7 +294,7 @@ Provides an accessible named dialog, focus trapping and restoration,
 Escape/arrow-key controls, live image counts, and optional fallback images.
 Callers own the active index.
 
-## 8. Interaction and accessibility
+## 9. Interaction and accessibility
 
 - Global focus-visible styling uses a two-layer ring based on
   `--background` and `--focus-ring`.
@@ -287,7 +307,7 @@ Callers own the active index.
 - Automated Axe coverage runs across public routes in both themes and includes
   the mobile menu, validation errors, lightbox, and admin workspace.
 
-## 9. Application structure
+## 10. Application structure
 
 ```text
 RootLayout
@@ -306,7 +326,7 @@ Routes under `app/(site)` inherit the public shell. The root not-found route
 assembles the same header/footer explicitly because it sits outside that route
 group. Public page data and metadata come from the CMS-backed site settings.
 
-## 10. Change checklist
+## 11. Change checklist
 
 When changing the visual system:
 

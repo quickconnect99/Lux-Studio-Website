@@ -15,7 +15,8 @@ Diese Website erwartet fuer den Live-Betrieb die folgenden Supabase-Werte:
 4. Region des Projekts fuer Impressum / Datenschutz
 5. Einen Admin-User in Auth:
    Dazu brauchst du nur E-Mail + Passwort, damit du dich unter `/admin` anmelden kannst.
-6. Die UUID dieses Users in `public.admin_users` eintragen:
+6. Diesen ersten User in `public.admin_users` eintragen (einmalig per SQL, da noch
+   niemand eingeloggt ist, der ihn im Admin-Panel freischalten koennte):
 
 ```sql
 insert into public.admin_users (user_id)
@@ -24,7 +25,17 @@ on conflict (user_id) do nothing;
 ```
 
 Ein Auth-User ohne Eintrag in `public.admin_users` kann sich authentifizieren,
-aber keine Projekte, Anfragen, Site Settings oder Storage-Dateien verwalten.
+aber keine Projekte, Anfragen, Site Settings oder Storage-Dateien verwalten. Er
+sieht nach dem Login sofort die Meldung "This Supabase account is not
+authorized for the admin workspace." und wird automatisch wieder ausgeloggt.
+
+Jeden weiteren Admin (z.B. neue Teammitglieder) schaltest du **nicht mehr per
+SQL** frei, sondern im Admin-Panel selbst: Tab "Admin Access" zeigt jeden
+Supabase-Account, der sich schon einmal versucht hat einzuloggen, mit dem
+Status "Pending" oder "Admin" an. Ein Klick auf "Approve" traegt den Account in
+`public.admin_users` ein; "Revoke access" entfernt ihn wieder. Der Account muss
+vorher trotzdem in Supabase Auth existieren (Dashboard oder eigener Sign-up-Flow) -
+das Admin-Panel legt keine neuen Auth-User an, es verwaltet nur den Zugriff.
 
 ## Was du in Supabase anlegen musst
 
@@ -47,14 +58,22 @@ Der Vorteil:
 
 Das aktuelle Schema legt ausserdem `public.inquiry_rate_limits` und die
 Service-Role-Funktion `public.consume_inquiry_rate_limit(...)` an. Die Route
-speichert dort nur einen SHA-256-Hash aus Client-Merkmalen, niemals die rohe
+speichert dort nur einen mit `INQUIRY_RATE_LIMIT_SECRET` erzeugten HMAC der
+vom konfigurierten Reverse Proxy gelieferten IP-Adresse, niemals die rohe
 IP-Adresse oder den User-Agent.
 
 Solange diese Migration in einem bestehenden Projekt noch nicht angewendet
-wurde, verwendet die Route automatisch das lokale In-Memory-Limit. Dieser
-Fallback verhindert einen Ausfall, schuetzt aber nicht instanzuebergreifend.
-Im Server-Log erscheint dann hoechstens einmal in fuenf Minuten das
-strukturierte Event `inquiry.rate_limit_fallback`.
+wurde, verwendet die Route nur in Entwicklung und Tests das lokale
+In-Memory-Limit. Production schlaegt bei einem nicht verfuegbaren persistenten
+Limiter mit einer generischen `503` und `Retry-After` fehl.
+
+Die Migrationen `20260801000100` und `20260801000200` ergaenzen:
+
+- automatische, konfigurierbare Loeschung von Anfragen ueber einen
+  service-role-geschuetzten Cron
+- dauerhaften E-Mail-Status und maximal fuenf Retry-Versuche
+- die Inquiry-ID als identischen Resend-Idempotency-Key fuer Erst- und
+  Folgeversuche
 
 ## Wenn du das alte Schema schon einmal ausgefuehrt hast
 
@@ -81,6 +100,13 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=<anon-key>
 SUPABASE_SERVICE_ROLE_KEY=<service-role-key>
 NEXT_PUBLIC_SUPABASE_STORAGE_BUCKET=projects
 NEXT_PUBLIC_ENABLE_ADMIN=true
+INQUIRY_RATE_LIMIT_SECRET=<zufaelliges-secret>
+TRUSTED_PROXY_IP_HEADER=x-vercel-forwarded-for
+INQUIRY_RETENTION_DAYS=365
+CRON_SECRET=<zufaelliges-cron-secret>
+INQUIRY_EMAIL_TIMEOUT_MS=8000
+RESEND_API_KEY=<optional>
+INQUIRY_EMAIL_TO=<gemeinsam-mit-resend-key>
 ```
 
 ## Admin-Zugriff

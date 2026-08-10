@@ -2,6 +2,10 @@ import "server-only";
 
 import type { Inquiry } from "@/lib/types";
 
+const DEFAULT_EMAIL_TIMEOUT_MS = 8_000;
+const MINIMUM_EMAIL_TIMEOUT_MS = 1_000;
+const MAXIMUM_EMAIL_TIMEOUT_MS = 30_000;
+
 function getInquiryEmailConfiguration() {
   return {
     resendApiKey: process.env.RESEND_API_KEY,
@@ -15,6 +19,18 @@ function getInquiryEmailConfiguration() {
 export function isInquiryEmailConfigured() {
   const { resendApiKey, inquiryEmailTo } = getInquiryEmailConfiguration();
   return Boolean(resendApiKey && inquiryEmailTo);
+}
+
+export function getInquiryEmailTimeoutMs(
+  value = process.env.INQUIRY_EMAIL_TIMEOUT_MS
+) {
+  const parsed = Number(value ?? DEFAULT_EMAIL_TIMEOUT_MS);
+
+  return Number.isInteger(parsed) &&
+    parsed >= MINIMUM_EMAIL_TIMEOUT_MS &&
+    parsed <= MAXIMUM_EMAIL_TIMEOUT_MS
+    ? parsed
+    : DEFAULT_EMAIL_TIMEOUT_MS;
 }
 
 function escapeHtml(value: string) {
@@ -79,7 +95,13 @@ function formatHtmlInquiry(inquiry: Inquiry) {
  * Non-success responses throw so the API route can record/report delivery
  * failure separately.
  */
-export async function sendInquiryEmail(inquiry: Inquiry) {
+export async function sendInquiryEmail(
+  inquiry: Inquiry,
+  {
+    idempotencyKey,
+    timeoutMs = getInquiryEmailTimeoutMs()
+  }: { idempotencyKey?: string; timeoutMs?: number } = {}
+) {
   const { resendApiKey, inquiryEmailTo, inquiryEmailFrom } =
     getInquiryEmailConfiguration();
 
@@ -91,8 +113,10 @@ export async function sendInquiryEmail(inquiry: Inquiry) {
     method: "POST",
     headers: {
       Authorization: `Bearer ${resendApiKey}`,
-      "Content-Type": "application/json"
+      "Content-Type": "application/json",
+      ...(idempotencyKey ? { "Idempotency-Key": idempotencyKey } : {})
     },
+    signal: AbortSignal.timeout(timeoutMs),
     body: JSON.stringify({
       from: inquiryEmailFrom,
       to: inquiryEmailTo,
@@ -104,8 +128,7 @@ export async function sendInquiryEmail(inquiry: Inquiry) {
   });
 
   if (!response.ok) {
-    const message = await response.text();
-    throw new Error(`Resend email failed: ${response.status} ${message}`);
+    throw new Error(`Resend email failed with status ${response.status}.`);
   }
 
   return { skipped: false };

@@ -3,26 +3,20 @@ import Script from "next/script";
 import { SiteFooter } from "@/components/layout/site-footer";
 import { SiteHeader } from "@/components/layout/site-header";
 import { serializeJsonLd } from "@/lib/json-ld";
-import { adaptSiteSettingsToPublishedProjects } from "@/lib/public-portfolio";
 import {
   buildSharingMetadata,
   resolveSharingImage
 } from "@/lib/sharing-metadata";
 import { siteConfig } from "@/lib/site-config";
-import { getPublishedProjects, getSiteSettings } from "@/lib/supabase";
+import { getSiteSettings } from "@/lib/supabase";
 import { buildOrganizationSchema } from "@/lib/site-structured-data";
 
 export const revalidate = 300;
 
 export async function generateMetadata(): Promise<Metadata> {
-  const [rawSettings, projects] = await Promise.all([
-    getSiteSettings(),
-    getPublishedProjects()
-  ]);
-  const settings = adaptSiteSettingsToPublishedProjects(rawSettings, projects);
+  const settings = await getSiteSettings();
   const sharingImage = resolveSharingImage({
     preferredImages: settings.selectedFrames,
-    projects,
     settings
   });
 
@@ -51,11 +45,7 @@ export default async function PublicSiteLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const [rawSettings, projects] = await Promise.all([
-    getSiteSettings(),
-    getPublishedProjects()
-  ]);
-  const settings = adaptSiteSettingsToPublishedProjects(rawSettings, projects);
+  const settings = await getSiteSettings();
   const organizationSchema = buildOrganizationSchema(settings);
 
   return (

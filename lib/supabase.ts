@@ -25,6 +25,15 @@ export const SUPABASE_BUCKET =
   process.env.NEXT_PUBLIC_SUPABASE_STORAGE_BUCKET ?? "projects";
 export const SITE_SETTINGS_ID = "global";
 
+// Keep public reads explicit. Besides reducing accidental payload growth, this
+// prevents a future internal column from becoming part of the browser-facing
+// anon query merely because it was added to the base table.
+export const PUBLIC_PROJECT_COLUMNS =
+  "id,business,title,slug,short_description,full_description,category,car_model,location,year,cover_image,gallery_images,gallery_captions,gallery_items,video_url,uploaded_video,featured,published,created_at,updated_at,behind_the_scenes";
+
+export const PUBLIC_SITE_SETTINGS_COLUMNS =
+  "id,updated_at,brand_name,brand_mark,brand_strapline,contact_email,contact_phone,contact_city,social_links,seo_title,seo_description,hero_eyebrow,hero_headline_lead,hero_headline_trail,hero_copy,hero_video_url,about_founder_note,about_positioning,about_team_images,about_team_members,about_values,services,selected_frames,motion_frames,navigation_visibility,site_copy";
+
 export const isSupabaseConfigured = Boolean(supabaseUrl && supabaseAnonKey);
 
 // Build-time / runtime env check.
@@ -155,95 +164,166 @@ export type SupabaseSiteSettingsRow = {
   site_copy: Partial<SiteCopy> | null;
 };
 
-function normalizeSocialLinks(links: SocialLink[] | null | undefined) {
+function normalizePublicHttpUrl(value: unknown) {
+  if (typeof value !== "string") return "";
+
+  try {
+    const url = new URL(value.trim());
+    return url.protocol === "https:" || url.protocol === "http:"
+      ? url.href
+      : "";
+  } catch {
+    return "";
+  }
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return Boolean(value) && typeof value === "object" && !Array.isArray(value);
+}
+
+function normalizeSocialLinks(links: unknown) {
   if (!Array.isArray(links)) {
     return defaultSiteSettings.social;
   }
 
   return links
     .map((link) => ({
-      label: link?.label?.trim() ?? "",
-      href: link?.href?.trim() ?? ""
+      label:
+        link &&
+        typeof link === "object" &&
+        "label" in link &&
+        typeof link.label === "string"
+          ? link.label.trim()
+          : "",
+      href:
+        link && typeof link === "object" && "href" in link
+          ? normalizePublicHttpUrl(link.href)
+          : ""
     }))
     .filter((link) => link.label && link.href);
 }
 
 function normalizeNavigationVisibility(
-  visibility: Partial<NavigationVisibility> | null | undefined
+  visibility: unknown
 ): NavigationVisibility {
   const fallback = defaultSiteSettings.navigation;
+  const source = isRecord(visibility) ? visibility : {};
+
+  const normalizeFlag = (key: keyof NavigationVisibility) =>
+    typeof source[key] === "boolean" ? source[key] : fallback[key];
 
   return {
-    home: visibility?.home ?? fallback.home,
-    work: visibility?.work ?? fallback.work,
-    services: visibility?.services ?? fallback.services,
-    about: visibility?.about ?? fallback.about,
-    contact: visibility?.contact ?? fallback.contact
+    home: normalizeFlag("home"),
+    work: normalizeFlag("work"),
+    services: normalizeFlag("services"),
+    about: normalizeFlag("about"),
+    contact: normalizeFlag("contact")
   };
 }
 
-function normalizeSiteCopy(
-  copy: Partial<SiteCopy> | null | undefined
-): SiteCopy {
+function normalizeCopySection<Section extends object>(
+  value: unknown,
+  fallback: Section
+) {
+  const source = isRecord(value) ? value : {};
+
+  return Object.fromEntries(
+    Object.entries(fallback).map(([key, fallbackValue]) => [
+      key,
+      typeof source[key] === "string" ? source[key] : fallbackValue
+    ])
+  ) as Section;
+}
+
+function normalizeSiteCopy(copy: unknown): SiteCopy {
   const fallback = defaultSiteSettings.copy;
+  const source = isRecord(copy) ? copy : {};
 
   return {
-    home: { ...fallback.home, ...copy?.home },
-    work: { ...fallback.work, ...copy?.work },
-    services: { ...fallback.services, ...copy?.services },
-    about: { ...fallback.about, ...copy?.about },
-    contact: { ...fallback.contact, ...copy?.contact },
-    footer: { ...fallback.footer, ...copy?.footer }
+    home: normalizeCopySection(source.home, fallback.home),
+    work: normalizeCopySection(source.work, fallback.work),
+    services: normalizeCopySection(source.services, fallback.services),
+    about: normalizeCopySection(source.about, fallback.about),
+    contact: normalizeCopySection(source.contact, fallback.contact),
+    footer: normalizeCopySection(source.footer, fallback.footer)
   };
 }
 
-function normalizeServices(services: Service[] | null | undefined) {
+function normalizeServices(services: unknown) {
   const source =
     Array.isArray(services) && services.length > 0
       ? services
       : defaultSiteSettings.services;
 
-  return source
-    .filter(
-      (service) => service.title.trim().toLowerCase() !== "motion direction"
-    )
-    .map((service, index) => ({
-      ...service,
-      number: String(index + 1).padStart(2, "0")
-    }));
+  const normalized = source.flatMap((service) => {
+    if (!service || typeof service !== "object") return [];
+
+    const record = service as Record<string, unknown>;
+    const title = typeof record.title === "string" ? record.title.trim() : "";
+    const description =
+      typeof record.description === "string" ? record.description.trim() : "";
+    const deliverables = Array.isArray(record.deliverables)
+      ? record.deliverables
+          .filter((item): item is string => typeof item === "string")
+          .map((item) => item.trim())
+          .filter(Boolean)
+      : [];
+
+    return title && description ? [{ title, description, deliverables }] : [];
+  });
+
+  return normalized.map((service, index) => ({
+    ...service,
+    number: String(index + 1).padStart(2, "0")
+  }));
 }
 
-function normalizeSelectedFrames(frames: string[] | null | undefined) {
+function normalizeSelectedFrames(frames: unknown) {
   if (!Array.isArray(frames)) {
     return defaultSiteSettings.selectedFrames;
   }
 
-  return frames.map((frame) => frame.trim()).filter(Boolean);
+  return frames
+    .filter((frame): frame is string => typeof frame === "string")
+    .map((frame) => frame.trim())
+    .filter(Boolean);
 }
 
 /** Normalizes optional CMS motion frames while retaining configured defaults. */
-export function normalizeMotionFrames(frames: string[] | null | undefined) {
+export function normalizeMotionFrames(frames: unknown) {
   if (!Array.isArray(frames)) {
     return defaultSiteSettings.motionFrames;
   }
 
-  return frames.map((frame) => frame.trim()).filter(Boolean);
+  return frames
+    .filter((frame): frame is string => typeof frame === "string")
+    .map((frame) => frame.trim())
+    .filter(Boolean);
 }
 
-function normalizeTeamMembers(
-  members: TeamMember[] | null | undefined,
-  legacyImages: string[] | null | undefined
-) {
+function normalizeTeamMembers(members: unknown, legacyImages: unknown) {
   if (Array.isArray(members) && members.length > 0) {
-    return members
-      .map((member) => ({
-        name: member?.name?.trim() ?? "",
-        title: member?.title?.trim() ?? "",
-        position: member?.position?.trim() ?? "",
-        description: member?.description?.trim() ?? "",
-        image: normalizePublicMediaUrl(member?.image) || ""
-      }))
-      .filter((member) => member.name && member.image);
+    const normalized = members.flatMap((member) => {
+      if (!isRecord(member)) return [];
+
+      const text = (key: keyof TeamMember) =>
+        typeof member[key] === "string" ? member[key].trim() : "";
+      const normalizedMember = {
+        name: text("name"),
+        title: text("title"),
+        position: text("position"),
+        description: text("description"),
+        image: normalizePublicMediaUrl(member.image)
+      };
+
+      return normalizedMember.name && normalizedMember.image
+        ? [normalizedMember]
+        : [];
+    });
+
+    if (normalized.length > 0) {
+      return normalized;
+    }
   }
 
   const legacy = filterPublicMediaUrls(legacyImages);
@@ -252,6 +332,22 @@ function normalizeTeamMembers(
     ...member,
     image: legacy[index] ?? member.image
   }));
+}
+
+function normalizeAboutValues(values: unknown) {
+  if (!Array.isArray(values) || values.length === 0) {
+    return defaultSiteSettings.about.values;
+  }
+
+  const normalized = values.flatMap((value) => {
+    if (!isRecord(value)) return [];
+
+    const title = typeof value.title === "string" ? value.title.trim() : "";
+    const copy = typeof value.copy === "string" ? value.copy.trim() : "";
+    return title && copy ? [{ title, copy }] : [];
+  });
+
+  return normalized.length > 0 ? normalized : defaultSiteSettings.about.values;
 }
 
 /**
@@ -265,16 +361,31 @@ export function normalizeProjectRecord(record: SupabaseProjectRow): Project {
   const legacyGallery = normalizeProjectGallery({
     coverImage: record.cover_image,
     galleryImages: filterPublicMediaUrls(record.gallery_images),
-    galleryCaptions: record.gallery_captions ?? []
+    galleryCaptions: Array.isArray(record.gallery_captions)
+      ? record.gallery_captions.map((caption) =>
+          typeof caption === "string" ? caption : ""
+        )
+      : []
   });
   const rawStructuredGallery = Array.isArray(record.gallery_items)
-    ? record.gallery_items
-        .map((item) => ({
-          image: normalizePublicMediaUrl(item?.image),
-          caption: item?.caption?.trim() ?? "",
-          alt: item?.alt?.trim() || undefined
-        }))
-        .filter((item) => item.image)
+    ? record.gallery_items.flatMap((item) => {
+        if (!isRecord(item)) return [];
+
+        const image = normalizePublicMediaUrl(item.image);
+        if (!image) return [];
+
+        return [
+          {
+            image,
+            caption:
+              typeof item.caption === "string" ? item.caption.trim() : "",
+            alt:
+              typeof item.alt === "string"
+                ? item.alt.trim() || undefined
+                : undefined
+          }
+        ];
+      })
     : [];
   const normalizedStructuredGallery = normalizeProjectGallery({
     coverImage: record.cover_image,
@@ -370,10 +481,7 @@ export function normalizeSiteSettingsRecord(
         record.about_team_images
       ),
       teamGallery: filterPublicMediaUrls(record.about_team_images),
-      values:
-        Array.isArray(record.about_values) && record.about_values.length > 0
-          ? record.about_values
-          : defaultSiteSettings.about.values
+      values: normalizeAboutValues(record.about_values)
     },
     services: normalizeServices(record.services),
     selectedFrames: normalizeSelectedFrames(record.selected_frames),
@@ -399,7 +507,7 @@ export const getPublishedProjects = cache(async () => {
 
   const { data, error } = await client
     .from("projects")
-    .select("*")
+    .select(PUBLIC_PROJECT_COLUMNS)
     .eq("published", true)
     .order("created_at", { ascending: false });
 
@@ -432,7 +540,7 @@ export const getProjectBySlug = cache(async (slug: string) => {
 
   const { data, error } = await client
     .from("projects")
-    .select("*")
+    .select(PUBLIC_PROJECT_COLUMNS)
     .eq("slug", slug)
     .eq("published", true)
     .maybeSingle();
@@ -466,7 +574,7 @@ export const getSiteSettings = cache(async () => {
 
   const { data, error } = await client
     .from("site_settings")
-    .select("*")
+    .select(PUBLIC_SITE_SETTINGS_COLUMNS)
     .eq("id", SITE_SETTINGS_ID)
     .maybeSingle();
 

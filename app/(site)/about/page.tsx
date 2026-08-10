@@ -2,32 +2,34 @@ import type { Metadata } from "next";
 import Script from "next/script";
 import { HorizontalStillStrip } from "@/components/sections/horizontal-still-strip";
 import { PageHeader } from "@/components/sections/page-header";
-import { TeamTabs } from "@/components/sections/team-tabs";
+import {
+  isPlaceholderTeamImage,
+  TeamTabs
+} from "@/components/sections/team-tabs";
 import { Reveal } from "@/components/ui/reveal";
 import { serializeJsonLd } from "@/lib/json-ld";
-import { adaptSiteSettingsToPublishedProjects } from "@/lib/public-portfolio";
 import {
   buildSharingMetadata,
   resolveSharingImage
 } from "@/lib/sharing-metadata";
 import { buildPageStructuredData } from "@/lib/site-structured-data";
-import { getPublishedProjects, getSiteSettings } from "@/lib/supabase";
+import { getSiteSettings } from "@/lib/supabase";
 
 const pageTitle = "About";
 const pageDescription = "Founder note and studio approach behind Lux Studio.";
 
 export async function generateMetadata(): Promise<Metadata> {
-  const [projects, settings] = await Promise.all([
-    getPublishedProjects(),
-    getSiteSettings()
-  ]);
+  const settings = await getSiteSettings();
   const image = resolveSharingImage({
     preferredImages: [
-      ...settings.about.teamGallery,
-      ...projects.flatMap((project) => project.galleryImages),
-      ...settings.about.teamMembers.map((member) => member.image)
+      ...settings.about.teamGallery.filter(
+        (image) => !isPlaceholderTeamImage(image)
+      ),
+      ...settings.about.teamMembers
+        .map((member) => member.image)
+        .filter((image) => !isPlaceholderTeamImage(image)),
+      ...settings.selectedFrames
     ],
-    projects,
     settings
   });
 
@@ -48,18 +50,13 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function AboutPage() {
-  const [projects, settings] = await Promise.all([
-    getPublishedProjects(),
-    getSiteSettings()
-  ]);
-
-  const publicSettings = adaptSiteSettingsToPublishedProjects(
-    settings,
-    projects
+  const settings = await getSiteSettings();
+  const teamMembers = settings.about.teamMembers;
+  const teamGallery = settings.about.teamGallery.filter(
+    (image) => !isPlaceholderTeamImage(image)
   );
-  const teamMembers = publicSettings.about.teamMembers;
 
-  const { about } = publicSettings;
+  const { about } = settings;
   const structuredData = buildPageStructuredData({
     name: pageTitle,
     description: pageDescription,
@@ -75,16 +72,16 @@ export default async function AboutPage() {
         dangerouslySetInnerHTML={{ __html: serializeJsonLd(structuredData) }}
       />
       <PageHeader
-        eyebrow={publicSettings.copy.about.eyebrow}
-        lead={publicSettings.copy.about.headlineLead}
-        trail={publicSettings.copy.about.headlineTrail}
+        eyebrow={settings.copy.about.eyebrow}
+        lead={settings.copy.about.headlineLead}
+        trail={settings.copy.about.headlineTrail}
         copy={about.positioning}
-        copyLabel={publicSettings.copy.about.positioningLabel}
+        copyLabel={settings.copy.about.positioningLabel}
       />
 
       <section className="section-shell pb-12">
         <Reveal className="max-w-3xl space-y-3">
-          <p className="eyebrow">{publicSettings.copy.about.founderLabel}</p>
+          <p className="eyebrow">{settings.copy.about.founderLabel}</p>
           <p className="text-base leading-8 text-muted sm:text-lg">
             {about.founderNote}
           </p>
@@ -115,7 +112,7 @@ export default async function AboutPage() {
       <TeamTabs members={teamMembers} />
 
       <HorizontalStillStrip
-        images={about.teamGallery}
+        images={teamGallery}
         eyebrow="Team Gallery"
         lead="People"
         trail="At Work"

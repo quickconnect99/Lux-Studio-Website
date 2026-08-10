@@ -9,9 +9,9 @@ import { cn } from "@/lib/utils";
 /**
  * Reveal variant controls offset distance and animation duration.
  *
- * subtle  – 18 px, 0.55 s → dense lists, grids
- * default – 36 px, 0.80 s → most sections
- * bold    – 60 px, 1.00 s → hero / featured elements
+ * subtle  – 18 px, 0.38 s → dense lists, grids
+ * default – 30 px, 0.48 s → most sections
+ * bold    – 44 px, 0.55 s → hero / featured elements
  *
  * Once the entrance animation completes, the wrapper gains the class
  * `group-reveal` so child CSS (e.g. `.split-trail-underline::after`)
@@ -66,7 +66,7 @@ export function Reveal({
     <m.div
       initial={{ opacity: 1, ...initialOffset }}
       whileInView={{ opacity: 1, x: 0, y: 0 }}
-      viewport={{ once: true, margin: "0px 0px 18% 0px" }}
+      viewport={{ once: true, margin: "0px 0px -10% 0px" }}
       transition={{ duration, delay, ease: motionEase }}
       onAnimationComplete={() => setRevealed(true)}
       className={cn(revealed && "group-reveal", className)}

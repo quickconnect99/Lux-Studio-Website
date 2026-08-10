@@ -39,6 +39,9 @@ media storage.
   quality command.
 - See `DESIGN_SYSTEM.md` before changing visual tokens, typography, layout, or
   interaction patterns.
+- Track the audited release, UX, architecture, and performance work in
+  `docs/software-improvement-roadmap.md`. Items remain open until their code,
+  regression test, and any required external release evidence are complete.
 
 ## Supabase notes
 
@@ -46,6 +49,11 @@ media storage.
 - Create a public storage bucket named `projects` or change `NEXT_PUBLIC_SUPABASE_STORAGE_BUCKET`.
 - Add `SUPABASE_SERVICE_ROLE_KEY` on the server so `/api/inquiries` can persist contact requests without exposing open client-side inserts.
 - Add `RESEND_API_KEY`, `INQUIRY_EMAIL_TO`, and optionally `INQUIRY_EMAIL_FROM` so saved inquiries also send an email notification.
+- Production also requires `INQUIRY_RATE_LIMIT_SECRET`, `CRON_SECRET`,
+  and an explicit `INQUIRY_RETENTION_DAYS`; `npm run build` validates
+  deployment configuration before compiling.
+- Inquiry notifications use durable status tracking and bounded Cron retries;
+  apply all migrations before relying on that recovery path.
 - `/admin` uses Supabase Auth directly. Database and storage access is restricted to users listed in `public.admin_users`.
 - Public pages use local demo content only when Supabase is intentionally not configured.
 - The admin page works in demo mode without Supabase and persists to Supabase once auth/env vars are added.

@@ -112,7 +112,7 @@ export function SiteSettingsPreview({
         <div className="bg-panel-dark/20 min-w-0 overflow-x-auto rounded-[2rem] border border-line p-2 sm:p-4">
           <div
             className={cn(
-              "mx-auto overflow-hidden rounded-[1.5rem] border border-line bg-background shadow-2xl transition-[max-width] duration-300",
+              "site-settings-preview-canvas mx-auto overflow-hidden rounded-[1.5rem] border border-line bg-background shadow-2xl transition-[max-width] duration-300",
               !isGeneralPage && previewWidth === "mobile"
                 ? "max-w-[430px]"
                 : "max-w-none"
@@ -122,7 +122,7 @@ export function SiteSettingsPreview({
               <span className="bg-error/70 h-2.5 w-2.5 rounded-full" />
               <span className="bg-warning/70 h-2.5 w-2.5 rounded-full" />
               <span className="bg-success/70 h-2.5 w-2.5 rounded-full" />
-              <span className="ml-3 truncate rounded-full border border-line bg-panel px-4 py-1 text-[0.58rem] uppercase tracking-ui text-muted">
+              <span className="ml-3 truncate rounded-full border border-line bg-panel px-4 py-1 text-[0.68rem] uppercase tracking-ui text-muted">
                 {isGeneralPage
                   ? "General settings · not visible as live page"
                   : "Live preview · click any highlighted text to edit"}
@@ -134,9 +134,10 @@ export function SiteSettingsPreview({
                 updateField={updateField}
                 page={page}
                 onPageChange={setPage}
+                compact={previewWidth === "mobile"}
               />
             ) : null}
-            <main>
+            <main id="site-preview-panel">
               {isGeneralPage ? (
                 <div className="p-5 sm:p-7">
                   <SiteSettingsInspector
