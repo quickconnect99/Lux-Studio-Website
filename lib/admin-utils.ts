@@ -162,6 +162,9 @@ export function toFormState(
     coverImage: project.coverImage,
     galleryImagesText: project.galleryImages.join("\n"),
     galleryCaptionsText: (project.galleryCaptions ?? []).join("\n"),
+    galleryAltsText: (project.galleryItems ?? [])
+      .map((item) => item.alt ?? "")
+      .join("\n"),
     videoUrl: project.videoUrl ?? "",
     uploadedVideo: project.uploadedVideo ?? "",
     featured: project.featured,
@@ -417,6 +420,7 @@ export function createEmptyProject(): ProjectFormState {
     coverImage: "/images/project-01.svg",
     galleryImagesText: "",
     galleryCaptionsText: "",
+    galleryAltsText: "",
     videoUrl: "",
     uploadedVideo: "",
     featured: false,

@@ -1,17 +1,11 @@
 # Supabase database operations
 
-Stand: 1. August 2026
+Stand: 21. August 2026
 
 ## Production migration status
 
 The linked production project is synchronized through migration
-`20260729000200`.
-
-The repository additionally contains `20260801000100_inquiry_retention.sql`
-and `20260801000200_inquiry_notification_outbox.sql`. They are
-implementation artifacts only until a reviewed `supabase db push` applies
-them to the linked project. This document does not claim that either migration,
-PITR, or a restore test has been executed externally.
+`20260812000200` (the full local migration history).
 
 - On 30 July 2026, the existing baseline objects were verified through the
   remote schema linter and core-table inspection. Migration
@@ -19,12 +13,18 @@ PITR, or a restore test has been executed externally.
 - `20260729000100_storage_bucket_limits.sql` and
   `20260729000200_data_integrity_constraints.sql` were reviewed in a linked
   dry run and applied successfully.
-- The three new integrity constraints remain `NOT VALID`. PostgreSQL enforces
-  them for new and updated rows; historical-row validation still follows the
-  audit procedure below.
-- The Supabase backup API reported no physical backup and PITR disabled at
-  rollout time. Enable and verify a restorable backup before any future
-  destructive production migration.
+- On 21 August 2026, following the pre-deployment checklist below,
+  `20260801000100_inquiry_retention.sql`,
+  `20260801000200_inquiry_notification_outbox.sql`,
+  `20260810000100_email_settings.sql`,
+  `20260812000100_validate_data_integrity_constraints.sql`, and
+  `20260812000200_public_read_views.sql` were applied to the linked
+  production project via `supabase db push`. The three integrity
+  constraints from `20260729000200` are now fully `VALID` (the audit
+  queries below returned zero violating rows before the push).
+- The Supabase backup API reports daily physical backups (walg) as of
+  21 August 2026; PITR remains disabled. Verify a recent physical backup
+  before any future destructive production migration.
 
 ## Sources of truth
 
@@ -104,13 +104,18 @@ message queue and does not make the initial API response asynchronous.
 
 ## Future public-data boundary
 
-Public reads currently use RLS policies on the base `projects` and
-`site_settings` tables. Application selects now use explicit column
-allowlists. Moving anonymous reads to dedicated security-invoker views or
-narrow RPCs is a separate schema/API rollout: introduce the new endpoints,
-migrate public queries, verify authenticated Admin reads/writes, and only then
-revoke base table access. Do not combine this with an untested direct GRANT
-change.
+`20260812000200_public_read_views.sql` adds `public.projects_public` and
+`public.site_settings_public`: `security_invoker` views that narrow the
+exposed columns while still evaluating the base tables' existing RLS
+policies (they do not change which rows are visible, only which columns).
+`getPublishedProjects`, `getProjectBySlug`, and `getSiteSettings`
+(`lib/supabase.ts`) read through these views. Admin reads/writes still go
+directly against the base `projects` and `site_settings` tables — this
+migration does not touch those code paths or their RLS policies.
+
+Revoking anonymous `SELECT` on the base tables is a deliberately separate,
+later step, once the views have been verified against a live/staging
+environment. Do not combine that revoke with an untested change.
 
 ## Rollback strategy
 
@@ -128,7 +133,12 @@ The gallery-shape, project-year and inquiry-service constraints are initially
 `NOT VALID`. PostgreSQL enforces them for new and updated rows without blocking
 deployment on historical data.
 
-After auditing existing production rows, validate them explicitly:
+`20260812000100_validate_data_integrity_constraints.sql` already contains the
+three `VALIDATE CONSTRAINT` statements below and will fail outright if
+production has violating rows — Postgres validates on `db push` itself, so
+there is no separate manual validation step. Run the audit selects first
+regardless: they tell you which rows to repair before that push, rather than
+letting the migration fail after the fact.
 
 ```sql
 with gallery_audit as (

@@ -98,6 +98,7 @@ export function useAdminProjectWorkspace({
   );
   const galleryImageList = parseMultilineInput(formState.galleryImagesText);
   const captionRawLines = formState.galleryCaptionsText.split("\n");
+  const altRawLines = formState.galleryAltsText.split("\n");
   const completionIssues = getProjectCompletionIssues(formState, {
     hasQueuedCover: Boolean(coverFile),
     queuedGalleryCount: galleryFiles.length
@@ -157,6 +158,16 @@ export function useAdminProjectWorkspace({
       updateField("galleryCaptionsText", lines.join("\n"));
     },
     [formState.galleryCaptionsText, updateField]
+  );
+
+  const updateAlt = useCallback(
+    (index: number, value: string) => {
+      const lines = formState.galleryAltsText.split("\n");
+      while (lines.length <= index) lines.push("");
+      lines[index] = value;
+      updateField("galleryAltsText", lines.join("\n"));
+    },
+    [formState.galleryAltsText, updateField]
   );
 
   const selectProject = useCallback(
@@ -450,6 +461,7 @@ export function useAdminProjectWorkspace({
     saveCount,
     galleryImageList,
     captionRawLines,
+    altRawLines,
     completionIssues,
     isProjectComplete: completionIssues.length === 0,
     isDirty,
@@ -459,6 +471,7 @@ export function useAdminProjectWorkspace({
     confirmDialog,
     updateField,
     updateCaption,
+    updateAlt,
     applyProject,
     commitSavedProject,
     restoreDraft,

@@ -66,6 +66,7 @@ export type ProjectMediaState = {
   coverImage: string;
   galleryImages: string[];
   galleryCaptions: string[];
+  galleryAlts: string[];
   uploadedVideo: string;
 };
 
@@ -160,20 +161,25 @@ export function getProjectMediaState(
   formState: ProjectFormState,
   overrides: Partial<ProjectMediaState> = {}
 ): ProjectMediaState {
+  // `galleryImages` and `galleryCaptions` must stay index-aligned by raw
+  // textarea line so `normalizeProjectGallery` pairs each image with its own
+  // caption. Pre-filtering blank image lines here (as `parseMultilineInput`
+  // does) would shift later images out of sync with their captions; the
+  // normalizer already drops blanks itself once pairing is done.
   const gallery = normalizeProjectGallery({
     coverImage: overrides.coverImage ?? formState.coverImage,
     galleryImages:
-      overrides.galleryImages ??
-      parseMultilineInput(formState.galleryImagesText),
+      overrides.galleryImages ?? formState.galleryImagesText.split("\n"),
     galleryCaptions:
-      overrides.galleryCaptions ??
-      formState.galleryCaptionsText.split("\n").map((value) => value.trim())
+      overrides.galleryCaptions ?? formState.galleryCaptionsText.split("\n"),
+    galleryAlts: overrides.galleryAlts ?? formState.galleryAltsText.split("\n")
   });
 
   return {
     coverImage: overrides.coverImage ?? formState.coverImage,
     galleryImages: gallery.images,
     galleryCaptions: gallery.captions,
+    galleryAlts: gallery.alts,
     uploadedVideo: overrides.uploadedVideo ?? formState.uploadedVideo
   };
 }
@@ -215,7 +221,8 @@ export function buildProjectDatabasePayload({
     gallery_captions: media.galleryCaptions,
     gallery_items: media.galleryImages.map((image, index) => ({
       image,
-      caption: media.galleryCaptions[index] ?? ""
+      caption: media.galleryCaptions[index] ?? "",
+      alt: media.galleryAlts[index] || undefined
     })),
     video_url: formState.videoUrl || null,
     uploaded_video: media.uploadedVideo || null,
@@ -261,7 +268,8 @@ export function buildLocalProject({
     galleryCaptions: media.galleryCaptions,
     galleryItems: media.galleryImages.map((image, index) => ({
       image,
-      caption: media.galleryCaptions[index] ?? ""
+      caption: media.galleryCaptions[index] ?? "",
+      alt: media.galleryAlts[index] || undefined
     })),
     videoUrl: formState.videoUrl || undefined,
     uploadedVideo: media.uploadedVideo || undefined,

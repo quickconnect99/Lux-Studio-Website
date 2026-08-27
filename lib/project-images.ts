@@ -233,20 +233,27 @@ export function buildProjectFrameItems(
 }
 
 /**
- * Normalizes a project gallery while preserving image/caption index alignment.
+ * Normalizes a project gallery while preserving image/caption/alt index
+ * alignment.
  *
  * Empty URLs, duplicate gallery images, and the cover image are removed. The
  * result exposes both parallel arrays for legacy callers and structured items
- * for newer rendering code.
+ * for newer rendering code. `galleryImages` and `galleryCaptions`/`galleryAlts`
+ * must be passed as raw, unfiltered, index-aligned arrays (e.g. a plain
+ * `text.split("\n")`) — this function does the filtering itself so a caller
+ * pre-filtering the images array alone can't shift it out of alignment with
+ * captions or alt text.
  */
 export function normalizeProjectGallery({
   coverImage,
   galleryImages,
-  galleryCaptions
+  galleryCaptions,
+  galleryAlts = []
 }: {
   coverImage: string;
   galleryImages: string[];
   galleryCaptions: string[];
+  galleryAlts?: string[];
 }) {
   const seen = new Set<string>();
   const normalizedCover = coverImage.trim();
@@ -257,6 +264,7 @@ export function normalizeProjectGallery({
 
   const images: string[] = [];
   const captions: string[] = [];
+  const alts: string[] = [];
 
   galleryImages.forEach((image, index) => {
     const normalizedImage = image.trim();
@@ -268,14 +276,17 @@ export function normalizeProjectGallery({
     seen.add(normalizedImage);
     images.push(normalizedImage);
     captions.push((galleryCaptions[index] ?? "").trim());
+    alts.push((galleryAlts[index] ?? "").trim());
   });
 
   return {
     images,
     captions,
+    alts,
     items: images.map((image, index) => ({
       image,
-      caption: captions[index] ?? ""
+      caption: captions[index] ?? "",
+      alt: alts[index] || undefined
     }))
   };
 }

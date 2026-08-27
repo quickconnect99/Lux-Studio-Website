@@ -51,6 +51,7 @@ export type ProjectFormState = {
   coverImage: string;
   galleryImagesText: string;
   galleryCaptionsText: string;
+  galleryAltsText: string;
   videoUrl: string;
   uploadedVideo: string;
   featured: boolean;

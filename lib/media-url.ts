@@ -42,6 +42,18 @@ function isSafeRepositoryPath(value: string) {
 }
 
 /**
+ * Distinguishes a genuinely remote media URL from a repository-bundled path.
+ *
+ * `next.config.mjs` only allows the Supabase storage origin as a remote image
+ * pattern (and the CSP `img-src`/`media-src` mirror that), so any absolute
+ * `http(s)` reference here is guaranteed to be that external source, never a
+ * local asset shipped with the build.
+ */
+export function isRemoteMediaSource(value: string) {
+  return /^https?:\/\//i.test(value.trim());
+}
+
+/**
  * Returns a trimmed public media reference or the supplied fallback when the
  * value is blank or points to a local filesystem.
  */

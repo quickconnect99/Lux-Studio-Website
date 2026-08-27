@@ -6,7 +6,8 @@
       "Bash(rm -rf .next node_modules/.cache)",
       "Bash(npm run *)",
       "Bash(mkdir -p \"/c/Users/User/Documents/VS-Code Projects/website-template/public/images/brand\")",
-      "Bash(npm test *)"
+      "Bash(npm test *)",
+      "Bash(npx supabase *)"
     ],
     "additionalDirectories": [
       "C:\\Users\\User\\Documents\\VS-Code Projects\\website-template\\public\\images\\brand"

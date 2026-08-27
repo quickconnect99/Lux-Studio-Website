@@ -1,5 +1,6 @@
 import { cache } from "react";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
+import type { Database } from "@/lib/database.types";
 import { projects as fallbackProjects } from "@/lib/content";
 import {
   filterPublicMediaUrls,
@@ -57,7 +58,7 @@ if (
   );
 }
 
-let browserClient: SupabaseClient | null = null;
+let browserClient: SupabaseClient<Database> | null = null;
 
 /**
  * Returns the singleton browser client used for auth and admin mutations.
@@ -72,7 +73,7 @@ export function createBrowserSupabaseClient() {
   }
 
   if (!browserClient) {
-    browserClient = createClient(supabaseUrl!, supabaseAnonKey!);
+    browserClient = createClient<Database>(supabaseUrl!, supabaseAnonKey!);
   }
 
   return browserClient;
@@ -90,7 +91,7 @@ export function createServerSupabaseClient() {
     return null;
   }
 
-  return createClient(supabaseUrl!, supabaseAnonKey!, {
+  return createClient<Database>(supabaseUrl!, supabaseAnonKey!, {
     auth: {
       persistSession: false
     },
@@ -107,6 +108,11 @@ export function createServerSupabaseClient() {
   });
 }
 
+// Deliberately wider than `Database["public"]["Tables"]["projects"]["Row"]`:
+// this is the untrusted-input boundary for `normalizeProjectRecord`, which
+// must tolerate legacy or malformed rows (nulls where the schema now says
+// `not null`, missing `gallery_items`) rather than assume the generated
+// schema types describe every row already in the database.
 export type SupabaseProjectRow = {
   id?: string;
   business?: string | null;
@@ -379,23 +385,17 @@ export function normalizeProjectRecord(record: SupabaseProjectRow): Project {
             image,
             caption:
               typeof item.caption === "string" ? item.caption.trim() : "",
-            alt:
-              typeof item.alt === "string"
-                ? item.alt.trim() || undefined
-                : undefined
+            alt: typeof item.alt === "string" ? item.alt.trim() : ""
           }
         ];
       })
     : [];
-  const normalizedStructuredGallery = normalizeProjectGallery({
+  const structuredGallery = normalizeProjectGallery({
     coverImage: record.cover_image,
     galleryImages: rawStructuredGallery.map((item) => item.image),
-    galleryCaptions: rawStructuredGallery.map((item) => item.caption)
-  });
-  const structuredGallery = normalizedStructuredGallery.items.map((item) => ({
-    ...item,
-    alt: rawStructuredGallery.find((source) => source.image === item.image)?.alt
-  }));
+    galleryCaptions: rawStructuredGallery.map((item) => item.caption),
+    galleryAlts: rawStructuredGallery.map((item) => item.alt)
+  }).items;
   const galleryItems =
     structuredGallery.length > 0 ? structuredGallery : legacyGallery.items;
 
@@ -506,7 +506,7 @@ export const getPublishedProjects = cache(async () => {
   }
 
   const { data, error } = await client
-    .from("projects")
+    .from("projects_public")
     .select(PUBLIC_PROJECT_COLUMNS)
     .eq("published", true)
     .order("created_at", { ascending: false });
@@ -539,7 +539,7 @@ export const getProjectBySlug = cache(async (slug: string) => {
   }
 
   const { data, error } = await client
-    .from("projects")
+    .from("projects_public")
     .select(PUBLIC_PROJECT_COLUMNS)
     .eq("slug", slug)
     .eq("published", true)
@@ -573,7 +573,7 @@ export const getSiteSettings = cache(async () => {
   }
 
   const { data, error } = await client
-    .from("site_settings")
+    .from("site_settings_public")
     .select(PUBLIC_SITE_SETTINGS_COLUMNS)
     .eq("id", SITE_SETTINGS_ID)
     .maybeSingle();

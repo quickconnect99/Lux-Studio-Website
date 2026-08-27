@@ -57,8 +57,55 @@ test("normalizes project media and excludes the cover from the gallery", () => {
     coverImage: "/cover.jpg",
     galleryImages: ["/one.jpg", "/two.jpg"],
     galleryCaptions: ["first", "second"],
+    galleryAlts: ["", ""],
     uploadedVideo: ""
   });
+});
+
+test("keeps captions paired with their own image across a blank gallery line", () => {
+  const formState = {
+    ...createEmptyProject(),
+    coverImage: "/cover.jpg",
+    // A blank line between two image URLs must not shift "second" onto
+    // "/one.jpg" once the blank line is dropped during normalization.
+    galleryImagesText: "/one.jpg\n\n/two.jpg",
+    galleryCaptionsText: "first\nblank line has no image\nsecond"
+  };
+
+  assert.deepEqual(getProjectMediaState(formState), {
+    coverImage: "/cover.jpg",
+    galleryImages: ["/one.jpg", "/two.jpg"],
+    galleryCaptions: ["first", "second"],
+    galleryAlts: ["", ""],
+    uploadedVideo: ""
+  });
+});
+
+test("carries independent alt text through to both save payloads without touching captions", () => {
+  const formState = {
+    ...createEmptyProject(),
+    coverImage: "/cover.jpg",
+    galleryImagesText: "/one.jpg\n/two.jpg",
+    galleryCaptionsText: "Caption one\nCaption two",
+    galleryAltsText: "Alt one\n"
+  };
+  const media = getProjectMediaState(formState);
+
+  assert.deepEqual(media.galleryAlts, ["Alt one", ""]);
+  assert.deepEqual(media.galleryCaptions, ["Caption one", "Caption two"]);
+
+  const database = buildProjectDatabasePayload({
+    formState,
+    slug: "project",
+    media
+  });
+  const local = buildLocalProject({ formState, slug: "project", media });
+
+  assert.deepEqual(database.gallery_items, [
+    { image: "/one.jpg", caption: "Caption one", alt: "Alt one" },
+    { image: "/two.jpg", caption: "Caption two", alt: undefined }
+  ]);
+  assert.deepEqual(local.galleryItems, database.gallery_items);
 });
 
 test("builds equivalent database and local project records", () => {

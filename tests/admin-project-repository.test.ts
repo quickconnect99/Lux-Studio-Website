@@ -204,7 +204,9 @@ test("returns normalized records from successful inserts", async () => {
     short_description: "Saved",
     gallery_images: ["/gallery.jpg"],
     gallery_captions: ["Gallery"],
-    gallery_items: [{ image: "/gallery.jpg", caption: "Gallery" }]
+    gallery_items: [
+      { image: "/gallery.jpg", caption: "Gallery", alt: undefined }
+    ]
   };
   const result = await saveAdminProjectRecord(
     createRepositoryClient(projectRow(), events),

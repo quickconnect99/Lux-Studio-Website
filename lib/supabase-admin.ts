@@ -1,6 +1,7 @@
 import "server-only";
 
 import { createClient } from "@supabase/supabase-js";
+import type { Database } from "@/lib/database.types";
 
 function getServiceRoleConfiguration() {
   return {
@@ -28,7 +29,7 @@ export function createAdminSupabaseClient() {
     return null;
   }
 
-  return createClient(supabaseUrl, serviceRoleKey, {
+  return createClient<Database>(supabaseUrl, serviceRoleKey, {
     auth: {
       autoRefreshToken: false,
       persistSession: false

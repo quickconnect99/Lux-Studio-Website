@@ -114,7 +114,7 @@ begin
             and cardinality(gallery_images) = jsonb_array_length(gallery_items)
           else false
         end
-      ) not valid;
+      );
   end if;
 
   if not exists (
@@ -125,7 +125,7 @@ begin
   ) then
     alter table public.projects
       add constraint projects_year_check
-      check (year between 1900 and 2100) not valid;
+      check (year between 1900 and 2100);
   end if;
 
   if not exists (
@@ -145,7 +145,7 @@ begin
           'Brand Campaign',
           'Other'
         )
-      ) not valid;
+      );
   end if;
 
   if not exists (

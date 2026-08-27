@@ -25,18 +25,24 @@ import { cn } from "@/lib/utils";
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
-type GalleryItem = { id: string; image: string; caption: string };
+type GalleryItem = { id: string; image: string; caption: string; alt: string };
 
 type GalleryEditorProps = {
   images: string[];
   captions: string[];
+  alts?: string[];
   pendingFiles: File[];
-  onImagesChange: (images: string[], captions: string[]) => void;
+  onImagesChange: (
+    images: string[],
+    captions: string[],
+    alts?: string[]
+  ) => void;
   onFilesAdd: (files: File[]) => void;
   onFileRemove: (index: number) => void;
   introText?: string;
   captionPlaceholder?: (index: number) => string;
   showCaptions?: boolean;
+  showAlts?: boolean;
   showAddControls?: boolean;
   itemLabel?: string;
   getFrameRole?: (index: number) => {
@@ -54,6 +60,7 @@ type SortableItemProps = {
   roleDescription: string;
   captionPlaceholder: string;
   showCaption: boolean;
+  showAlt: boolean;
   itemLabel: string;
   canMoveUp: boolean;
   canMoveDown: boolean;
@@ -62,6 +69,7 @@ type SortableItemProps = {
   onRemove: () => void;
   onImageChange: (value: string) => void;
   onCaptionChange: (value: string) => void;
+  onAltChange: (value: string) => void;
 };
 
 function SortableItem({
@@ -71,6 +79,7 @@ function SortableItem({
   roleDescription,
   captionPlaceholder,
   showCaption,
+  showAlt,
   itemLabel,
   canMoveUp,
   canMoveDown,
@@ -78,7 +87,8 @@ function SortableItem({
   onMoveDown,
   onRemove,
   onImageChange,
-  onCaptionChange
+  onCaptionChange,
+  onAltChange
 }: SortableItemProps) {
   const [imageDraft, setImageDraft] = useState(item.image);
   const {
@@ -197,6 +207,15 @@ function SortableItem({
             placeholder={captionPlaceholder}
           />
         ) : null}
+        {showAlt ? (
+          <input
+            value={item.alt}
+            onChange={(e) => onAltChange(e.target.value)}
+            className="input-field text-xs"
+            aria-label={`Alt text for ${itemLabel.toLowerCase()} ${displayIndex + 1}`}
+            placeholder="Describe this image for screen readers and search"
+          />
+        ) : null}
       </div>
 
       {/* Remove */}
@@ -243,7 +262,11 @@ function hashGalleryImage(value: string) {
   return Math.abs(hash).toString(36);
 }
 
-function buildItems(images: string[], captions: string[]): GalleryItem[] {
+function buildItems(
+  images: string[],
+  captions: string[],
+  alts: string[]
+): GalleryItem[] {
   const occurrences = new Map<string, number>();
   return images.map((image, index) => {
     const occurrence = occurrences.get(image) ?? 0;
@@ -252,7 +275,8 @@ function buildItems(images: string[], captions: string[]): GalleryItem[] {
     return {
       id: `gallery-${hashGalleryImage(image)}-${occurrence}`,
       image,
-      caption: captions[index] ?? ""
+      caption: captions[index] ?? "",
+      alt: alts[index] ?? ""
     };
   });
 }
@@ -269,6 +293,7 @@ function buildItems(images: string[], captions: string[]): GalleryItem[] {
 export function GalleryEditor({
   images,
   captions,
+  alts = [],
   pendingFiles,
   onImagesChange,
   onFilesAdd,
@@ -276,6 +301,7 @@ export function GalleryEditor({
   introText = "Gallery order controls the live page: frame 01 becomes the large project image below the narrative, frame 02+ appear lower on the page.",
   captionPlaceholder = (index) => `Caption for frame ${index + 1}...`,
   showCaptions = true,
+  showAlts = false,
   showAddControls = true,
   itemLabel = "Frame",
   getFrameRole = getGalleryFrameRole
@@ -283,7 +309,10 @@ export function GalleryEditor({
   // ── Local state — initialized from props, owns drag order ───────────────
   // The parent uses `key` to remount this component on project switch/save,
   // so we don't need a useEffect sync here.
-  const items = useMemo(() => buildItems(images, captions), [captions, images]);
+  const items = useMemo(
+    () => buildItems(images, captions, alts),
+    [alts, captions, images]
+  );
 
   const [showUrlInput, setShowUrlInput] = useState(false);
   const [urlDraft, setUrlDraft] = useState("");
@@ -303,7 +332,8 @@ export function GalleryEditor({
   function emit(nextItems: GalleryItem[]) {
     const nextImages = nextItems.map((item) => item.image);
     const nextCaptions = nextItems.map((item) => item.caption);
-    onImagesChange(nextImages, nextCaptions);
+    const nextAlts = nextItems.map((item) => item.alt);
+    onImagesChange(nextImages, nextCaptions, nextAlts);
   }
 
   // ── Drag end ─────────────────────────────────────────────────────────────
@@ -338,6 +368,14 @@ export function GalleryEditor({
     emit(next);
   }
 
+  // ── Alt text ─────────────────────────────────────────────────────────────
+  function handleAltChange(id: string, alt: string) {
+    const next = items.map((item) =>
+      item.id === id ? { ...item, alt } : item
+    );
+    emit(next);
+  }
+
   function handleImageChange(id: string, image: string) {
     const next = items.map((item) =>
       item.id === id ? { ...item, image } : item
@@ -355,7 +393,8 @@ export function GalleryEditor({
       {
         id: `gallery-${hashGalleryImage(trimmed)}-${occurrence}`,
         image: trimmed,
-        caption: ""
+        caption: "",
+        alt: ""
       }
     ];
     emit(next);
@@ -398,6 +437,7 @@ export function GalleryEditor({
                       roleDescription={role.description}
                       captionPlaceholder={captionPlaceholder(displayIndex)}
                       showCaption={showCaptions}
+                      showAlt={showAlts}
                       itemLabel={itemLabel}
                       canMoveUp={displayIndex > 0}
                       canMoveDown={displayIndex < items.length - 1}
@@ -408,6 +448,7 @@ export function GalleryEditor({
                         handleImageChange(item.id, value)
                       }
                       onCaptionChange={(v) => handleCaptionChange(item.id, v)}
+                      onAltChange={(v) => handleAltChange(item.id, v)}
                     />
                   );
                 })()

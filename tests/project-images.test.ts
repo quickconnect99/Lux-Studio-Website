@@ -3,8 +3,37 @@ import test from "node:test";
 import {
   buildFrameItems,
   buildProjectFrameItems,
+  normalizeProjectGallery,
   serializeFrameItem
 } from "../lib/project-images";
+
+test("normalizeProjectGallery pairs each image with its own caption and alt text", () => {
+  const gallery = normalizeProjectGallery({
+    coverImage: "/cover.jpg",
+    galleryImages: ["/cover.jpg", " /one.jpg ", "/one.jpg", "/two.jpg"],
+    galleryCaptions: ["cover", "first", "duplicate", "second"],
+    galleryAlts: ["cover alt", "first alt", "duplicate alt", ""]
+  });
+
+  assert.deepEqual(gallery.images, ["/one.jpg", "/two.jpg"]);
+  assert.deepEqual(gallery.captions, ["first", "second"]);
+  assert.deepEqual(gallery.alts, ["first alt", ""]);
+  assert.deepEqual(gallery.items, [
+    { image: "/one.jpg", caption: "first", alt: "first alt" },
+    { image: "/two.jpg", caption: "second", alt: undefined }
+  ]);
+});
+
+test("normalizeProjectGallery defaults alt text to empty when omitted", () => {
+  const gallery = normalizeProjectGallery({
+    coverImage: "",
+    galleryImages: ["/one.jpg"],
+    galleryCaptions: ["Caption"]
+  });
+
+  assert.deepEqual(gallery.alts, [""]);
+  assert.equal(gallery.items[0].alt, undefined);
+});
 
 test("preserves internal project links in serialized frame selections", () => {
   const entry = "/images/still.jpg | /work/project-one";
