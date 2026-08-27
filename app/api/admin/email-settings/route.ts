@@ -32,7 +32,10 @@ type EmailSettingsDependencies = {
     input: EmailSettingsInput
   ) => Promise<{ data: EmailSettingsRow | null; error: unknown }>;
   sendTest: (config: SmtpConfig) => Promise<void>;
-  markVerified: () => Promise<{ data: EmailSettingsRow | null; error: unknown }>;
+  markVerified: () => Promise<{
+    data: EmailSettingsRow | null;
+    error: unknown;
+  }>;
 };
 
 function createDefaultDependencies(): EmailSettingsDependencies | null {
@@ -107,7 +110,11 @@ async function requireAdmin(
   if (!accessToken) {
     return {
       ok: false as const,
-      response: jsonResponse({ message: "Missing admin session." }, 401, requestId)
+      response: jsonResponse(
+        { message: "Missing admin session." },
+        401,
+        requestId
+      )
     };
   }
 
@@ -208,8 +215,7 @@ async function resolveTestConfig(
   body: Record<string, unknown>,
   dependencies: EmailSettingsDependencies
 ): Promise<
-  | { config: SmtpConfig; matchesStoredConfig: boolean }
-  | { error: string }
+  { config: SmtpConfig; matchesStoredConfig: boolean } | { error: string }
 > {
   const { errors, input } = validateSettingsInput(body);
 
@@ -248,7 +254,11 @@ export function createEmailSettingsGetHandler(
     const resolvedDependencies = dependencies ?? createDefaultDependencies();
 
     if (!resolvedDependencies) {
-      return jsonResponse({ message: "Email settings are unavailable." }, 503, requestId);
+      return jsonResponse(
+        { message: "Email settings are unavailable." },
+        503,
+        requestId
+      );
     }
 
     const auth = await requireAdmin(request, resolvedDependencies, requestId);
@@ -271,7 +281,11 @@ export function createEmailSettingsPostHandler(
     const resolvedDependencies = dependencies ?? createDefaultDependencies();
 
     if (!resolvedDependencies) {
-      return jsonResponse({ message: "Email settings are unavailable." }, 503, requestId);
+      return jsonResponse(
+        { message: "Email settings are unavailable." },
+        503,
+        requestId
+      );
     }
 
     const auth = await requireAdmin(request, resolvedDependencies, requestId);
@@ -285,7 +299,11 @@ export function createEmailSettingsPostHandler(
     > | null;
 
     if (!body || typeof body !== "object") {
-      return jsonResponse({ message: "A JSON body is required." }, 400, requestId);
+      return jsonResponse(
+        { message: "A JSON body is required." },
+        400,
+        requestId
+      );
     }
 
     if (body.action === "test") {
@@ -343,7 +361,11 @@ export function createEmailSettingsPostHandler(
     const { errors, input } = validateSettingsInput(body);
 
     if (Object.keys(errors).length > 0) {
-      return jsonResponse({ message: "Please review the highlighted fields.", errors }, 400, requestId);
+      return jsonResponse(
+        { message: "Please review the highlighted fields.", errors },
+        400,
+        requestId
+      );
     }
 
     const { data, error } = await resolvedDependencies.saveSettings(input);

@@ -51,7 +51,8 @@ function createDefaultDependencies(): AdminUsersDependencies | null {
       return createCallerClient(accessToken).rpc("is_admin");
     },
     async getCallerId(accessToken) {
-      const { data, error } = await createCallerClient(accessToken).auth.getUser();
+      const { data, error } =
+        await createCallerClient(accessToken).auth.getUser();
       return error ? null : (data.user?.id ?? null);
     },
     async listAuthUsers() {
@@ -124,8 +125,19 @@ async function requireAdmin(
   requestId: string
 ) {
   if (!isAllowedRequestOrigin(request)) {
-    logServerEvent({ level: "warn", event: "admin_users.origin_rejected", requestId });
-    return { ok: false as const, response: jsonResponse({ message: "This origin is not allowed." }, 403, requestId) };
+    logServerEvent({
+      level: "warn",
+      event: "admin_users.origin_rejected",
+      requestId
+    });
+    return {
+      ok: false as const,
+      response: jsonResponse(
+        { message: "This origin is not allowed." },
+        403,
+        requestId
+      )
+    };
   }
 
   const accessToken = request.headers
@@ -134,13 +146,25 @@ async function requireAdmin(
     .trim();
 
   if (!accessToken) {
-    return { ok: false as const, response: jsonResponse({ message: "Missing admin session." }, 401, requestId) };
+    return {
+      ok: false as const,
+      response: jsonResponse(
+        { message: "Missing admin session." },
+        401,
+        requestId
+      )
+    };
   }
 
   const { data: isAdmin, error } = await dependencies.checkAdmin(accessToken);
 
   if (error || isAdmin !== true) {
-    logServerEvent({ level: "warn", event: "admin_users.forbidden", requestId, error });
+    logServerEvent({
+      level: "warn",
+      event: "admin_users.forbidden",
+      requestId,
+      error
+    });
     return {
       ok: false as const,
       response: jsonResponse(
@@ -167,7 +191,11 @@ export function createAdminUsersGetHandler(
     const resolvedDependencies = dependencies ?? createDefaultDependencies();
 
     if (!resolvedDependencies) {
-      return jsonResponse({ message: "User management is unavailable." }, 503, requestId);
+      return jsonResponse(
+        { message: "User management is unavailable." },
+        503,
+        requestId
+      );
     }
 
     const auth = await requireAdmin(request, resolvedDependencies, requestId);
@@ -187,7 +215,11 @@ export function createAdminUsersGetHandler(
         requestId,
         error: usersResult.error ?? adminIdsResult.error
       });
-      return jsonResponse({ message: "Could not load Supabase accounts." }, 500, requestId);
+      return jsonResponse(
+        { message: "Could not load Supabase accounts." },
+        500,
+        requestId
+      );
     }
 
     const adminIds = new Set(adminIdsResult.data);
@@ -211,7 +243,11 @@ export function createAdminUsersPostHandler(
     const resolvedDependencies = dependencies ?? createDefaultDependencies();
 
     if (!resolvedDependencies) {
-      return jsonResponse({ message: "User management is unavailable." }, 503, requestId);
+      return jsonResponse(
+        { message: "User management is unavailable." },
+        503,
+        requestId
+      );
     }
 
     const auth = await requireAdmin(request, resolvedDependencies, requestId);
@@ -223,14 +259,27 @@ export function createAdminUsersPostHandler(
     const userId = typeof body?.userId === "string" ? body.userId : null;
 
     if (!userId || !UUID_PATTERN.test(userId)) {
-      return jsonResponse({ message: "A valid userId is required." }, 400, requestId);
+      return jsonResponse(
+        { message: "A valid userId is required." },
+        400,
+        requestId
+      );
     }
 
     const { error } = await resolvedDependencies.addAdmin(userId);
 
     if (error) {
-      logServerEvent({ level: "error", event: "admin_users.grant_failed", requestId, error });
-      return jsonResponse({ message: "Could not grant admin access." }, 500, requestId);
+      logServerEvent({
+        level: "error",
+        event: "admin_users.grant_failed",
+        requestId,
+        error
+      });
+      return jsonResponse(
+        { message: "Could not grant admin access." },
+        500,
+        requestId
+      );
     }
 
     logServerEvent({ level: "info", event: "admin_users.granted", requestId });
@@ -247,7 +296,11 @@ export function createAdminUsersDeleteHandler(
     const resolvedDependencies = dependencies ?? createDefaultDependencies();
 
     if (!resolvedDependencies) {
-      return jsonResponse({ message: "User management is unavailable." }, 503, requestId);
+      return jsonResponse(
+        { message: "User management is unavailable." },
+        503,
+        requestId
+      );
     }
 
     const auth = await requireAdmin(request, resolvedDependencies, requestId);
@@ -259,7 +312,11 @@ export function createAdminUsersDeleteHandler(
     const userId = typeof body?.userId === "string" ? body.userId : null;
 
     if (!userId || !UUID_PATTERN.test(userId)) {
-      return jsonResponse({ message: "A valid userId is required." }, 400, requestId);
+      return jsonResponse(
+        { message: "A valid userId is required." },
+        400,
+        requestId
+      );
     }
 
     const callerId = await resolvedDependencies.getCallerId(auth.accessToken);
@@ -274,8 +331,17 @@ export function createAdminUsersDeleteHandler(
     const { error } = await resolvedDependencies.removeAdmin(userId);
 
     if (error) {
-      logServerEvent({ level: "error", event: "admin_users.revoke_failed", requestId, error });
-      return jsonResponse({ message: "Could not revoke admin access." }, 500, requestId);
+      logServerEvent({
+        level: "error",
+        event: "admin_users.revoke_failed",
+        requestId,
+        error
+      });
+      return jsonResponse(
+        { message: "Could not revoke admin access." },
+        500,
+        requestId
+      );
     }
 
     logServerEvent({ level: "info", event: "admin_users.revoked", requestId });

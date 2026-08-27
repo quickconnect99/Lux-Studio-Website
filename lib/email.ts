@@ -38,8 +38,7 @@ function mergeSmtpConfig(row: EmailSettingsRow | null): PartialSmtpConfig {
     user: smtpUser,
     password: row?.smtp_password || process.env.SMTP_PASSWORD || undefined,
     to: row?.inquiry_email_to || process.env.INQUIRY_EMAIL_TO || undefined,
-    from:
-      row?.inquiry_email_from || process.env.INQUIRY_EMAIL_FROM || smtpUser
+    from: row?.inquiry_email_from || process.env.INQUIRY_EMAIL_FROM || smtpUser
   };
 }
 

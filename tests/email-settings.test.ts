@@ -52,7 +52,10 @@ function createSaveClient(result: { data: unknown; error: unknown }) {
     client: {
       from() {
         return {
-          upsert(payload: Record<string, unknown>, options: Record<string, unknown>) {
+          upsert(
+            payload: Record<string, unknown>,
+            options: Record<string, unknown>
+          ) {
             capturedPayload = payload;
             capturedOptions = options;
             return {
@@ -217,9 +220,10 @@ test("saveEmailSettings always clears verified_at, even when nothing else change
 });
 
 test("markEmailSettingsVerified sets verified_at on the global row", async () => {
-  const { client, getCapturedPayload, getCapturedFilter } = createUpdateClient(
-    { data: row, error: null }
-  );
+  const { client, getCapturedPayload, getCapturedFilter } = createUpdateClient({
+    data: row,
+    error: null
+  });
 
   await markEmailSettingsVerified(client as never);
 

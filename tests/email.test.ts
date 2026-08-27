@@ -53,7 +53,9 @@ function createFakeTransport(sendMail: (mail: unknown) => Promise<unknown>) {
 
 const noStoredSettings = async () => null;
 
-function storedRow(overrides: Partial<EmailSettingsRow> = {}): EmailSettingsRow {
+function storedRow(
+  overrides: Partial<EmailSettingsRow> = {}
+): EmailSettingsRow {
   return {
     smtp_host: "db.example.com",
     smtp_port: 465,
@@ -78,10 +80,7 @@ test("skips inquiry email when nothing is configured in the database or env", as
     await sendInquiryEmail(inquiry, { fetchStoredSettings: noStoredSettings }),
     { skipped: true }
   );
-  assert.equal(
-    await isInquiryEmailConfigured(noStoredSettings),
-    false
-  );
+  assert.equal(await isInquiryEmailConfigured(noStoredSettings), false);
 });
 
 test("sends escaped HTML and a plain-text copy through SMTP using env config", async () => {

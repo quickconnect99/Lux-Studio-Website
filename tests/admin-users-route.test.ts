@@ -74,7 +74,9 @@ test("requires an admin bearer session", async () => {
 
 test("rejects a non-admin session", async () => {
   const handler = createAdminUsersGetHandler(
-    createDependencies({ checkAdmin: async () => ({ data: false, error: null }) })
+    createDependencies({
+      checkAdmin: async () => ({ data: false, error: null })
+    })
   );
   const response = await handler(
     createRequest("GET", { headers: { authorization: "Bearer user-token" } })

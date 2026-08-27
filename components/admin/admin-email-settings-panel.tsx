@@ -141,9 +141,7 @@ export function AdminEmailSettingsPanel() {
                 <input
                   type="checkbox"
                   checked={formState.smtpSecure}
-                  onChange={(e) =>
-                    updateField("smtpSecure", e.target.checked)
-                  }
+                  onChange={(e) => updateField("smtpSecure", e.target.checked)}
                   className="h-4 w-4"
                 />
                 Use implicit TLS (usually port 465)
@@ -164,9 +162,7 @@ export function AdminEmailSettingsPanel() {
                 <input
                   type="password"
                   value={formState.smtpPassword}
-                  onChange={(e) =>
-                    updateField("smtpPassword", e.target.value)
-                  }
+                  onChange={(e) => updateField("smtpPassword", e.target.value)}
                   placeholder={
                     hasStoredPassword
                       ? "Leave blank to keep the current password"

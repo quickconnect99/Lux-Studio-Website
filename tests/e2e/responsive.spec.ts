@@ -388,7 +388,9 @@ test("hero reel follows visibility and preserves a manual pause", async ({
   await expect(video).toBeVisible();
   await expect(video).toHaveJSProperty("muted", true);
   await expect
-    .poll(() => video.evaluate((element) => (element as HTMLVideoElement).paused))
+    .poll(() =>
+      video.evaluate((element) => (element as HTMLVideoElement).paused)
+    )
     .toBe(false);
 
   await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
@@ -396,7 +398,9 @@ test("hero reel follows visibility and preserves a manual pause", async ({
 
   await video.scrollIntoViewIfNeeded();
   await expect
-    .poll(() => video.evaluate((element) => (element as HTMLVideoElement).paused))
+    .poll(() =>
+      video.evaluate((element) => (element as HTMLVideoElement).paused)
+    )
     .toBe(false);
 
   await page.getByRole("button", { name: "Turn hero reel sound on" }).click();

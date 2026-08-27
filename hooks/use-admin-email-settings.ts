@@ -56,9 +56,8 @@ async function getAccessToken() {
  * place holding the service-role key and the stored SMTP password.
  */
 export function useAdminEmailSettings() {
-  const [formState, setFormState] = useState<EmailSettingsFormState>(
-    emptyFormState
-  );
+  const [formState, setFormState] =
+    useState<EmailSettingsFormState>(emptyFormState);
   const [hasStoredPassword, setHasStoredPassword] = useState(false);
   const [isVerified, setIsVerified] = useState(false);
   const [verifiedAt, setVerifiedAt] = useState<string | null>(null);
@@ -159,7 +158,9 @@ export function useAdminEmailSettings() {
         setVerifiedAt(settings.verifiedAt);
         setUpdatedAt(settings.updatedAt);
       }
-      setStatusMessage("Email settings saved. Send a test email to confirm they work.");
+      setStatusMessage(
+        "Email settings saved. Send a test email to confirm they work."
+      );
       return true;
     } catch {
       setError("The email settings could not be saved.");

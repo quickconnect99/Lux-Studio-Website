@@ -213,12 +213,12 @@ export default async function PrivacyPage() {
             {emailNotificationsConfigured ? (
               <p>
                 We use our configured email provider to deliver an internal
-                email notification about a new inquiry. For that delivery,
-                the same form fields are transmitted through that provider
-                and then delivered to our configured business mailbox. The
-                mailbox copy is subject to the same purpose limitation and
-                must be deleted when it is no longer needed, unless a legal
-                obligation requires longer retention.
+                email notification about a new inquiry. For that delivery, the
+                same form fields are transmitted through that provider and then
+                delivered to our configured business mailbox. The mailbox copy
+                is subject to the same purpose limitation and must be deleted
+                when it is no longer needed, unless a legal obligation requires
+                longer retention.
               </p>
             ) : null}
             <p>

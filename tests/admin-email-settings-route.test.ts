@@ -75,14 +75,18 @@ test("rejects a non-admin session", async () => {
       checkAdmin: async () => ({ data: false, error: null })
     })
   );
-  const response = await handler(createRequest("GET", { headers: authHeaders }));
+  const response = await handler(
+    createRequest("GET", { headers: authHeaders })
+  );
 
   assert.equal(response.status, 403);
 });
 
 test("returns redacted settings without the stored password", async () => {
   const handler = createEmailSettingsGetHandler(createDependencies());
-  const response = await handler(createRequest("GET", { headers: authHeaders }));
+  const response = await handler(
+    createRequest("GET", { headers: authHeaders })
+  );
 
   assert.equal(response.status, 200);
   const body = await response.json();

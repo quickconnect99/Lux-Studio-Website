@@ -113,10 +113,7 @@ export async function saveEmailSettings(
 
   return supabase
     .from("email_settings")
-    .upsert(
-      { id: EMAIL_SETTINGS_ID, ...changes },
-      { onConflict: "id" }
-    )
+    .upsert({ id: EMAIL_SETTINGS_ID, ...changes }, { onConflict: "id" })
     .select(EMAIL_SETTINGS_COLUMNS)
     .single();
 }
