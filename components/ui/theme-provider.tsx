@@ -7,7 +7,6 @@ import {
   useSyncExternalStore,
   type ReactNode
 } from "react";
-import { domAnimation, LazyMotion, MotionConfig } from "framer-motion";
 import {
   type ThemeId,
   DEFAULT_THEME,
@@ -66,9 +65,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
 
   return (
     <ThemeContext.Provider value={{ theme, mounted, setTheme }}>
-      <LazyMotion features={domAnimation} strict>
-        <MotionConfig reducedMotion="user">{children}</MotionConfig>
-      </LazyMotion>
+      {children}
     </ThemeContext.Provider>
   );
 }

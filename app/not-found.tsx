@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { SiteFooter } from "@/components/layout/site-footer";
 import { SiteHeader } from "@/components/layout/site-header";
 import { NotFoundContent } from "@/components/sections/not-found-content";
+import { MotionProvider } from "@/components/ui/motion-provider";
 import { getSiteSettings } from "@/lib/supabase";
 
 export const metadata: Metadata = {
@@ -13,18 +14,20 @@ export default async function NotFound() {
   const settings = await getSiteSettings();
 
   return (
-    <div className="texture-grid min-h-screen">
-      <a
-        href="#main-content"
-        className="fixed left-4 top-4 z-[100] -translate-y-24 rounded-full bg-foreground px-5 py-3 text-xs font-medium uppercase tracking-ui text-background shadow-card transition-transform focus-visible:translate-y-0"
-      >
-        Skip to content
-      </a>
-      <SiteHeader settings={settings} />
-      <main id="main-content" tabIndex={-1}>
-        <NotFoundContent />
-      </main>
-      <SiteFooter settings={settings} />
-    </div>
+    <MotionProvider>
+      <div className="texture-grid min-h-screen">
+        <a
+          href="#main-content"
+          className="fixed left-4 top-4 z-[100] -translate-y-24 rounded-full bg-foreground px-5 py-3 text-xs font-medium uppercase tracking-ui text-background shadow-card transition-transform focus-visible:translate-y-0"
+        >
+          Skip to content
+        </a>
+        <SiteHeader settings={settings} />
+        <main id="main-content" tabIndex={-1}>
+          <NotFoundContent />
+        </main>
+        <SiteFooter settings={settings} />
+      </div>
+    </MotionProvider>
   );
 }

@@ -16,12 +16,14 @@ const Lightbox = dynamic(
 type ProjectImageCarouselProps = {
   images: string[];
   captions?: string[];
+  alts?: Array<string | undefined>;
   title: string;
 };
 
 export function ProjectImageCarousel({
   images,
   captions = [],
+  alts = [],
   title
 }: ProjectImageCarouselProps) {
   const [activeIndex, setActiveIndex] = useState(0);
@@ -32,11 +34,16 @@ export function ProjectImageCarousel({
 
   const activeImage = images[activeIndex];
   const activeCaption = captions[activeIndex]?.trim();
-  const imageAlts = images.map((_, index) =>
-    captions[index]?.trim()
+  // An independently maintained alt text wins; otherwise fall back to a
+  // caption-derived description so images never ship with empty alt text.
+  const imageAlts = images.map((_, index) => {
+    const explicitAlt = alts[index]?.trim();
+    if (explicitAlt) return explicitAlt;
+
+    return captions[index]?.trim()
       ? `${title}: ${captions[index].trim()}`
-      : `${title} project still ${index + 1}`
-  );
+      : `${title} project still ${index + 1}`;
+  });
 
   function prev() {
     setActiveIndex((current) => (current - 1 + images.length) % images.length);

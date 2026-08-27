@@ -6,6 +6,7 @@ import { useEffect, useRef, useState } from "react";
 import { EmbeddedVideoConsent } from "@/components/legal/embedded-video-consent";
 import { LinkButton } from "@/components/ui/link-button";
 import { motionDuration, motionEase } from "@/lib/motion";
+import { useMotionPreference } from "@/components/ui/motion-preference-provider";
 import { SplitHeadline } from "@/components/ui/split-headline";
 import type { SiteSettings } from "@/lib/types";
 import { resolveVideoSource } from "@/lib/video";
@@ -17,6 +18,9 @@ type HomeHeroProps = {
 
 export function HomeHero({ hero, copy }: HomeHeroProps) {
   const shouldReduceMotion = useReducedMotion();
+  const { enabled: motionEnabled, mounted: motionMounted } =
+    useMotionPreference();
+  const cinematicReveal = motionEnabled && motionMounted;
   const videoRef = useRef<HTMLVideoElement>(null);
   const isVideoVisibleRef = useRef(false);
   const manuallyPausedRef = useRef(false);
@@ -196,8 +200,16 @@ export function HomeHero({ hero, copy }: HomeHeroProps) {
         </m.div>
 
         <m.div
-          initial={{ opacity: 1, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
+          initial={
+            cinematicReveal
+              ? { opacity: 1, y: 20, clipPath: "inset(10% 10% 10% 10%)" }
+              : { opacity: 1, y: 20 }
+          }
+          animate={
+            cinematicReveal
+              ? { opacity: 1, y: 0, clipPath: "inset(0% 0% 0% 0%)" }
+              : { opacity: 1, y: 0 }
+          }
           transition={{
             duration: motionDuration.hero,
             delay: 0.08,

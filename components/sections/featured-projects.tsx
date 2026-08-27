@@ -1,4 +1,4 @@
-import { ResilientImage as Image } from "@/components/ui/resilient-image";
+import { AdaptiveImage as Image } from "@/components/ui/adaptive-image";
 import { LinkButton } from "@/components/ui/link-button";
 import { Reveal } from "@/components/ui/reveal";
 import { cn } from "@/lib/utils";

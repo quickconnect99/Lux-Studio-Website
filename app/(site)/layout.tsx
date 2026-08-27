@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Script from "next/script";
 import { SiteFooter } from "@/components/layout/site-footer";
 import { SiteHeader } from "@/components/layout/site-header";
+import { MotionProvider } from "@/components/ui/motion-provider";
 import { serializeJsonLd } from "@/lib/json-ld";
 import {
   buildSharingMetadata,
@@ -49,23 +50,25 @@ export default async function PublicSiteLayout({
   const organizationSchema = buildOrganizationSchema(settings);
 
   return (
-    <div className="texture-grid min-h-screen">
-      <Script
-        id="schema-org-organization"
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{
-          __html: serializeJsonLd(organizationSchema)
-        }}
-      />
-      <a
-        href="#main-content"
-        className="fixed left-4 top-4 z-[100] -translate-y-24 rounded-full bg-foreground px-5 py-3 text-xs font-medium uppercase tracking-ui text-background shadow-card transition-transform focus-visible:translate-y-0"
-      >
-        Skip to content
-      </a>
-      <SiteHeader settings={settings} />
-      {children}
-      <SiteFooter settings={settings} />
-    </div>
+    <MotionProvider>
+      <div className="texture-grid min-h-screen">
+        <Script
+          id="schema-org-organization"
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: serializeJsonLd(organizationSchema)
+          }}
+        />
+        <a
+          href="#main-content"
+          className="fixed left-4 top-4 z-[100] -translate-y-24 rounded-full bg-foreground px-5 py-3 text-xs font-medium uppercase tracking-ui text-background shadow-card transition-transform focus-visible:translate-y-0"
+        >
+          Skip to content
+        </a>
+        <SiteHeader settings={settings} />
+        {children}
+        <SiteFooter settings={settings} />
+      </div>
+    </MotionProvider>
   );
 }

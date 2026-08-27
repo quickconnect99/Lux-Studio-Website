@@ -1,4 +1,4 @@
-import { ResilientImage as Image } from "@/components/ui/resilient-image";
+import { AdaptiveImage as Image } from "@/components/ui/adaptive-image";
 import type { TeamMember } from "@/lib/types";
 import { cn } from "@/lib/utils";
 

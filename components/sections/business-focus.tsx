@@ -1,4 +1,4 @@
-import { ResilientImage as Image } from "@/components/ui/resilient-image";
+import { AdaptiveImage as Image } from "@/components/ui/adaptive-image";
 import Link from "next/link";
 import { ArrowUpRight } from "lucide-react";
 import { Reveal } from "@/components/ui/reveal";

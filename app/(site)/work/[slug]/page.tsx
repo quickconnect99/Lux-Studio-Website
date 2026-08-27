@@ -7,7 +7,6 @@ import { ProjectMedia } from "@/components/sections/project-media";
 import { ProjectImageCarousel } from "@/components/sections/project-image-carousel";
 import { LinkButton } from "@/components/ui/link-button";
 import { Reveal } from "@/components/ui/reveal";
-import { normalizeProjectGallery } from "@/lib/project-images";
 import { serializeJsonLd } from "@/lib/json-ld";
 import {
   getProjectPrimaryMetaLabel,
@@ -111,13 +110,18 @@ export default async function ProjectPage({
           (Math.max(currentIndex, 0) + 1) % navigableProjects.length
         ]
       : null;
-  const normalizedGallery = normalizeProjectGallery({
-    coverImage: project.coverImage,
-    galleryImages: project.galleryImages,
-    galleryCaptions: project.galleryCaptions ?? []
-  });
-  const carouselImages = [project.coverImage, ...normalizedGallery.images];
-  const carouselCaptions = ["", ...normalizedGallery.captions];
+  // `project.galleryItems` is already deduplicated and index-aligned by
+  // `normalizeProjectRecord`, including any independently maintained alt text.
+  const galleryItems = project.galleryItems ?? [];
+  const carouselImages = [
+    project.coverImage,
+    ...galleryItems.map((item) => item.image)
+  ];
+  const carouselCaptions = ["", ...galleryItems.map((item) => item.caption)];
+  const carouselAlts: Array<string | undefined> = [
+    undefined,
+    ...galleryItems.map((item) => item.alt)
+  ];
   const [titleLead, ...titleTrailParts] = project.title.trim().split(/\s+/);
   const titleTrail = titleTrailParts.join(" ");
 
@@ -212,6 +216,7 @@ export default async function ProjectPage({
         <ProjectImageCarousel
           images={carouselImages}
           captions={carouselCaptions}
+          alts={carouselAlts}
           title={project.title}
         />
       </section>

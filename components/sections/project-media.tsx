@@ -1,4 +1,4 @@
-import { ResilientImage as Image } from "@/components/ui/resilient-image";
+import { AdaptiveImage as Image } from "@/components/ui/adaptive-image";
 import { EmbeddedVideoConsent } from "@/components/legal/embedded-video-consent";
 import type { Project } from "@/lib/types";
 import { getProjectVideoSource } from "@/lib/video";
