@@ -175,7 +175,14 @@ export function ProjectImageCarousel({
                 <button
                   key={`${image}-${index}`}
                   type="button"
-                  onClick={() => setActiveIndex(index)}
+                  onClick={() => {
+                    if (activeIndex === index) {
+                      showFullscreenImage(index);
+                      return;
+                    }
+
+                    setActiveIndex(index);
+                  }}
                   aria-label={`Show image ${index + 1}`}
                   aria-current={activeIndex === index ? "true" : undefined}
                   className={cn(

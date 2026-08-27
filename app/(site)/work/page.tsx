@@ -10,6 +10,7 @@ import {
 } from "@/lib/sharing-metadata";
 import { buildPageStructuredData } from "@/lib/site-structured-data";
 import { getPublishedProjects, getSiteSettings } from "@/lib/supabase";
+import { parseSearchParam } from "@/lib/utils";
 
 const pageTitle = "Work";
 const pageDescription =
@@ -39,7 +40,10 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 type WorkPageProps = {
-  searchParams?: Promise<{ business?: string | string[] }>;
+  searchParams?: Promise<{
+    business?: string | string[];
+    category?: string | string[];
+  }>;
 };
 
 export default async function WorkPage({ searchParams }: WorkPageProps) {
@@ -59,6 +63,20 @@ export default async function WorkPage({ searchParams }: WorkPageProps) {
     : null;
   const initialBusiness =
     requestedBusiness && matchingBusiness ? matchingBusiness : null;
+
+  const requestedCategory = parseSearchParam(resolvedSearchParams.category);
+  const businessScopedProjects = initialBusiness
+    ? projects.filter((project) => project.business === initialBusiness)
+    : projects;
+  const matchingCategory = requestedCategory
+    ? businessScopedProjects.find(
+        (project) =>
+          project.category.toLowerCase() === requestedCategory.toLowerCase()
+      )?.category
+    : null;
+  const initialCategory =
+    requestedCategory && matchingCategory ? matchingCategory : null;
+
   const copy = initialBusiness
     ? `Selected ${initialBusiness.toLowerCase()} work.`
     : settings.copy.work.copy;
@@ -84,9 +102,10 @@ export default async function WorkPage({ searchParams }: WorkPageProps) {
         copy={copy}
       />
       <ProjectGrid
-        key={initialBusiness ?? "All"}
+        key={`${initialBusiness ?? "All"}-${initialCategory ?? "All"}`}
         projects={projects}
         initialBusiness={initialBusiness}
+        initialCategory={initialCategory}
       />
     </>
   );

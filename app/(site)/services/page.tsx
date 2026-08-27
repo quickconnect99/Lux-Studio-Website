@@ -115,7 +115,9 @@ export default async function ServicesPage() {
                         Start A Brief
                       </LinkButton>
                       <LinkButton
-                        href="/work"
+                        href={`/work?category=${encodeURIComponent(
+                          getInquiryServiceType(service)
+                        )}`}
                         variant="secondary"
                         className="w-full sm:w-auto"
                       >

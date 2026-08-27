@@ -23,11 +23,13 @@ function normalizeFilterValue(value: string) {
 type ProjectGridProps = {
   projects: Project[];
   initialBusiness?: ProjectBusiness | null;
+  initialCategory?: string | null;
 };
 
 export function ProjectGrid({
   projects,
-  initialBusiness = null
+  initialBusiness = null,
+  initialCategory = null
 }: ProjectGridProps) {
   const router = useRouter();
   const pathname = usePathname();
@@ -52,18 +54,46 @@ export function ProjectGrid({
       ) ?? null
     );
   }, [availableBusinesses, initialBusiness]);
+  const resolvedInitialCategory = useMemo(() => {
+    if (!initialCategory) {
+      return null;
+    }
+
+    const scopedProjects = resolvedInitialBusiness
+      ? projects.filter(
+          (project) => project.business === resolvedInitialBusiness
+        )
+      : projects;
+
+    return (
+      scopedProjects.find(
+        (project) =>
+          normalizeFilterValue(project.category) ===
+          normalizeFilterValue(initialCategory)
+      )?.category ?? null
+    );
+  }, [projects, resolvedInitialBusiness, initialCategory]);
   const [activeBusiness, setActiveBusiness] = useState<
     ProjectBusiness | typeof ALL
   >(resolvedInitialBusiness ?? ALL);
-  const [activeCategory, setActiveCategory] = useState(ALL);
+  const [activeCategory, setActiveCategory] = useState(
+    resolvedInitialCategory ?? ALL
+  );
   const [previousInitialBusiness, setPreviousInitialBusiness] = useState(
     resolvedInitialBusiness
   );
+  const [previousInitialCategory, setPreviousInitialCategory] = useState(
+    resolvedInitialCategory
+  );
 
-  if (previousInitialBusiness !== resolvedInitialBusiness) {
+  if (
+    previousInitialBusiness !== resolvedInitialBusiness ||
+    previousInitialCategory !== resolvedInitialCategory
+  ) {
     setPreviousInitialBusiness(resolvedInitialBusiness);
+    setPreviousInitialCategory(resolvedInitialCategory);
     setActiveBusiness(resolvedInitialBusiness ?? ALL);
-    setActiveCategory(ALL);
+    setActiveCategory(resolvedInitialCategory ?? ALL);
   }
 
   const businessFilteredProjects = useMemo(
@@ -101,13 +131,17 @@ export function ProjectGrid({
       ? ""
       : `?business=${projectBusinessToParam(activeBusiness)}`;
 
-  function syncBusinessParam(business: ProjectBusiness | typeof ALL) {
+  function syncParams(
+    updates: Partial<Record<"business" | "category", string | typeof ALL>>
+  ) {
     const params = new URLSearchParams(searchParams.toString());
 
-    if (business === ALL) {
-      params.delete("business");
-    } else {
-      params.set("business", projectBusinessToParam(business));
+    for (const [key, value] of Object.entries(updates)) {
+      if (value === ALL) {
+        params.delete(key);
+      } else {
+        params.set(key, projectBusinessToParam(value));
+      }
     }
 
     const nextUrl = params.toString()
@@ -122,11 +156,12 @@ export function ProjectGrid({
   function selectBusiness(business: ProjectBusiness | typeof ALL) {
     setActiveBusiness(business);
     setActiveCategory(ALL);
-    syncBusinessParam(business);
+    syncParams({ business, category: ALL });
   }
 
   function selectCategory(category: string) {
     setActiveCategory(category);
+    syncParams({ category });
   }
 
   return (

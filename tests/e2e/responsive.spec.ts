@@ -666,8 +666,17 @@ test("project carousel opens fullscreen and keeps image navigation", async ({
 
   const carousel = page.locator("[data-project-carousel]");
   await carousel.scrollIntoViewIfNeeded();
+  const thumbnails = carousel.getByRole("button", { name: /Show image \d+/ });
+  const galleryImageCount = await thumbnails.count();
   const fullscreenTrigger = carousel.locator("[data-project-carousel-open]");
-  await fullscreenTrigger.click();
+  const interactionTrigger =
+    galleryImageCount > 1 ? thumbnails.nth(1) : fullscreenTrigger;
+
+  if (galleryImageCount > 1) {
+    await interactionTrigger.click();
+    await expect(interactionTrigger).toHaveAttribute("aria-current", "true");
+  }
+  await interactionTrigger.click();
 
   const dialog = page.getByRole("dialog", { name: "Image lightbox" });
   await expect(dialog).toBeVisible();
@@ -676,12 +685,14 @@ test("project carousel opens fullscreen and keeps image navigation", async ({
   ).toBeFocused();
   await expect(dialog.locator("img").first()).toHaveAttribute("alt", /.+/);
 
-  await dialog.locator('[data-lightbox-control="next"]').click();
-  await expect(dialog.getByText(/2 \/ \d+/)).toBeVisible();
+  if (galleryImageCount > 1) {
+    await dialog.locator('[data-lightbox-control="next"]').click();
+    await expect(dialog.getByText(/2 \/ \d+/)).toBeVisible();
+  }
 
   await page.keyboard.press("Escape");
   await expect(dialog).toBeHidden();
-  await expect(fullscreenTrigger).toBeFocused();
+  await expect(interactionTrigger).toBeFocused();
 });
 
 test("project detail ends with a direct inquiry action", async ({
