@@ -228,9 +228,9 @@ content remains visible and stable during hydration.
 
 | Variant   | Offset | Duration | Typical use                |
 | --------- | ------ | -------- | -------------------------- |
-| `subtle`  | 18px   | `0.38s`  | Dense lists and grids      |
-| `default` | 30px   | `0.48s`  | Standard sections          |
-| `bold`    | 44px   | `0.55s`  | Featured editorial content |
+| `subtle`  | 26px   | `0.6s`   | Dense lists and grids      |
+| `default` | 46px   | `0.75s`  | Standard sections          |
+| `bold`    | 64px   | `0.9s`   | Featured editorial content |
 
 Horizontal offsets are capped at 16px to avoid widening narrow viewports.
 After the entrance completes, `Reveal` adds `.group-reveal` for sequenced child

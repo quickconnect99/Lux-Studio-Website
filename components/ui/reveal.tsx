@@ -3,15 +3,19 @@
 import { m } from "framer-motion";
 import { useState } from "react";
 import { useHydratedReducedMotion } from "@/hooks/use-hydrated-reduced-motion";
-import { motionDuration, motionEase } from "@/lib/motion";
+import { motionEase } from "@/lib/motion";
 import { cn } from "@/lib/utils";
 
 /**
  * Reveal variant controls offset distance and animation duration.
  *
- * subtle  – 18 px, 0.38 s → dense lists, grids
- * default – 30 px, 0.48 s → most sections
- * bold    – 44 px, 0.55 s → hero / featured elements
+ * subtle  – 26 px, 0.6 s  → dense lists, grids
+ * default – 46 px, 0.75 s → most sections
+ * bold    – 64 px, 0.9 s  → hero / featured elements
+ *
+ * Offsets and durations are deliberately generous: opacity stays at 1 (see
+ * below), so the translate distance/time is the only thing that makes the
+ * entrance readable rather than a barely-there twitch.
  *
  * Once the entrance animation completes, the wrapper gains the class
  * `group-reveal` so child CSS (e.g. `.split-trail-underline::after`)
@@ -31,9 +35,9 @@ const variantConfig: Record<
   RevealVariant,
   { offset: number; duration: number }
 > = {
-  subtle: { offset: 18, duration: motionDuration.content },
-  default: { offset: 30, duration: 0.48 },
-  bold: { offset: 44, duration: 0.55 }
+  subtle: { offset: 26, duration: 0.6 },
+  default: { offset: 46, duration: 0.75 },
+  bold: { offset: 64, duration: 0.9 }
 };
 
 function buildOffset(direction: "up" | "left" | "right", offset: number) {

@@ -596,7 +596,7 @@ test("selected-frame navigation uses full-height 15-percent overlays", async ({
   await expect(imageLayers).toHaveCount(1, { timeout: 2_000 });
 });
 
-test("lightbox uses a large frame and full-height rectangular navigation", async ({
+test("lightbox keeps navigation outside a large image stage", async ({
   page
 }, testInfo) => {
   test.skip(testInfo.project.name !== "desktop-1440");
@@ -609,45 +609,53 @@ test("lightbox uses a large frame and full-height rectangular navigation", async
   await page.locator('[data-selected-frame-control="open"]').click();
 
   const dialog = page.getByRole("dialog", { name: "Image lightbox" });
+  const lightboxShell = dialog.locator("[data-lightbox-shell]");
   const lightboxFrame = dialog.locator("[data-lightbox-frame]");
   const previous = dialog.locator('[data-lightbox-control="previous"]');
   const next = dialog.locator('[data-lightbox-control="next"]');
 
   await expect(dialog).toBeVisible();
+  await expect(lightboxShell).toBeVisible();
   await expect(lightboxFrame).toBeVisible();
   await expect(previous).toBeVisible();
   await expect(next).toBeVisible();
 
-  const dimensions = await lightboxFrame.evaluate((element) => {
-    const frameRect = element.getBoundingClientRect();
-    const previousRect = element
+  const dimensions = await lightboxShell.evaluate((shell) => {
+    const shellRect = shell.getBoundingClientRect();
+    const frameRect = shell
+      .querySelector<HTMLElement>("[data-lightbox-frame]")
+      ?.getBoundingClientRect();
+    const previousRect = shell
       .querySelector<HTMLElement>('[data-lightbox-control="previous"]')
       ?.getBoundingClientRect();
-    const nextRect = element
+    const nextRect = shell
       .querySelector<HTMLElement>('[data-lightbox-control="next"]')
       ?.getBoundingClientRect();
 
     return {
-      frameWidth: frameRect.width,
-      frameHeight: frameRect.height,
+      frameWidth: frameRect?.width ?? 0,
+      frameHeight: frameRect?.height ?? 0,
+      shellWidth: shellRect.width,
       previousWidth: previousRect?.width ?? 0,
       previousHeight: previousRect?.height ?? 0,
       nextWidth: nextRect?.width ?? 0,
       nextHeight: nextRect?.height ?? 0,
+      previousEndsBeforeFrame:
+        (previousRect?.right ?? Infinity) <= (frameRect?.left ?? -Infinity),
+      nextStartsAfterFrame:
+        (nextRect?.left ?? -Infinity) >= (frameRect?.right ?? Infinity),
       viewportWidth: window.innerWidth
     };
   });
 
-  expect(dimensions.frameWidth / dimensions.viewportWidth).toBeGreaterThan(0.9);
+  expect(dimensions.shellWidth / dimensions.viewportWidth).toBeGreaterThan(0.9);
   expect(dimensions.frameWidth).toBeGreaterThan(
     (selectedFrameBounds?.width ?? 0) * 1.5
   );
-  expect(dimensions.previousHeight).toBeCloseTo(dimensions.frameHeight, 0);
-  expect(dimensions.nextHeight).toBeCloseTo(dimensions.frameHeight, 0);
-  expect(dimensions.previousHeight).toBeGreaterThan(
-    dimensions.previousWidth * 3
-  );
-  expect(dimensions.nextHeight).toBeGreaterThan(dimensions.nextWidth * 3);
+  expect(dimensions.previousEndsBeforeFrame).toBe(true);
+  expect(dimensions.nextStartsAfterFrame).toBe(true);
+  expect(dimensions.previousHeight).toBeLessThan(dimensions.frameHeight / 2);
+  expect(dimensions.nextHeight).toBeLessThan(dimensions.frameHeight / 2);
 });
 
 test("project carousel opens fullscreen and keeps image navigation", async ({
