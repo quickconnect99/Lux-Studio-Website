@@ -107,8 +107,7 @@ export function ProjectEditorBasicsPanel({
                 Slug is available.
               </p>
             ) : null}
-            {slugValidation.status === "conflict" &&
-            slugValidation.message ? (
+            {slugValidation.status === "conflict" && slugValidation.message ? (
               <div className="space-y-2">
                 <FieldError
                   id="project-slug-error"

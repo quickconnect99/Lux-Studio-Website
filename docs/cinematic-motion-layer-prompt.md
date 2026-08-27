@@ -155,7 +155,7 @@ Accessibility ist zwingend zu berücksichtigen.
 Wenn der Browser meldet:
 
 ```css
-prefers-reduced-motion: reduce
+prefers-reduced-motion: reduce;
 ```
 
 dann sollen komplexe Animationen standardmäßig deaktiviert oder stark reduziert werden.

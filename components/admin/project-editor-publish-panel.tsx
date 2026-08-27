@@ -67,9 +67,7 @@ export function ProjectEditorPublishPanel({
             />
             <button
               type="button"
-              onClick={() =>
-                updateField("createdAt", new Date().toISOString())
-              }
+              onClick={() => updateField("createdAt", new Date().toISOString())}
               className="control-pill text-xs"
             >
               Today

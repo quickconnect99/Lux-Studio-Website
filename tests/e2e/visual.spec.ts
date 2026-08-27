@@ -1,5 +1,9 @@
 import { expect, test, type Page } from "@playwright/test";
-import { VINTAGE_DARK_THEME, VINTAGE_LIGHT_THEME, type ThemeId } from "../../lib/themes";
+import {
+  VINTAGE_DARK_THEME,
+  VINTAGE_LIGHT_THEME,
+  type ThemeId
+} from "../../lib/themes";
 
 const homeViewportProjects = [
   "mobile-390",
