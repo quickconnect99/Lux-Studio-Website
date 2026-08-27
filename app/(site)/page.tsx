@@ -89,7 +89,7 @@ export default async function HomePage() {
             </div>
             <div className="flex flex-col justify-end gap-6">
               <div className="grid gap-3 sm:flex sm:flex-wrap sm:gap-4">
-                <LinkButton href="/contact" className="w-full sm:w-auto">
+                <LinkButton href="/work" className="w-full sm:w-auto">
                   {settings.copy.home.ctaButton}
                 </LinkButton>
                 {isPublicAdminEnabled ? (

@@ -11,7 +11,6 @@ import type { SiteSettings } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { getVisibleNavigation } from "@/lib/site-config";
 import { motionDuration, motionEase } from "@/lib/motion";
-import { MotionToggle } from "@/components/ui/motion-toggle";
 import { ThemeSwitcher } from "@/components/ui/theme-switcher";
 
 type SiteHeaderProps = {
@@ -102,7 +101,6 @@ export function SiteHeader({ settings }: SiteHeaderProps) {
           </nav>
 
           <div className="flex items-center gap-2">
-            <MotionToggle />
             <ThemeSwitcher />
             {/* Mobile menu toggle */}
             <button
