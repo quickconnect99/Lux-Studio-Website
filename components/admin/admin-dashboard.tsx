@@ -1,6 +1,5 @@
 "use client";
 
-import { useDeferredValue, useState } from "react";
 import dynamic from "next/dynamic";
 import {
   AlertTriangle,
@@ -23,17 +22,12 @@ import {
 } from "lucide-react";
 import { AdminThemeChip } from "@/components/admin/admin-theme-chip";
 import { AdminErrorBoundary } from "@/components/admin/admin-error-boundary";
-import { ResilientImage } from "@/components/ui/resilient-image";
+import { AdaptiveImage } from "@/components/ui/adaptive-image";
 import { isSupabaseConfigured, SUPABASE_BUCKET } from "@/lib/supabase";
 import { useAdminData } from "@/hooks/use-admin-data";
+import { useAdminWorkspaceView } from "@/hooks/use-admin-workspace-view";
 import { AdminConfirmModal } from "@/components/admin/admin-confirm-modal";
 import { ProjectSidebar } from "@/components/admin/project-sidebar";
-import type {
-  PreviewEditableField,
-  PreviewToggleField
-} from "@/components/admin/live-preview";
-import { slugify } from "@/lib/admin-utils";
-import type { AdminProjectFieldKey } from "@/lib/admin-types";
 
 function AdminModuleLoading({ label }: { label: string }) {
   return (
@@ -114,13 +108,6 @@ const AdminEmailSettingsPanel = dynamic(
  */
 export function AdminDashboard() {
   const data = useAdminData();
-  const [activeField, setActiveField] = useState<AdminProjectFieldKey | null>(
-    null
-  );
-  const [isProjectSidebarVisible, setIsProjectSidebarVisible] = useState(true);
-  const [workspaceView, setWorkspaceView] = useState<
-    "projects" | "edit" | "preview"
-  >("edit");
 
   const {
     activeTab,
@@ -165,6 +152,7 @@ export function AdminDashboard() {
     isDirty,
     galleryImageList,
     captionRawLines,
+    altRawLines,
     slugValidation,
     handleSlugBlur,
     applySuggestedSlug,
@@ -174,6 +162,7 @@ export function AdminDashboard() {
     confirmDialogAction,
     secondaryDialogAction,
     updateCaption,
+    updateAlt,
     handleFileSelection,
     addGalleryFiles,
     removeGalleryFile,
@@ -192,10 +181,33 @@ export function AdminDashboard() {
   const liveProjectHref =
     formState.id && formState.published ? `/work/${formState.slug}` : null;
   const canEditCms = !isSupabaseConfigured || Boolean(sessionEmail);
-  const deferredPreviewFormState = useDeferredValue(formState);
-  const deferredPreviewGallery = useDeferredValue(galleryImageList);
-  const deferredPreviewCaptions = useDeferredValue(captionRawLines);
-  const deferredCoverPreview = useDeferredValue(coverPreviewImage);
+
+  const {
+    activeField,
+    setActiveField,
+    isProjectSidebarVisible,
+    setIsProjectSidebarVisible,
+    workspaceView,
+    setWorkspaceView,
+    deferredPreviewFormState,
+    deferredPreviewGallery,
+    deferredPreviewCaptions,
+    deferredPreviewAlts,
+    deferredCoverPreview,
+    handlePreviewFieldUpdate,
+    handlePreviewToggle,
+    handlePreviewGalleryImageUpdate,
+    handlePreviewImageNavigate
+  } = useAdminWorkspaceView({
+    formState,
+    galleryImageList,
+    captionRawLines,
+    altRawLines,
+    coverPreviewImage,
+    updateField,
+    setCoverFile,
+    setVideoFile
+  });
 
   function renderSaveReportIcon(tone: "success" | "warning" | "info") {
     if (tone === "success") {
@@ -207,105 +219,6 @@ export function AdminDashboard() {
     }
 
     return <Info className="h-4 w-4 text-accent-text" />;
-  }
-
-  function handlePreviewFieldUpdate(
-    field: PreviewEditableField,
-    value: string
-  ) {
-    switch (field) {
-      case "business":
-        updateField("business", value as typeof formState.business);
-        break;
-      case "title":
-        updateField("title", value);
-        updateField("slug", slugify(value));
-        break;
-      case "category":
-        updateField("category", value);
-        break;
-      case "slug":
-        updateField("slug", slugify(value));
-        break;
-      case "shortDescription":
-        updateField("shortDescription", value);
-        break;
-      case "fullDescription":
-        updateField("fullDescription", value);
-        break;
-      case "carModel":
-        updateField("carModel", value);
-        break;
-      case "location":
-        updateField("location", value);
-        break;
-      case "year":
-        updateField("year", value);
-        break;
-      case "behindTheScenes":
-        updateField("behindTheScenes", value);
-        break;
-      case "coverImage":
-        setCoverFile(null);
-        updateField("coverImage", value);
-        break;
-      case "videoUrl":
-        updateField("videoUrl", value);
-        if (value) {
-          updateField("uploadedVideo", "");
-          setVideoFile(null);
-        }
-        break;
-      case "uploadedVideo":
-        updateField("uploadedVideo", value);
-        if (value) updateField("videoUrl", "");
-        break;
-      case "createdAt":
-        updateField("createdAt", value);
-        break;
-      default:
-        break;
-    }
-  }
-
-  function handlePreviewToggle(field: PreviewToggleField) {
-    updateField(field, !formState[field]);
-  }
-
-  function handlePreviewGalleryImageUpdate(index: number, value: string) {
-    const lines = formState.galleryImagesText.split("\n");
-    while (lines.length <= index) lines.push("");
-    lines[index] = value;
-    updateField("galleryImagesText", lines.join("\n"));
-  }
-
-  function handlePreviewImageNavigate(
-    field: "coverImage" | "gallery",
-    galleryIndex?: number
-  ) {
-    setWorkspaceView("edit");
-    setActiveField(field);
-
-    requestAnimationFrame(() => {
-      const fieldElement = document.querySelector<HTMLElement>(
-        `[data-admin-editor-field="${field}"]`
-      );
-      const target =
-        field === "gallery" && galleryIndex !== undefined
-          ? fieldElement?.querySelector<HTMLElement>(
-              `[data-gallery-image-index="${galleryIndex}"]`
-            )
-          : fieldElement?.querySelector<HTMLElement>(
-              'input:not([type="file"]), textarea, select'
-            );
-
-      (target ?? fieldElement)?.scrollIntoView({
-        behavior: "smooth",
-        block: "center"
-      });
-
-      window.setTimeout(() => target?.focus({ preventScroll: true }), 450);
-    });
   }
 
   return (
@@ -321,7 +234,7 @@ export function AdminDashboard() {
               aria-label="Open Lux Studio website"
             >
               <span className="relative flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full border border-line bg-panel shadow-sm">
-                <ResilientImage
+                <AdaptiveImage
                   data-company-logo
                   src="/images/brand/lux-studio-logo.svg"
                   alt=""
@@ -761,6 +674,7 @@ export function AdminDashboard() {
                   isProjectComplete={isProjectComplete}
                   galleryImageList={galleryImageList}
                   captionRawLines={captionRawLines}
+                  altRawLines={altRawLines}
                   uploadProgress={uploadProgress}
                   slugValidation={slugValidation}
                   onSlugBlur={handleSlugBlur}
@@ -785,10 +699,12 @@ export function AdminDashboard() {
                   isDirty={isDirty}
                   galleryImageList={deferredPreviewGallery}
                   captionRawLines={deferredPreviewCaptions}
+                  altRawLines={deferredPreviewAlts}
                   activeField={activeField}
                   onActiveFieldChange={setActiveField}
                   onUpdateField={handlePreviewFieldUpdate}
                   onUpdateCaption={updateCaption}
+                  onUpdateAlt={updateAlt}
                   onReplaceGalleryImage={handlePreviewGalleryImageUpdate}
                   onToggleField={handlePreviewToggle}
                   onNavigateToImageField={handlePreviewImageNavigate}

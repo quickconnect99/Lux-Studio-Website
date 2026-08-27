@@ -1,170 +1,23 @@
 "use client";
 
-import {
-  type ChangeEvent,
-  type ReactNode,
-  useEffect,
-  useId,
-  useRef,
-  useState
-} from "react";
-import { createPortal } from "react-dom";
-import { ResilientImage as Image } from "@/components/ui/resilient-image";
+import type { ChangeEvent } from "react";
 import {
   AlertCircle,
-  CircleHelp,
   CloudUpload,
   Copy,
   ExternalLink,
   RefreshCw,
   Trash2
 } from "lucide-react";
-import { FieldError } from "@/components/ui/field-error";
-import { GalleryEditor } from "@/components/admin/gallery-editor";
-import { EditorFieldShell } from "@/components/admin/field-highlight-shell";
-import {
-  adminProjectFieldMeta,
-  getGalleryFrameRole
-} from "@/lib/admin-project-fields";
+import { ProjectEditorBasicsPanel } from "@/components/admin/project-editor-basics-panel";
+import { ProjectEditorMediaPanel } from "@/components/admin/project-editor-media-panel";
+import { ProjectEditorPublishPanel } from "@/components/admin/project-editor-publish-panel";
 import type {
   AdminUploadProgress,
   AdminProjectFieldKey,
   ProjectFormState,
   SlugValidationState
 } from "@/lib/admin-types";
-import { businesses, categories, slugify } from "@/lib/admin-utils";
-import { cn } from "@/lib/utils";
-
-function FieldHelpTooltip({ fieldKey }: { fieldKey: AdminProjectFieldKey }) {
-  const meta = adminProjectFieldMeta[fieldKey];
-  const tooltipId = useId();
-  const buttonRef = useRef<HTMLButtonElement>(null);
-  const tooltipRef = useRef<HTMLSpanElement>(null);
-  const [open, setOpen] = useState(false);
-  const [position, setPosition] = useState<{
-    left: number;
-    top: number;
-    width: number;
-  } | null>(null);
-
-  useEffect(() => {
-    if (!open) {
-      return;
-    }
-
-    function updatePosition() {
-      const button = buttonRef.current;
-      const tooltip = tooltipRef.current;
-
-      if (!button || !tooltip) {
-        return;
-      }
-
-      const gutter = 16;
-      const gap = 8;
-      const buttonRect = button.getBoundingClientRect();
-      const tooltipRect = tooltip.getBoundingClientRect();
-      const width = Math.min(288, window.innerWidth - gutter * 2);
-      const left = Math.min(
-        Math.max(buttonRect.left, gutter),
-        window.innerWidth - width - gutter
-      );
-      const below = buttonRect.bottom + gap;
-      const top =
-        below + tooltipRect.height <= window.innerHeight - gutter
-          ? below
-          : Math.max(gutter, buttonRect.top - tooltipRect.height - gap);
-
-      setPosition({ left, top, width });
-    }
-
-    const frame = window.requestAnimationFrame(updatePosition);
-
-    function handleEscape(event: KeyboardEvent) {
-      if (event.key === "Escape") {
-        setOpen(false);
-        buttonRef.current?.focus();
-      }
-    }
-
-    window.addEventListener("resize", updatePosition);
-    window.addEventListener("scroll", updatePosition, true);
-    document.addEventListener("keydown", handleEscape);
-
-    return () => {
-      window.cancelAnimationFrame(frame);
-      window.removeEventListener("resize", updatePosition);
-      window.removeEventListener("scroll", updatePosition, true);
-      document.removeEventListener("keydown", handleEscape);
-    };
-  }, [open]);
-
-  return (
-    <span
-      className="relative inline-flex"
-      onMouseEnter={() => setOpen(true)}
-      onMouseLeave={() => setOpen(false)}
-    >
-      <button
-        ref={buttonRef}
-        type="button"
-        className="inline-flex h-10 w-10 items-center justify-center rounded-full text-muted hover:bg-panel hover:text-foreground"
-        aria-label={`Where is ${meta.label} shown?`}
-        aria-describedby={open ? tooltipId : undefined}
-        onClick={() => setOpen(true)}
-        onFocus={() => setOpen(true)}
-        onBlur={() => setOpen(false)}
-      >
-        <CircleHelp className="h-4 w-4" />
-      </button>
-      {open && typeof document !== "undefined"
-        ? createPortal(
-            <span
-              ref={tooltipRef}
-              id={tooltipId}
-              role="tooltip"
-              style={
-                position
-                  ? {
-                      left: position.left,
-                      top: position.top,
-                      width: position.width
-                    }
-                  : undefined
-              }
-              className={cn(
-                "bg-background/95 pointer-events-none fixed z-[100] rounded-[1rem] border border-line px-3 py-2 text-[0.7rem] normal-case tracking-normal text-muted shadow-card backdrop-blur-xl",
-                position ? "opacity-100" : "opacity-0"
-              )}
-            >
-              {meta.helpText}
-            </span>,
-            document.body
-          )
-        : null}
-    </span>
-  );
-}
-
-function FieldLabel({
-  fieldKey,
-  required = false,
-  children
-}: {
-  fieldKey: AdminProjectFieldKey;
-  required?: boolean;
-  children?: ReactNode;
-}) {
-  return (
-    <span className="flex items-center gap-1.5 text-xs uppercase tracking-eyebrow">
-      <span>
-        {children ?? adminProjectFieldMeta[fieldKey].label}
-        {required ? <span className="text-error-text"> *</span> : null}
-      </span>
-      <FieldHelpTooltip fieldKey={fieldKey} />
-    </span>
-  );
-}
 
 type Props = {
   galleryKey: string;
@@ -195,6 +48,7 @@ type Props = {
   isProjectComplete: boolean;
   galleryImageList: string[];
   captionRawLines: string[];
+  altRawLines: string[];
   uploadProgress: AdminUploadProgress | null;
   slugValidation: SlugValidationState;
   onSlugBlur: () => void;
@@ -203,13 +57,24 @@ type Props = {
   onActiveFieldChange: (field: AdminProjectFieldKey | null) => void;
 };
 
+const editorSections: [AdminProjectFieldKey, string][] = [
+  ["title", "01 Basics"],
+  ["shortDescription", "02 Copy"],
+  ["coverImage", "03 Media"],
+  ["gallery", "04 Gallery"],
+  ["published", "05 Publishing"]
+];
+
 /**
- * Renders every editable project field and the queued-media controls.
+ * Orchestrates every editable project field and the queued-media controls.
  *
  * The component is controlled: values arrive through `formState`, and every
  * edit is reported through callbacks. It does not upload or save on its own.
  * Keeping persistence outside this large form lets the editor, sidebar, and
- * live preview share one authoritative state.
+ * live preview share one authoritative state. The actual fields live in
+ * fachliche panels (Basics, Media, Publish); this file owns only the shared
+ * chrome — status header, section nav, and the sticky save bar — that spans
+ * all of them.
  */
 export function ProjectEditor({
   galleryKey,
@@ -234,6 +99,7 @@ export function ProjectEditor({
   isProjectComplete,
   galleryImageList,
   captionRawLines,
+  altRawLines,
   uploadProgress,
   slugValidation,
   onSlugBlur,
@@ -241,23 +107,6 @@ export function ProjectEditor({
   activeField,
   onActiveFieldChange
 }: Props) {
-  const dateValue = formState.createdAt
-    ? formState.createdAt.split("T")[0]
-    : "";
-
-  function handleDateChange(dateStr: string) {
-    if (!dateStr) return;
-    const timePart = formState.createdAt.includes("T")
-      ? formState.createdAt.split("T")[1]
-      : "12:00:00.000Z";
-    updateField("createdAt", `${dateStr}T${timePart}`);
-  }
-
-  function handleGalleryChange(images: string[], captions: string[]) {
-    updateField("galleryImagesText", images.join("\n"));
-    updateField("galleryCaptionsText", captions.join("\n"));
-  }
-
   function navigateToField(field: AdminProjectFieldKey) {
     onActiveFieldChange(field);
     document
@@ -333,17 +182,11 @@ export function ProjectEditor({
           aria-label="Project editor sections"
           className="no-scrollbar mt-5 flex gap-2 overflow-x-auto border-y border-line py-3"
         >
-          {[
-            ["title", "01 Basics"],
-            ["shortDescription", "02 Copy"],
-            ["coverImage", "03 Media"],
-            ["gallery", "04 Gallery"],
-            ["published", "05 Publishing"]
-          ].map(([field, label]) => (
+          {editorSections.map(([field, label]) => (
             <button
               key={field}
               type="button"
-              onClick={() => navigateToField(field as AdminProjectFieldKey)}
+              onClick={() => navigateToField(field)}
               className="min-h-10 shrink-0 rounded-full border border-line bg-panel-secondary px-3 text-xs uppercase tracking-eyebrow text-muted transition-colors hover:border-accent hover:text-foreground"
             >
               {label}
@@ -351,511 +194,42 @@ export function ProjectEditor({
           ))}
         </nav>
 
-        <div
-          data-admin-editor-section="basics"
-          className="mt-6 border-l-2 border-accent pl-3"
-        >
-          <p className="text-xs font-medium uppercase tracking-eyebrow text-foreground">
-            01 · Basics
-          </p>
-          <p className="mt-1 text-sm text-muted">
-            Project identity, URL and primary metadata.
-          </p>
-        </div>
-
-        {/* Title + Slug */}
-        <div className="mt-4 grid gap-4 sm:grid-cols-2">
-          <EditorFieldShell
-            fieldKey="title"
-            activeField={activeField}
-            onActiveFieldChange={onActiveFieldChange}
-          >
-            <label className="space-y-2 text-sm text-muted">
-              <FieldLabel fieldKey="title" required />
-              <input
-                data-admin-project-title
-                required
-                value={formState.title}
-                onChange={(e) => {
-                  const value = e.target.value;
-                  updateField("title", value);
-                  updateField("slug", slugify(value));
-                }}
-                className="input-field"
-              />
-            </label>
-          </EditorFieldShell>
-          <EditorFieldShell
-            fieldKey="slug"
-            activeField={activeField}
-            onActiveFieldChange={onActiveFieldChange}
-          >
-            <label className="space-y-2 text-sm text-muted">
-              <FieldLabel fieldKey="slug" required />
-              <input
-                required
-                value={formState.slug}
-                onBlur={onSlugBlur}
-                onChange={(e) => updateField("slug", slugify(e.target.value))}
-                aria-invalid={slugValidation.status === "conflict"}
-                aria-describedby={
-                  slugValidation.status === "conflict"
-                    ? "project-slug-error"
-                    : undefined
-                }
-                className={cn(
-                  "input-field",
-                  slugValidation.status === "conflict" ? "field-error" : ""
-                )}
-              />
-              {slugValidation.status === "checking" ? (
-                <p className="text-xs leading-6 text-muted">
-                  Checking slug availability...
-                </p>
-              ) : null}
-              {slugValidation.status === "available" &&
-              slugValidation.slug === formState.slug ? (
-                <p className="text-xs leading-6 text-success-text">
-                  Slug is available.
-                </p>
-              ) : null}
-              {slugValidation.status === "conflict" &&
-              slugValidation.message ? (
-                <div className="space-y-2">
-                  <FieldError
-                    id="project-slug-error"
-                    message={slugValidation.message}
-                  />
-                  {slugValidation.suggestedSlug ? (
-                    <button
-                      type="button"
-                      onClick={onApplySuggestedSlug}
-                      className="inline-flex items-center gap-1.5 text-xs uppercase tracking-eyebrow text-accent-text hover:underline"
-                    >
-                      Use suggestion: {slugValidation.suggestedSlug}
-                    </button>
-                  ) : null}
-                </div>
-              ) : null}
-            </label>
-          </EditorFieldShell>
-        </div>
-
-        {/* Category + meta */}
-        <div className="mt-4 grid items-start gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          <EditorFieldShell
-            fieldKey="business"
-            activeField={activeField}
-            onActiveFieldChange={onActiveFieldChange}
-          >
-            <label className="space-y-2 text-sm text-muted">
-              <FieldLabel fieldKey="business" />
-              <input
-                list="project-business-options"
-                value={formState.business}
-                onChange={(e) =>
-                  updateField(
-                    "business",
-                    e.target.value as ProjectFormState["business"]
-                  )
-                }
-                className="input-field"
-                placeholder="Automotive, Hospitality, Event..."
-              />
-              <datalist id="project-business-options">
-                {businesses.map((business) => (
-                  <option key={business} value={business}>
-                    {business}
-                  </option>
-                ))}
-              </datalist>
-            </label>
-          </EditorFieldShell>
-          <EditorFieldShell
-            fieldKey="category"
-            activeField={activeField}
-            onActiveFieldChange={onActiveFieldChange}
-          >
-            <label className="space-y-2 text-sm text-muted">
-              <FieldLabel fieldKey="category" />
-              <input
-                list="project-category-options"
-                value={formState.category}
-                onChange={(e) => updateField("category", e.target.value)}
-                className="input-field"
-                placeholder="Campaign type, format, product, or occasion"
-              />
-              <datalist id="project-category-options">
-                {categories.map((cat) => (
-                  <option key={cat} value={cat}>
-                    {cat}
-                  </option>
-                ))}
-              </datalist>
-            </label>
-          </EditorFieldShell>
-          <EditorFieldShell
-            fieldKey="carModel"
-            activeField={activeField}
-            onActiveFieldChange={onActiveFieldChange}
-          >
-            <label className="space-y-2 text-sm text-muted">
-              <FieldLabel fieldKey="carModel" />
-              <input
-                value={formState.carModel}
-                onChange={(e) => updateField("carModel", e.target.value)}
-                className="input-field"
-                placeholder="Vehicle, venue, property, or featured subject"
-              />
-            </label>
-          </EditorFieldShell>
-          <EditorFieldShell
-            fieldKey="location"
-            activeField={activeField}
-            onActiveFieldChange={onActiveFieldChange}
-          >
-            <label className="space-y-2 text-sm text-muted">
-              <FieldLabel fieldKey="location" required />
-              <input
-                value={formState.location}
-                onChange={(e) => updateField("location", e.target.value)}
-                className="input-field"
-              />
-            </label>
-          </EditorFieldShell>
-          <EditorFieldShell
-            fieldKey="year"
-            activeField={activeField}
-            onActiveFieldChange={onActiveFieldChange}
-          >
-            <label className="space-y-2 text-sm text-muted">
-              <FieldLabel fieldKey="year" required />
-              <input
-                value={formState.year}
-                onChange={(e) => updateField("year", e.target.value)}
-                className="input-field"
-              />
-            </label>
-          </EditorFieldShell>
-        </div>
-
-        {/* Descriptions */}
-        <div
-          data-admin-editor-section="copy"
-          className="mt-8 border-l-2 border-accent pl-3"
-        >
-          <p className="text-xs font-medium uppercase tracking-eyebrow text-foreground">
-            02 · Copy
-          </p>
-          <p className="mt-1 text-sm text-muted">
-            Card summary, project description and behind-the-scenes notes.
-          </p>
-        </div>
-
-        <EditorFieldShell
-          fieldKey="shortDescription"
+        <ProjectEditorBasicsPanel
+          formState={formState}
+          updateField={updateField}
+          slugValidation={slugValidation}
+          onSlugBlur={onSlugBlur}
+          onApplySuggestedSlug={onApplySuggestedSlug}
           activeField={activeField}
           onActiveFieldChange={onActiveFieldChange}
-          className="mt-4"
-        >
-          <label className="block space-y-2 text-sm text-muted">
-            <FieldLabel fieldKey="shortDescription" required />
-            <textarea
-              value={formState.shortDescription}
-              onChange={(e) => updateField("shortDescription", e.target.value)}
-              className="textarea-field min-h-28"
-            />
-          </label>
-        </EditorFieldShell>
+        />
 
-        <EditorFieldShell
-          fieldKey="fullDescription"
+        <ProjectEditorMediaPanel
+          galleryKey={galleryKey}
+          formState={formState}
+          updateField={updateField}
+          handleFileSelection={handleFileSelection}
+          addGalleryFiles={addGalleryFiles}
+          removeGalleryFile={removeGalleryFile}
+          coverFile={coverFile}
+          coverPreviewSrc={coverPreviewSrc}
+          setCoverFile={setCoverFile}
+          videoFile={videoFile}
+          setVideoFile={setVideoFile}
+          galleryFiles={galleryFiles}
+          galleryImageList={galleryImageList}
+          captionRawLines={captionRawLines}
+          altRawLines={altRawLines}
           activeField={activeField}
           onActiveFieldChange={onActiveFieldChange}
-          className="mt-4"
-        >
-          <label className="block space-y-2 text-sm text-muted">
-            <FieldLabel fieldKey="fullDescription" required />
-            <textarea
-              value={formState.fullDescription}
-              onChange={(e) => updateField("fullDescription", e.target.value)}
-              className="textarea-field min-h-40"
-            />
-          </label>
-        </EditorFieldShell>
+        />
 
-        <EditorFieldShell
-          fieldKey="behindTheScenes"
+        <ProjectEditorPublishPanel
+          formState={formState}
+          updateField={updateField}
           activeField={activeField}
           onActiveFieldChange={onActiveFieldChange}
-          className="mt-4"
-        >
-          <label className="block space-y-2 text-sm text-muted">
-            <FieldLabel fieldKey="behindTheScenes" />
-            <textarea
-              value={formState.behindTheScenes}
-              onChange={(e) => updateField("behindTheScenes", e.target.value)}
-              className="textarea-field min-h-28"
-            />
-          </label>
-        </EditorFieldShell>
-
-        {/* Cover image */}
-        <div
-          data-admin-editor-section="media"
-          className="mt-8 border-l-2 border-accent pl-3"
-        >
-          <p className="text-xs font-medium uppercase tracking-eyebrow text-foreground">
-            03 · Media
-          </p>
-          <p className="mt-1 text-sm text-muted">
-            Cover image and project video sources.
-          </p>
-        </div>
-
-        <EditorFieldShell
-          fieldKey="coverImage"
-          activeField={activeField}
-          onActiveFieldChange={onActiveFieldChange}
-          className="mt-4"
-        >
-          <div className="space-y-2 text-sm text-muted">
-            <FieldLabel fieldKey="coverImage" required />
-            <div className="flex flex-col gap-4 sm:flex-row">
-              {coverPreviewSrc ? (
-                <div className="relative h-32 w-full shrink-0 overflow-hidden rounded-[1rem] border border-line bg-panel-dark sm:h-20 sm:w-20">
-                  <Image
-                    src={coverPreviewSrc}
-                    alt="Cover preview"
-                    fill
-                    sizes="80px"
-                    unoptimized
-                    className="object-cover"
-                  />
-                </div>
-              ) : null}
-              <div className="flex-1 space-y-2">
-                <input
-                  value={formState.coverImage}
-                  onChange={(e) => {
-                    setCoverFile(null);
-                    updateField("coverImage", e.target.value);
-                  }}
-                  className="input-field"
-                  placeholder="/images/cover.jpg"
-                />
-                <input
-                  type="file"
-                  accept="image/*"
-                  aria-label="Upload project cover image"
-                  onChange={(e) => handleFileSelection(e, "cover")}
-                  className="block w-full text-xs uppercase tracking-meta text-muted"
-                />
-                {coverFile ? (
-                  <p className="text-xs text-muted">
-                    Queued: {coverFile.name}. The admin preview updates
-                    immediately; the public site changes after you save.
-                  </p>
-                ) : null}
-              </div>
-            </div>
-            <p className="text-xs leading-6 text-muted">
-              This image stays separate from the gallery. It drives the top hero
-              on the project page, the video poster, and the project cards.
-            </p>
-          </div>
-        </EditorFieldShell>
-
-        {/* Gallery — visual grid editor */}
-        <div
-          data-admin-editor-section="gallery"
-          className="mt-8 border-l-2 border-accent pl-3"
-        >
-          <p className="text-xs font-medium uppercase tracking-eyebrow text-foreground">
-            04 · Gallery
-          </p>
-          <p className="mt-1 text-sm text-muted">
-            Reorder project stills and maintain their captions.
-          </p>
-        </div>
-
-        <EditorFieldShell
-          fieldKey="gallery"
-          activeField={activeField}
-          onActiveFieldChange={onActiveFieldChange}
-          className="mt-4"
-        >
-          <div className="space-y-2 text-sm text-muted">
-            <FieldLabel fieldKey="gallery" required />
-            <p className="text-xs leading-6 text-muted">
-              Order matters: frame 01 is used as the{" "}
-              {getGalleryFrameRole(0).label.toLowerCase()} below the narrative.
-              Frame 02+ appear lower on the page as supporting stills.
-            </p>
-            <GalleryEditor
-              key={galleryKey}
-              images={galleryImageList}
-              captions={captionRawLines}
-              pendingFiles={galleryFiles}
-              onImagesChange={handleGalleryChange}
-              onFilesAdd={addGalleryFiles}
-              onFileRemove={removeGalleryFile}
-            />
-          </div>
-        </EditorFieldShell>
-
-        {/* Video */}
-        <div className="mt-4 grid gap-4 lg:grid-cols-2">
-          <EditorFieldShell
-            fieldKey="video"
-            activeField={activeField}
-            onActiveFieldChange={onActiveFieldChange}
-          >
-            <label className="space-y-2 text-sm text-muted">
-              <FieldLabel fieldKey="video">
-                Video URL
-                {formState.videoUrl && !formState.uploadedVideo && !videoFile
-                  ? " · active"
-                  : ""}
-              </FieldLabel>
-              <input
-                value={formState.videoUrl}
-                onChange={(e) => {
-                  updateField("videoUrl", e.target.value);
-                  if (e.target.value) {
-                    updateField("uploadedVideo", "");
-                    setVideoFile(null);
-                  }
-                }}
-                className="input-field"
-                placeholder="YouTube, Vimeo, or direct MP4 URL"
-              />
-            </label>
-          </EditorFieldShell>
-          <EditorFieldShell
-            fieldKey="video"
-            activeField={activeField}
-            onActiveFieldChange={onActiveFieldChange}
-          >
-            <div className="space-y-2 text-sm text-muted">
-              <FieldLabel fieldKey="video">
-                Uploaded video
-                {formState.uploadedVideo || videoFile ? " · active" : ""}
-              </FieldLabel>
-              <input
-                value={formState.uploadedVideo}
-                aria-label="Uploaded video URL"
-                onChange={(e) => {
-                  updateField("uploadedVideo", e.target.value);
-                  if (e.target.value) updateField("videoUrl", "");
-                }}
-                className="input-field"
-              />
-              <input
-                type="file"
-                accept="video/*"
-                aria-label="Upload project video"
-                onChange={(e) => {
-                  handleFileSelection(e, "video");
-                  if ((e.target.files?.length ?? 0) > 0)
-                    updateField("videoUrl", "");
-                }}
-                className="block w-full text-xs uppercase tracking-meta text-muted"
-              />
-              {videoFile ? (
-                <p className="text-xs text-muted">Queued: {videoFile.name}</p>
-              ) : null}
-            </div>
-          </EditorFieldShell>
-        </div>
-
-        {/* Publish settings */}
-        <div
-          data-admin-editor-section="publishing"
-          className="mt-8 border-l-2 border-accent pl-3"
-        >
-          <p className="text-xs font-medium uppercase tracking-eyebrow text-foreground">
-            05 · Publishing
-          </p>
-          <p className="mt-1 text-sm text-muted">
-            Control release date, homepage placement and public visibility.
-          </p>
-        </div>
-
-        <div className="mt-4 grid gap-4 sm:grid-cols-3">
-          {/* Datepicker for createdAt */}
-          <EditorFieldShell
-            fieldKey="createdAt"
-            activeField={activeField}
-            onActiveFieldChange={onActiveFieldChange}
-          >
-            <div className="space-y-2 text-sm text-muted">
-              <FieldLabel fieldKey="createdAt" />
-              <input
-                type="date"
-                aria-label="Project publication date"
-                value={dateValue}
-                onChange={(e) => handleDateChange(e.target.value)}
-                className="input-field"
-              />
-              <button
-                type="button"
-                onClick={() =>
-                  updateField("createdAt", new Date().toISOString())
-                }
-                className="control-pill text-xs"
-              >
-                Today
-              </button>
-            </div>
-          </EditorFieldShell>
-          <EditorFieldShell
-            fieldKey="featured"
-            activeField={activeField}
-            onActiveFieldChange={onActiveFieldChange}
-          >
-            <div className="space-y-2">
-              <div className="flex items-center gap-2 px-1">
-                <FieldLabel fieldKey="featured" />
-              </div>
-              <label className="toggle-row">
-                <input
-                  type="checkbox"
-                  checked={formState.featured}
-                  onChange={(e) => updateField("featured", e.target.checked)}
-                  className="h-4 w-4"
-                />
-                Featured project
-              </label>
-              <p className="px-1 text-xs leading-6 text-muted">
-                Appears in the curated homepage highlights.
-              </p>
-            </div>
-          </EditorFieldShell>
-          <EditorFieldShell
-            fieldKey="published"
-            activeField={activeField}
-            onActiveFieldChange={onActiveFieldChange}
-          >
-            <div className="space-y-2">
-              <div className="flex items-center gap-2 px-1">
-                <FieldLabel fieldKey="published" />
-              </div>
-              <label className="toggle-row">
-                <input
-                  type="checkbox"
-                  checked={formState.published}
-                  onChange={(e) => updateField("published", e.target.checked)}
-                  className="h-4 w-4"
-                />
-                Published
-              </label>
-              <p className="px-1 text-xs leading-6 text-muted">
-                Makes the project visible on the public site.
-              </p>
-            </div>
-          </EditorFieldShell>
-        </div>
+        />
       </form>
 
       {/* Sticky save bar */}
