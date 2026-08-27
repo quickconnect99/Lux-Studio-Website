@@ -15,10 +15,12 @@
     "lint": "eslint app components hooks lib next.config.mjs playwright.config.ts scripts tests --max-warnings=0 --cache",
     "typecheck": "tsc --noEmit",
     "test": "node scripts/run-unit-tests.mjs",
-    "test:coverage": "c8 --all \"--include=lib/**/*.ts\" \"--include=app/api/inquiries/route.ts\" \"--include=app/api/telemetry/route.ts\" \"--include=app/api/admin/revalidate/route.ts\" \"--include=app/api/admin/retention/route.ts\" \"--include=app/api/admin/notifications/route.ts\" \"--include=app/api/admin/users/route.ts\" --reporter=text --reporter=lcov --reports-dir=coverage --exclude=tests/** --exclude=scripts/** --check-coverage --lines=75 --statements=75 --functions=80 --branches=70 node scripts/run-unit-tests.mjs",
+    "test:coverage": "c8 --all \"--include=lib/**/*.ts\" \"--include=hooks/use-admin-session.ts\" \"--include=hooks/use-admin-project-workspace.ts\" \"--include=hooks/use-admin-media.ts\" \"--include=hooks/use-admin-site-settings.ts\" \"--include=hooks/use-admin-draft.ts\" \"--include=hooks/use-admin-users.ts\" \"--include=hooks/use-admin-email-settings.ts\" \"--include=hooks/use-admin-workflow.ts\" \"--include=hooks/use-form.ts\" \"--include=app/api/inquiries/route.ts\" \"--include=app/api/telemetry/route.ts\" \"--include=app/api/admin/revalidate/route.ts\" \"--include=app/api/admin/retention/route.ts\" \"--include=app/api/admin/notifications/route.ts\" \"--include=app/api/admin/users/route.ts\" \"--include=app/api/admin/email-settings/route.ts\" \"--include=app/api/build-info/route.ts\" --reporter=text --reporter=lcov --reports-dir=coverage --exclude=tests/** --exclude=scripts/** --check-coverage --lines=75 --statements=75 --functions=80 --branches=70 node scripts/run-unit-tests.mjs && node scripts/check-coverage-thresholds.mjs",
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
+    "lighthouse:ci": "lhci autorun",
     "migrations:check": "node scripts/check-migrations.mjs",
+    "db:types": "supabase gen types typescript --local --schema public > lib/database.types.ts",
     "format": "prettier . --write",
     "format:check": "prettier . --check",
     "smoke:live": "node scripts/smoke-test-live.mjs",
@@ -41,7 +43,11 @@
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.12.1",
+    "@lhci/cli": "^0.15.1",
     "@playwright/test": "^1.62.0",
+    "@testing-library/dom": "^10.4.1",
+    "@testing-library/react": "^16.3.2",
+    "@types/jsdom": "^30.0.0",
     "@types/node": "^24.0.0",
     "@types/nodemailer": "^8.0.1",
     "@types/react": "^19.2.17",
@@ -50,6 +56,7 @@
     "c8": "^11.0.0",
     "eslint": "^9.39.4",
     "eslint-config-next": "^16.2.12",
+    "jsdom": "^27.4.0",
     "postcss": "^8.5.24",
     "prettier": "^3.8.1",
     "prettier-plugin-tailwindcss": "^0.7.2",
@@ -61,6 +68,7 @@
     "next": {
       "postcss": "8.5.24",
       "sharp": "0.35.3"
-    }
+    },
+    "nanoid": "^3.3.17"
   }
 }
