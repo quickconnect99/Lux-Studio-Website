@@ -1,0 +1,31 @@
+version: 2
+updates:
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 10
+    groups:
+      # Routine patch/minor bumps land as one bundled PR per week instead of
+      # dozens of individual ones. Majors are excluded so each gets its own
+      # PR, its own changelog read, and its own test run — see
+      # docs/next-major-assessment.md for what that looks like in practice.
+      minor-and-patch:
+        update-types:
+          - "minor"
+          - "patch"
+    ignore:
+      # Reviewed and pinned deliberately in package.json#overrides; let that
+      # override, not Dependabot, decide when these move.
+      - dependency-name: "sharp"
+      - dependency-name: "postcss"
+
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    groups:
+      actions-minor-and-patch:
+        update-types:
+          - "minor"
+          - "patch"

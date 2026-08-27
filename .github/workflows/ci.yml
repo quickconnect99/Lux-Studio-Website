@@ -36,10 +36,20 @@ jobs:
       - name: Lint database schema
         run: supabase db lint --local --fail-on error
 
+      - name: Verify generated database types are committed and current
+        run: |
+          supabase gen types typescript --local --schema public > /tmp/database.types.ts
+          diff -u lib/database.types.ts /tmp/database.types.ts
+
   lint-and-build:
     name: Lint & Build
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    env:
+      # Read by app/api/build-info at server start (not baked in at build
+      # time) so tests/e2e/global-setup.ts can refuse to run the production
+      # E2E suite against a stale cached `next start` process.
+      BUILD_SHA: ${{ github.sha }}
 
     steps:
       - uses: actions/checkout@v4
@@ -91,6 +101,14 @@ jobs:
 
       - name: Enforce bundle and media budgets
         run: npm run bundle:check
+
+      - name: Lighthouse performance/accessibility/SEO budgets
+        run: npm run lighthouse:ci
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.E2E_SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.E2E_SUPABASE_ANON_KEY }}
+          NEXT_PUBLIC_SITE_URL: https://www.luxstudio.li
+          NEXT_PUBLIC_ENABLE_ADMIN_DEMO: "true"
 
       - name: Install Playwright browsers
         run: npx playwright install --with-deps chromium webkit

@@ -7,6 +7,15 @@ const workspace = process.cwd();
 const chunksDirectory = path.join(workspace, ".next", "static", "chunks");
 const mediaDirectory = path.join(workspace, "public", "media");
 const imageDirectory = path.join(workspace, "public", "images");
+const appServerDirectory = path.join(workspace, ".next", "server", "app");
+// Route-specific budgets catch a regression isolated to one route (e.g. a
+// heavy import added to a single public page) that the global JS totals
+// above would not surface unless it also pushed the whole build over budget.
+// Admin gets a higher ceiling: it is the CMS workspace, not a page a visitor
+// waits on, and its heavy panels already load through dynamic() imports
+// rather than the route's initial entry chunks measured here.
+const maximumAdminRouteGzipBytes = 220_000;
+const maximumPublicRouteGzipBytes = 130_000;
 const maximumTotalJavaScriptBytes = 1_650_000;
 const maximumSingleJavaScriptBytes = 320_000;
 const maximumTotalGzipJavaScriptBytes = 525_000;
@@ -132,6 +141,80 @@ const invalidRasterImages = imageChecks.filter((item) => !item.validSignature);
 const oversizedRepositoryImages = imageChecks.filter(
   (item) => item.bytes > maximumSingleRepositoryImageBytes
 );
+
+// Each route's Turbopack-generated `page_client-reference-manifest.js`
+// records its own `entryJSFiles` list — the JS chunks that route's initial
+// load actually requests, as opposed to the whole build's chunk directory.
+async function findClientReferenceManifests(directory) {
+  const entries = await readdir(directory, { withFileTypes: true });
+  const nested = await Promise.all(
+    entries.map(async (entry) => {
+      const target = path.join(directory, entry.name);
+      if (entry.isDirectory()) {
+        return findClientReferenceManifests(target);
+      }
+      return entry.name === "page_client-reference-manifest.js" ? [target] : [];
+    })
+  );
+  return nested.flat();
+}
+
+const gzipSizeCache = new Map();
+async function gzipSizeOf(relativeChunkPath) {
+  if (gzipSizeCache.has(relativeChunkPath)) {
+    return gzipSizeCache.get(relativeChunkPath);
+  }
+  const absolute = path.join(workspace, ".next", relativeChunkPath);
+  let size = 0;
+  try {
+    size = gzipSync(await readFile(absolute), { level: 9 }).length;
+  } catch {
+    size = 0;
+  }
+  gzipSizeCache.set(relativeChunkPath, size);
+  return size;
+}
+
+const routeBudgets = [];
+try {
+  const manifestFiles = await findClientReferenceManifests(appServerDirectory);
+
+  for (const manifestFile of manifestFiles) {
+    const relativeDirectory = path
+      .relative(appServerDirectory, path.dirname(manifestFile))
+      .split(path.sep)
+      .join("/");
+    const entryKey = `[project]/app/${relativeDirectory}/page`;
+    const route =
+      "/" +
+      relativeDirectory
+        .split("/")
+        .filter(
+          (segment) => !(segment.startsWith("(") && segment.endsWith(")"))
+        )
+        .join("/");
+    const normalizedRoute = route.replace(/\/+$/, "") || "/";
+
+    const content = await readFile(manifestFile, "utf8");
+    const assignmentMatch = content.match(/=\s*(\{.*\});?\s*$/s);
+    if (!assignmentMatch) continue;
+
+    const parsedManifest = JSON.parse(assignmentMatch[1]);
+    const entryFiles = parsedManifest.entryJSFiles?.[entryKey];
+    if (!entryFiles || entryFiles.length === 0) continue;
+
+    const gzipBytes = (
+      await Promise.all(entryFiles.map((file) => gzipSizeOf(file)))
+    ).reduce((total, size) => total + size, 0);
+
+    routeBudgets.push({ route: normalizedRoute, gzipBytes });
+  }
+} catch (error) {
+  console.warn(
+    `[bundle-budget] Skipped route-specific budgets: ${error.message}`
+  );
+}
+
 const failures = [];
 
 if (totalJavaScriptBytes > maximumTotalJavaScriptBytes) {
@@ -197,6 +280,16 @@ if (oversizedRepositoryImages.length > 0) {
       .join(", ")}.`
   );
 }
+for (const { route, gzipBytes } of routeBudgets) {
+  const budget = route.startsWith("/admin")
+    ? maximumAdminRouteGzipBytes
+    : maximumPublicRouteGzipBytes;
+  if (gzipBytes > budget) {
+    failures.push(
+      `Route ${route} initial JS is ${gzipBytes} gzip bytes (budget ${budget}).`
+    );
+  }
+}
 
 console.log(
   `Bundle budget: ${javaScriptFiles.length} JS chunks, ${totalJavaScriptBytes} bytes total, largest ${largestJavaScript?.bytes ?? 0} bytes.`
@@ -217,6 +310,14 @@ console.log(
     imageChecks.sort((left, right) => right.bytes - left.bytes)[0]?.bytes ?? 0
   } bytes.`
 );
+if (routeBudgets.length > 0) {
+  console.log("Route budgets (initial JS, gzip):");
+  for (const { route, gzipBytes } of [...routeBudgets].sort(
+    (left, right) => right.gzipBytes - left.gzipBytes
+  )) {
+    console.log(`  ${route.padEnd(20)} ${gzipBytes} bytes`);
+  }
+}
 
 if (failures.length > 0) {
   failures.forEach((failure) => console.error(failure));
