@@ -121,7 +121,7 @@ export function ProjectEditor({
       <form
         id="project-form"
         onSubmit={handleSave}
-        className="panel-2xl p-6 sm:p-8"
+        className="panel-2xl p-5 sm:p-8"
       >
         {/* Header */}
         <div className="flex flex-wrap items-center justify-between gap-4 border-b border-line pb-6">
@@ -156,6 +156,24 @@ export function ProjectEditor({
           </div>
           <div className="flex flex-wrap items-center gap-3">
             <button
+              type="submit"
+              disabled={working || !isProjectComplete}
+              className="action-button"
+            >
+              {working ? (
+                <RefreshCw className="h-4 w-4 animate-spin" />
+              ) : (
+                <CloudUpload className="h-4 w-4" />
+              )}
+              {isTemplate
+                ? isDirty
+                  ? "Create Project"
+                  : "Use Template"
+                : isDirty
+                  ? "Save Changes"
+                  : "Save Project"}
+            </button>
+            <button
               type="button"
               onClick={duplicateProject}
               disabled={working}
@@ -180,14 +198,14 @@ export function ProjectEditor({
 
         <nav
           aria-label="Project editor sections"
-          className="no-scrollbar mt-5 flex gap-2 overflow-x-auto border-y border-line py-3"
+          className="mobile-scroll-affordance mt-5 flex gap-2 overflow-x-auto border-y border-line py-3"
         >
           {editorSections.map(([field, label]) => (
             <button
               key={field}
               type="button"
               onClick={() => navigateToField(field)}
-              className="min-h-10 shrink-0 rounded-full border border-line bg-panel-secondary px-3 text-xs uppercase tracking-eyebrow text-muted transition-colors hover:border-accent hover:text-foreground"
+              className="min-h-11 shrink-0 rounded-full border border-line bg-panel-secondary px-3 text-xs uppercase tracking-eyebrow text-muted transition-colors hover:border-accent hover:text-foreground"
             >
               {label}
             </button>

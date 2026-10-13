@@ -70,7 +70,9 @@ export function getFormattedBusinessAddress() {
   return parts.filter(hasMeaningfulValue).join(", ");
 }
 
-export function getMissingImprintFields(settings: SiteSettings) {
+export function getMissingImprintFields(settings: {
+  brand: Pick<SiteSettings["brand"], "name">;
+}) {
   const fields: LegalFieldDescriptor[] = [
     { label: "Company name", value: settings.brand.name },
     { label: "Legal form", value: legalProfile.legalForm },

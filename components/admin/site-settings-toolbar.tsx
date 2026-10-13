@@ -51,11 +51,11 @@ export function SiteSettingsToolbar({
           Dashed accent fields are directly editable
         </p>
       </div>
-      <div className="flex flex-wrap items-center gap-2">
+      <div className="flex min-w-0 max-w-full flex-wrap items-center gap-2">
         <div
           role="tablist"
           aria-label="Site settings preview page"
-          className="mobile-scroll-affordance no-scrollbar flex max-w-full overflow-x-auto rounded-full border border-line bg-panel-secondary p-1"
+          className="mobile-scroll-affordance flex min-w-0 max-w-full overflow-x-auto rounded-full border border-line bg-panel-secondary p-1"
         >
           {(
             [
@@ -74,7 +74,7 @@ export function SiteSettingsToolbar({
               aria-selected={page === previewPage}
               onClick={() => onPageChange(previewPage)}
               className={cn(
-                "min-h-11 rounded-full px-3 py-2 text-[0.68rem] uppercase tracking-ui",
+                "min-h-11 shrink-0 whitespace-nowrap rounded-full px-3 py-2 text-xs uppercase tracking-ui",
                 page === previewPage
                   ? "bg-foreground text-background"
                   : "text-muted"

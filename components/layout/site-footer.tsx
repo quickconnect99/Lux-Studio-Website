@@ -12,21 +12,21 @@ export function SiteFooter({ settings }: SiteFooterProps) {
   const navigation = getVisibleNavigation(settings.navigation);
 
   return (
-    <footer className="site-footer-safe-area border-t border-line pb-24 pt-9 sm:pb-8 sm:pt-10">
+    <footer className="site-footer-safe-area border-t border-line pt-7 sm:pt-10">
       {/*
        * Layout:
        *   mobile  – single column
        *   tablet  – 2 columns (brand | nav + contact stacked)
        *   desktop – 3 asymmetric columns [1.4fr 1fr 1fr]
        */}
-      <div className="section-shell grid gap-8 sm:grid-cols-2 sm:gap-10 lg:grid-cols-[1.4fr_1fr_1fr]">
+      <div className="section-shell grid gap-6 sm:grid-cols-2 sm:gap-10 lg:grid-cols-[1.4fr_1fr_1fr]">
         {/* Brand statement – spans full width on tablet, left col on desktop */}
         <div className="space-y-5 sm:col-span-2 lg:col-span-1">
           <p className="eyebrow">{settings.brand.name}</p>
-          <h2 className="max-w-xl font-[family-name:var(--font-display)] text-[2.5rem] leading-[0.95] text-foreground sm:text-5xl">
+          <h2 className="max-w-xl font-[family-name:var(--font-display)] text-[1.75rem] leading-[0.98] text-foreground sm:text-5xl">
             {settings.copy.footer.headline}
           </h2>
-          <p className="description-copy-compact max-w-md text-muted">
+          <p className="description-copy-compact hidden max-w-md text-muted sm:block">
             {settings.brand.strapline}
           </p>
         </div>
@@ -36,7 +36,7 @@ export function SiteFooter({ settings }: SiteFooterProps) {
           <p className="text-xs uppercase tracking-eyebrow text-muted">
             {settings.copy.footer.navigationLabel}
           </p>
-          <div className="flex flex-col gap-3 text-sm uppercase tracking-meta">
+          <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-sm uppercase tracking-meta sm:flex sm:flex-col sm:gap-3">
             {navigation.map((item) => (
               <Link
                 key={item.href}

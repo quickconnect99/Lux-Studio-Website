@@ -1,4 +1,5 @@
 import { AdaptiveImage as Image } from "@/components/ui/adaptive-image";
+import Link from "next/link";
 import { LinkButton } from "@/components/ui/link-button";
 import { Reveal } from "@/components/ui/reveal";
 import { cn } from "@/lib/utils";
@@ -16,8 +17,8 @@ export function FeaturedProjects({ projects }: FeaturedProjectsProps) {
       <div className="section-shell">
         <div className="divide-y divide-line">
           {projects.map((project, index) => (
-            <article key={project.slug} className="py-8 sm:py-10 lg:py-14">
-              <div className="grid items-center gap-6 sm:gap-8 lg:grid-cols-[0.9fr_1.1fr] lg:gap-10">
+            <article key={project.slug} className="py-5 sm:py-10 lg:py-14">
+              <div className="grid items-center gap-4 sm:gap-8 lg:grid-cols-[0.9fr_1.1fr] lg:gap-10">
                 <Reveal
                   variant="default"
                   direction={index % 2 === 0 ? "left" : "right"}
@@ -34,7 +35,7 @@ export function FeaturedProjects({ projects }: FeaturedProjectsProps) {
                   </span>
 
                   <div className="relative space-y-5 sm:space-y-7">
-                    <div className="flex items-center gap-4">
+                    <div className="hidden items-center gap-4 sm:flex">
                       <span className="metadata-number">0{index + 1}</span>
                       <div className="h-px flex-1 bg-line" />
                     </div>
@@ -43,7 +44,7 @@ export function FeaturedProjects({ projects }: FeaturedProjectsProps) {
                       <p className="eyebrow">
                         {project.business} / {project.category}
                       </p>
-                      <h2 className="font-[family-name:var(--font-display)] text-[2.5rem] uppercase leading-[0.9] tracking-[-0.05em] text-foreground sm:text-5xl lg:text-7xl">
+                      <h2 className="font-[family-name:var(--font-display)] text-[2rem] uppercase leading-[0.94] tracking-[-0.05em] text-foreground sm:text-5xl lg:text-7xl">
                         {project.title.split(" ")[0]}
                         <span className="block pl-5 text-accent-text sm:pl-14">
                           {project.title.split(" ").slice(1).join(" ")}
@@ -61,7 +62,7 @@ export function FeaturedProjects({ projects }: FeaturedProjectsProps) {
                       >
                         Open Project
                       </LinkButton>
-                      <span className="text-[0.65rem] uppercase tracking-meta text-muted">
+                      <span className="hidden text-xs uppercase tracking-meta text-muted sm:inline">
                         Featured project {index + 1} / {projects.length}
                       </span>
                     </div>
@@ -75,7 +76,11 @@ export function FeaturedProjects({ projects }: FeaturedProjectsProps) {
                     index % 2 === 0 ? "order-1 lg:order-2" : "order-1"
                   )}
                 >
-                  <div className="film-frame grain relative aspect-[4/3] overflow-hidden bg-panel-dark sm:aspect-[4/5]">
+                  <Link
+                    href={`/work/${project.slug}`}
+                    aria-label={`Open ${project.title}`}
+                    className="film-frame grain relative block aspect-[4/3] overflow-hidden bg-panel-dark sm:aspect-[4/5]"
+                  >
                     <Image
                       src={project.coverImage}
                       fallbackSrc="/images/hero-poster.svg"
@@ -90,7 +95,7 @@ export function FeaturedProjects({ projects }: FeaturedProjectsProps) {
                         <span>{project.location}</span>
                       </div>
                     </div>
-                  </div>
+                  </Link>
                 </Reveal>
               </div>
             </article>

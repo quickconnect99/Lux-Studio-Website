@@ -166,7 +166,7 @@ export const defaultSiteSettings: SiteSettings = {
     home: {
       selectedWorkLabel: "Selected work",
       heroPrimaryCta: "View Portfolio",
-      heroSecondaryCta: "Start An Inquiry",
+      heroSecondaryCta: "Start A Project",
       videoHeadlineLead: "Built",
       videoHeadlineTrail: "To Be Seen",
       ctaEyebrow: "Next Project",
@@ -221,3 +221,9 @@ export const siteConfig = {
   siteUrl: normalizeSiteUrl(process.env.NEXT_PUBLIC_SITE_URL),
   navigation
 };
+
+export function getProjectCtaLabel(label: string) {
+  return /^start (?:an inquiry|a brief|a project)$/i.test(label.trim())
+    ? "Start A Project"
+    : label;
+}

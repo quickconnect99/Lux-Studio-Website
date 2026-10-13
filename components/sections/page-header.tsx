@@ -19,8 +19,8 @@ export function PageHeader({
   copyLabel
 }: PageHeaderProps) {
   return (
-    <section className="section-shell pb-7 pt-7 sm:pb-10 sm:pt-20">
-      <div className="panel-2xl px-5 py-8 sm:px-10 sm:py-14">
+    <section className="section-shell pb-5 pt-5 sm:pb-8 sm:pt-8">
+      <div className="panel-2xl px-5 py-5 sm:px-8 sm:py-8">
         <Reveal variant="bold">
           <SplitHeadline
             eyebrow={eyebrow}

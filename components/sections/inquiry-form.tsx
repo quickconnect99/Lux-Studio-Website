@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useRef } from "react";
-import { CheckCircle2, LoaderCircle } from "lucide-react";
+import { AlertCircle, CheckCircle2, LoaderCircle } from "lucide-react";
 import { BRIEF_MAX } from "@/lib/inquiry";
 import { useInquiryForm } from "@/hooks/use-inquiry-form";
 import { FieldError } from "@/components/ui/field-error";
@@ -32,17 +32,65 @@ export function InquiryForm({
     startedAt,
     updateField,
     handleSubmit,
+    resetInquiry,
     briefRemaining,
     briefNearLimit,
     briefAtLimit
   } = useInquiryForm();
   const initialServiceApplied = useRef(false);
+  const feedbackRef = useRef<HTMLDivElement>(null);
+  const announcedMessage = useRef("");
+
+  useEffect(() => {
+    if (!message || announcedMessage.current === message) return;
+    announcedMessage.current = message;
+    if (
+      status === "success" ||
+      (status === "error" && Object.keys(errors).length === 0)
+    ) {
+      feedbackRef.current?.focus({ preventScroll: true });
+      feedbackRef.current?.scrollIntoView({
+        block: "center",
+        behavior: "instant"
+      });
+    }
+  }, [status, message, errors]);
 
   useEffect(() => {
     if (initialServiceApplied.current || !initialServiceType) return;
     initialServiceApplied.current = true;
     updateField("serviceType", initialServiceType);
   }, [initialServiceType, updateField]);
+
+  if (status === "success") {
+    return (
+      <div
+        ref={feedbackRef}
+        tabIndex={-1}
+        role="status"
+        className="panel-2xl space-y-5 p-5 sm:p-8"
+      >
+        <CheckCircle2
+          className="h-10 w-10 text-success-text"
+          aria-hidden="true"
+        />
+        <h2 className="font-[family-name:var(--font-display)] text-3xl uppercase">
+          Inquiry received
+        </h2>
+        <p className="description-copy text-foreground">{message}</p>
+        <button
+          type="button"
+          className="action-button"
+          onClick={() => {
+            announcedMessage.current = "";
+            resetInquiry(initialServiceType);
+          }}
+        >
+          Send another inquiry
+        </button>
+      </div>
+    );
+  }
 
   return (
     <form
@@ -65,10 +113,33 @@ export function InquiryForm({
       <p className="mb-5 text-xs uppercase tracking-eyebrow text-muted">
         {label}
       </p>
+      <p className="mb-4 text-sm text-muted">
+        Fields marked <span aria-hidden="true">*</span> are required.
+      </p>
+      {status === "error" && message ? (
+        <div
+          ref={feedbackRef}
+          tabIndex={-1}
+          role="alert"
+          className="mb-5 flex gap-3 rounded-xl border border-error-text bg-panel px-4 py-4 text-sm text-error-text"
+        >
+          <AlertCircle className="h-5 w-5 shrink-0" aria-hidden="true" />
+          <div>
+            <h2 className="font-[family-name:var(--font-display)] text-2xl uppercase leading-none">
+              {Object.keys(errors).length
+                ? "Check your inquiry"
+                : "Unable to send"}
+            </h2>
+            <p className="mt-2">{message}</p>
+          </div>
+        </div>
+      ) : null}
 
       <div className="grid gap-4 sm:grid-cols-2">
         <label className="space-y-2 text-sm text-muted">
-          <span className="text-xs uppercase tracking-eyebrow">Name</span>
+          <span className="text-xs uppercase tracking-eyebrow">
+            Name <span aria-hidden="true">*</span>
+          </span>
           <input
             data-inquiry-field="name"
             required
@@ -87,7 +158,9 @@ export function InquiryForm({
         </label>
 
         <label className="space-y-2 text-sm text-muted">
-          <span className="text-xs uppercase tracking-eyebrow">Email</span>
+          <span className="text-xs uppercase tracking-eyebrow">
+            Email <span aria-hidden="true">*</span>
+          </span>
           <input
             data-inquiry-field="email"
             required
@@ -108,7 +181,10 @@ export function InquiryForm({
       </div>
 
       <label className="mt-4 block space-y-2 text-sm text-muted">
-        <span className="text-xs uppercase tracking-eyebrow">Company</span>
+        <span className="text-xs uppercase tracking-eyebrow">
+          Company{" "}
+          <span className="normal-case tracking-normal">(optional)</span>
+        </span>
         <input
           data-inquiry-field="company"
           autoComplete="organization"
@@ -128,7 +204,9 @@ export function InquiryForm({
       </label>
 
       <label className="mt-4 block space-y-2 text-sm text-muted">
-        <span className="text-xs uppercase tracking-eyebrow">Service Type</span>
+        <span className="text-xs uppercase tracking-eyebrow">
+          Service Type <span aria-hidden="true">*</span>
+        </span>
         <select
           data-inquiry-field="serviceType"
           required
@@ -160,7 +238,9 @@ export function InquiryForm({
       </label>
 
       <label className="mt-4 block space-y-2 text-sm text-muted">
-        <span className="text-xs uppercase tracking-eyebrow">Brief</span>
+        <span className="text-xs uppercase tracking-eyebrow">
+          Brief <span aria-hidden="true">*</span>
+        </span>
         <textarea
           data-inquiry-field="brief"
           required
@@ -208,8 +288,6 @@ export function InquiryForm({
         >
           {status === "submitting" ? (
             <LoaderCircle className="h-4 w-4 animate-spin" />
-          ) : status === "success" ? (
-            <CheckCircle2 className="h-4 w-4 text-success" />
           ) : (
             <CheckCircle2 className="h-4 w-4" />
           )}
@@ -228,23 +306,6 @@ export function InquiryForm({
         </Link>
         .
       </p>
-
-      {message && (
-        <p
-          role={status === "error" ? "alert" : "status"}
-          aria-live={status === "error" ? "assertive" : "polite"}
-          className={cn(
-            "mt-4 text-sm",
-            status === "error"
-              ? "text-error-text"
-              : status === "success"
-                ? "text-success-text"
-                : "text-foreground"
-          )}
-        >
-          {message}
-        </p>
-      )}
     </form>
   );
 }

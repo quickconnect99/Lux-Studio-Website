@@ -80,8 +80,22 @@ export default async function ContactPage({ searchParams }: ContactPageProps) {
 
       <section className="section-shell section-space-tight pt-0">
         <div className="grid gap-6 lg:grid-cols-[0.78fr_1.22fr]">
+          <div className="min-w-0 lg:col-start-2 lg:row-start-1">
+            <a
+              href={`mailto:${settings.contact.email}`}
+              className="mb-4 inline-flex min-h-11 items-center break-all text-sm text-foreground underline underline-offset-4 lg:hidden"
+            >
+              {settings.contact.email}
+            </a>
+            <InquiryForm
+              label={settings.copy.contact.formLabel}
+              submitLabel={settings.copy.contact.submitLabel}
+              serviceOptions={serviceOptions}
+              initialServiceType={initialServiceType}
+            />
+          </div>
           {/* Direct contact panel */}
-          <div className="panel-2xl p-5 sm:p-8">
+          <div className="panel-2xl self-start p-5 sm:p-8 lg:col-start-1 lg:row-start-1">
             <p className="text-xs uppercase tracking-eyebrow text-muted">
               {settings.copy.contact.directLabel}
             </p>
@@ -97,13 +111,6 @@ export default async function ContactPage({ searchParams }: ContactPageProps) {
               <SocialLinks links={settings.social} />
             </div>
           </div>
-
-          <InquiryForm
-            label={settings.copy.contact.formLabel}
-            submitLabel={settings.copy.contact.submitLabel}
-            serviceOptions={serviceOptions}
-            initialServiceType={initialServiceType}
-          />
         </div>
       </section>
     </>

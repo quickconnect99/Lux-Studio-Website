@@ -4,7 +4,6 @@ import Link from "next/link";
 import { PageHeader } from "@/components/sections/page-header";
 import {
   getFormattedBusinessAddress,
-  getMissingPrivacyFields,
   getPublicLegalIdentity,
   isMissingLegalValue,
   legalProfile
@@ -66,7 +65,6 @@ function PrivacyBlock({
 export default async function PrivacyPage() {
   const settings = await getSiteSettings();
   const identity = getPublicLegalIdentity(settings);
-  const missingFields = getMissingPrivacyFields();
   const businessAddress = getFormattedBusinessAddress();
   const inquiryRetentionDays = getInquiryRetentionDays();
   const emailNotificationsConfigured = await isInquiryEmailConfigured();
@@ -77,34 +75,11 @@ export default async function PrivacyPage() {
         eyebrow="Legal"
         lead="Privacy"
         trail="Policy"
-        copy="This page documents the data flows currently visible in the project: the project inquiry form, browser theme storage, and third-party video embeds loaded only after user interaction."
+        copy="How we process project inquiries, store your theme preference, and load third-party videos on this website."
       />
 
       <section className="section-shell pb-14">
         <div className="grid gap-6">
-          {missingFields.length > 0 && (
-            <div className="panel-2xl border-warning/30 bg-warning/10 border p-6 sm:p-7">
-              <p className="text-xs uppercase tracking-eyebrow text-muted">
-                Check Before Launch
-              </p>
-              <p className="mt-4 text-sm leading-7 text-foreground">
-                This privacy policy still contains placeholders for
-                infrastructure details. Please complete the following before
-                deployment:
-              </p>
-              <ul className="mt-4 grid gap-3 sm:grid-cols-3">
-                {missingFields.map((field) => (
-                  <li
-                    key={field.label}
-                    className="border-warning/30 rounded-[1.25rem] border bg-white/35 px-4 py-3 text-sm leading-6 text-foreground"
-                  >
-                    {field.label}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
-
           <PrivacyBlock title="1. Controller">
             <p>
               The controller responsible for data processing on this website is{" "}

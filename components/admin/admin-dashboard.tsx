@@ -28,6 +28,7 @@ import { useAdminData } from "@/hooks/use-admin-data";
 import { useAdminWorkspaceView } from "@/hooks/use-admin-workspace-view";
 import { AdminConfirmModal } from "@/components/admin/admin-confirm-modal";
 import { ProjectSidebar } from "@/components/admin/project-sidebar";
+import { getMissingImprintFields, getMissingPrivacyFields } from "@/lib/legal";
 
 function AdminModuleLoading({ label }: { label: string }) {
   return (
@@ -181,6 +182,12 @@ export function AdminDashboard() {
   const liveProjectHref =
     formState.id && formState.published ? `/work/${formState.slug}` : null;
   const canEditCms = !isSupabaseConfigured || Boolean(sessionEmail);
+  const legalContentIssues = [
+    ...getMissingImprintFields({
+      brand: { name: siteSettingsFormState.brandName }
+    }),
+    ...getMissingPrivacyFields()
+  ];
 
   const {
     activeField,
@@ -225,7 +232,7 @@ export function AdminDashboard() {
     <section className="mx-auto w-full max-w-[1800px] space-y-5 px-3 pb-16 pt-3 sm:px-5 sm:pb-24 lg:px-7">
       <header className="border-line/80 bg-background/95 -mx-3 border-b px-3 py-3 backdrop-blur-xl sm:-mx-5 sm:px-5 md:sticky md:top-0 md:z-40 lg:-mx-7 lg:px-7">
         <div className="flex flex-wrap items-center justify-between gap-3">
-          <div className="flex flex-wrap items-center gap-3">
+          <div className="flex min-w-0 max-w-full flex-wrap items-center gap-3">
             <a
               href="/"
               target="_blank"
@@ -256,14 +263,14 @@ export function AdminDashboard() {
               <div
                 role="tablist"
                 aria-label="Admin workspace"
-                className="inline-flex gap-1 rounded-full border border-line bg-panel-secondary p-1"
+                className="mobile-scroll-affordance inline-flex min-w-0 max-w-full gap-1 overflow-x-auto rounded-full border border-line bg-panel-secondary p-1"
               >
                 <button
                   type="button"
                   onClick={() => setActiveTab("projects")}
                   role="tab"
                   aria-selected={activeTab === "projects"}
-                  className={`inline-flex min-h-11 items-center gap-2 rounded-full px-4 py-2 text-xs uppercase tracking-eyebrow transition-colors ${
+                  className={`inline-flex min-h-11 shrink-0 items-center gap-2 rounded-full px-4 py-2 text-xs uppercase tracking-eyebrow transition-colors ${
                     activeTab === "projects"
                       ? "bg-foreground text-background"
                       : "text-muted hover:text-foreground"
@@ -280,7 +287,7 @@ export function AdminDashboard() {
                   onClick={() => setActiveTab("settings")}
                   role="tab"
                   aria-selected={activeTab === "settings"}
-                  className={`inline-flex min-h-11 items-center gap-2 rounded-full px-4 py-2 text-xs uppercase tracking-eyebrow transition-colors ${
+                  className={`inline-flex min-h-11 shrink-0 items-center gap-2 rounded-full px-4 py-2 text-xs uppercase tracking-eyebrow transition-colors ${
                     activeTab === "settings"
                       ? "bg-foreground text-background"
                       : "text-muted hover:text-foreground"
@@ -297,7 +304,7 @@ export function AdminDashboard() {
                   onClick={() => setActiveTab("users")}
                   role="tab"
                   aria-selected={activeTab === "users"}
-                  className={`inline-flex min-h-11 items-center gap-2 rounded-full px-4 py-2 text-xs uppercase tracking-eyebrow transition-colors ${
+                  className={`inline-flex min-h-11 shrink-0 items-center gap-2 rounded-full px-4 py-2 text-xs uppercase tracking-eyebrow transition-colors ${
                     activeTab === "users"
                       ? "bg-foreground text-background"
                       : "text-muted hover:text-foreground"
@@ -311,7 +318,7 @@ export function AdminDashboard() {
                   onClick={() => setActiveTab("email")}
                   role="tab"
                   aria-selected={activeTab === "email"}
-                  className={`inline-flex min-h-11 items-center gap-2 rounded-full px-4 py-2 text-xs uppercase tracking-eyebrow transition-colors ${
+                  className={`inline-flex min-h-11 shrink-0 items-center gap-2 rounded-full px-4 py-2 text-xs uppercase tracking-eyebrow transition-colors ${
                     activeTab === "email"
                       ? "bg-foreground text-background"
                       : "text-muted hover:text-foreground"
@@ -743,6 +750,25 @@ export function AdminDashboard() {
             moveAboutTeamMemberImageFile={moveAboutTeamMemberImageFile}
             handleFileSelection={handleFileSelection}
           />
+          <details className="panel-2xl mt-5 p-5 text-sm text-muted">
+            <summary className="cursor-pointer text-foreground">
+              Legal content checks
+              {legalContentIssues.length
+                ? ` · ${legalContentIssues.length} missing details`
+                : " · No missing details detected"}
+            </summary>
+            <p className="mt-3">
+              Company and infrastructure details are maintained in the legal
+              profile.
+            </p>
+            {legalContentIssues.length ? (
+              <ul className="mt-3 list-inside list-disc space-y-2">
+                {legalContentIssues.map((issue) => (
+                  <li key={issue.label}>{issue.label}</li>
+                ))}
+              </ul>
+            ) : null}
+          </details>
         </AdminErrorBoundary>
       ) : null}
 

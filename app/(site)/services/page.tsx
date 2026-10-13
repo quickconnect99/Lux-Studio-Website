@@ -1,9 +1,13 @@
 import type { Metadata } from "next";
 import Script from "next/script";
+import Link from "next/link";
 import { Film } from "lucide-react";
 import { LinkButton } from "@/components/ui/link-button";
 import { PageHeader } from "@/components/sections/page-header";
-import { getInquiryServiceType } from "@/components/sections/service-inquiry-options";
+import {
+  getInquiryServiceType,
+  getRelatedProjectCategory
+} from "@/components/sections/service-inquiry-options";
 import { RevealList } from "@/components/ui/reveal-list";
 import { serviceIcons } from "@/lib/content";
 import { serializeJsonLd } from "@/lib/json-ld";
@@ -12,7 +16,7 @@ import {
   resolveSharingImage
 } from "@/lib/sharing-metadata";
 import { buildPageStructuredData } from "@/lib/site-structured-data";
-import { getSiteSettings } from "@/lib/supabase";
+import { getSiteSettings, getPublishedProjects } from "@/lib/supabase";
 
 const pageTitle = "Services";
 const pageDescription =
@@ -42,7 +46,10 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function ServicesPage() {
-  const settings = await getSiteSettings();
+  const [settings, projects] = await Promise.all([
+    getSiteSettings(),
+    getPublishedProjects()
+  ]);
   const structuredData = buildPageStructuredData({
     name: pageTitle,
     description: pageDescription,
@@ -68,24 +75,26 @@ export default async function ServicesPage() {
           <RevealList
             items={settings.services}
             getKey={(s) => s.number}
-            itemClassName="grid gap-6 rounded-[2rem] border border-line bg-panel-secondary p-6 shadow-card lg:grid-cols-[140px_1fr_0.9fr]"
+            itemClassName="grid grid-cols-[2.75rem_minmax(0,1fr)] gap-4 rounded-[2rem] border border-line bg-panel-secondary p-5 shadow-card sm:p-6 lg:grid-cols-[80px_1fr_0.9fr]"
             render={(service) => {
               const Icon = serviceIcons[service.number] ?? Film;
+              const relatedCategory = getRelatedProjectCategory(
+                service,
+                projects
+              );
               return (
                 <>
                   {/* Service number + icon */}
-                  <div className="flex items-start gap-3">
+                  <div className="flex flex-col items-center gap-2">
                     <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[0.75rem] border border-line bg-panel">
                       <Icon className="h-4 w-4 text-accent-text" />
                     </div>
-                    <span className="metadata-number pt-2.5">
-                      {service.number}
-                    </span>
+                    <span className="metadata-number">{service.number}</span>
                   </div>
 
                   {/* Title + description */}
-                  <div className="space-y-4">
-                    <h2 className="font-[family-name:var(--font-display)] text-4xl uppercase leading-none">
+                  <div className="space-y-3">
+                    <h2 className="font-[family-name:var(--font-display)] text-[1.75rem] uppercase leading-none sm:text-4xl">
                       {service.title}
                     </h2>
                     <p className="description-copy-compact max-w-2xl text-muted">
@@ -94,35 +103,36 @@ export default async function ServicesPage() {
                   </div>
 
                   {/* Deliverables */}
-                  <div className="space-y-5">
-                    <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-1">
+                  <div className="col-span-2 space-y-4 lg:col-span-1">
+                    <ul className="grid gap-x-4 gap-y-2 sm:grid-cols-2 lg:grid-cols-1">
                       {service.deliverables.map((item) => (
-                        <div
+                        <li
                           key={item}
-                          className="metadata-card metadata-label border-l-2 border-l-accent pl-4"
+                          className="border-l-2 border-accent pl-3 text-sm text-muted"
                         >
                           {item}
-                        </div>
+                        </li>
                       ))}
-                    </div>
-                    <div className="grid gap-2 sm:flex sm:flex-wrap">
+                    </ul>
+                    <div className="flex flex-wrap items-center gap-x-5 gap-y-2">
                       <LinkButton
                         href={`/contact?service=${encodeURIComponent(
                           getInquiryServiceType(service)
                         )}`}
                         className="w-full sm:w-auto"
                       >
-                        Start A Brief
+                        Start A Project
                       </LinkButton>
-                      <LinkButton
-                        href={`/work?category=${encodeURIComponent(
-                          getInquiryServiceType(service)
-                        )}`}
-                        variant="secondary"
-                        className="w-full sm:w-auto"
+                      <Link
+                        href={
+                          relatedCategory
+                            ? `/work?category=${encodeURIComponent(relatedCategory)}`
+                            : "/work"
+                        }
+                        className="inline-flex min-h-11 items-center text-sm text-foreground underline underline-offset-4"
                       >
-                        Related Work
-                      </LinkButton>
+                        {relatedCategory ? "Related Work" : "View Portfolio"}
+                      </Link>
                     </div>
                   </div>
                 </>

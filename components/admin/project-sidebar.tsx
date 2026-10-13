@@ -66,16 +66,16 @@ export function ProjectSidebar({
             : "hover:border-foreground/30 border-line bg-panel-secondary text-foreground"
         }`}
       >
-        <div className="flex items-start justify-between gap-2">
+        <div className="flex flex-wrap items-start justify-between gap-2">
           <p className="text-[0.58rem] uppercase tracking-eyebrow opacity-70">
             {project.business} / {project.category}
           </p>
           <div className="flex shrink-0 gap-1">
             {project.isTemplate ? (
               <span
-                className={`rounded-full px-1.5 py-0.5 text-[0.5rem] uppercase tracking-wider ${
+                className={`rounded-full px-2 py-1 text-xs uppercase tracking-ui ${
                   isActive
-                    ? "bg-white/20 text-white"
+                    ? "bg-background/10 text-background"
                     : "bg-accent/15 text-accent-text"
                 }`}
               >
@@ -84,9 +84,9 @@ export function ProjectSidebar({
             ) : null}
             {project.featured ? (
               <span
-                className={`rounded-full px-1.5 py-0.5 text-[0.5rem] font-medium ${
+                className={`rounded-full px-2 py-1 text-xs font-medium ${
                   isActive
-                    ? "bg-white/20 text-white"
+                    ? "bg-background/10 text-background"
                     : "bg-accent/15 text-accent-text"
                 }`}
               >
@@ -95,9 +95,9 @@ export function ProjectSidebar({
             ) : null}
             {!project.published && !project.isTemplate ? (
               <span
-                className={`rounded-full px-1.5 py-0.5 text-[0.5rem] uppercase tracking-wider ${
+                className={`rounded-full px-2 py-1 text-xs uppercase tracking-ui ${
                   isActive
-                    ? "bg-white/20 text-white/70"
+                    ? "bg-background/10 text-background"
                     : "bg-muted/15 text-muted"
                 }`}
               >
@@ -113,7 +113,7 @@ export function ProjectSidebar({
           {project.category} · {project.location}
         </p>
         {project.isTemplate ? (
-          <p className="mt-2 text-[0.62rem] leading-5 opacity-65">
+          <p className="mt-2 text-sm leading-5 opacity-80">
             Saving creates a new project. The template stays unchanged.
           </p>
         ) : null}
@@ -213,7 +213,7 @@ export function ProjectSidebar({
             {!templatesCollapsed ? (
               <div
                 id="admin-template-list"
-                className="mt-2 max-h-64 space-y-2 overflow-y-auto pr-1"
+                className="mt-2 space-y-2 pr-1 sm:max-h-64 sm:overflow-y-auto"
               >
                 {templates.map(renderProjectButton)}
               </div>
@@ -225,7 +225,7 @@ export function ProjectSidebar({
           <p className="text-[0.58rem] uppercase tracking-[0.28em] text-muted">
             Saved projects
           </p>
-          <div className="mt-2 max-h-[24rem] space-y-2 overflow-y-auto pr-1 xl:max-h-none xl:min-h-0 xl:flex-1">
+          <div className="mt-2 space-y-2 pr-1 sm:max-h-[24rem] sm:overflow-y-auto xl:max-h-none xl:min-h-0 xl:flex-1">
             {filtered.length === 0 ? (
               <p className="rounded-[1.25rem] border border-line bg-panel-secondary px-4 py-6 text-center text-xs text-muted">
                 No saved projects found.

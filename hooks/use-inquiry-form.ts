@@ -77,18 +77,19 @@ export function useInquiryForm() {
     }, 450);
   }
 
+  function focusField(field: string) {
+    window.requestAnimationFrame(() => {
+      const input = document.querySelector<HTMLElement>(
+        `[data-inquiry-field="${field}"]`
+      );
+      input?.focus({ preventScroll: true });
+      input?.scrollIntoView({ block: "center", behavior: "instant" });
+    });
+  }
+
   function focusFirstInvalidField(nextErrors: InquiryErrors) {
     const firstField = Object.keys(nextErrors)[0];
-
-    if (!firstField) {
-      return;
-    }
-
-    window.requestAnimationFrame(() => {
-      document
-        .querySelector<HTMLElement>(`[data-inquiry-field="${firstField}"]`)
-        ?.focus();
-    });
+    if (firstField) focusField(firstField);
   }
 
   async function handleSubmit(event: { preventDefault(): void }) {
@@ -170,6 +171,16 @@ export function useInquiryForm() {
   const briefNearLimit = briefRemaining <= 150;
   const briefAtLimit = briefRemaining <= 0;
 
+  function resetInquiry(serviceType: Inquiry["serviceType"] = "") {
+    setFormState({ ...initialState, serviceType });
+    setErrors({});
+    setStatus("idle");
+    setMessage("");
+    setWebsite("");
+    setStartedAt(Date.now());
+    focusField("name");
+  }
+
   return {
     formState,
     errors,
@@ -181,6 +192,7 @@ export function useInquiryForm() {
     startedAt,
     updateField,
     handleSubmit,
+    resetInquiry,
     briefRemaining,
     briefNearLimit,
     briefAtLimit

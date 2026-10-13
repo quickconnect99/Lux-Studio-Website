@@ -13,9 +13,7 @@ export function isPlaceholderTeamImage(source: string) {
 }
 
 export function TeamTabs({ members }: TeamTabsProps) {
-  const visibleMembers = members.filter(
-    (member) => member.image.trim() && !isPlaceholderTeamImage(member.image)
-  );
+  const visibleMembers = members.filter((member) => member.name.trim());
 
   if (visibleMembers.length === 0) return null;
 
@@ -35,30 +33,38 @@ export function TeamTabs({ members }: TeamTabsProps) {
         <div className="space-y-10 sm:space-y-14">
           {visibleMembers.map((member, index) => {
             const isReversed = index % 2 === 1;
+            const hasPortrait =
+              Boolean(member.image.trim()) &&
+              !isPlaceholderTeamImage(member.image);
 
             return (
               <article
                 key={`${member.name}-${index}`}
                 className={cn(
-                  "grid gap-6 border-t border-line pt-8 first:border-t-0 first:pt-0 lg:grid-cols-[minmax(280px,0.72fr)_minmax(0,1fr)] lg:items-center lg:gap-10",
-                  isReversed &&
+                  "grid gap-6 border-t border-line pt-8 first:border-t-0 first:pt-0 lg:items-center lg:gap-10",
+                  hasPortrait &&
+                    "lg:grid-cols-[minmax(280px,0.72fr)_minmax(0,1fr)]",
+                  hasPortrait &&
+                    isReversed &&
                     "lg:grid-cols-[minmax(0,1fr)_minmax(280px,0.72fr)]"
                 )}
               >
-                <div
-                  className={cn(
-                    "film-frame relative aspect-[4/5] overflow-hidden bg-panel-dark",
-                    isReversed && "lg:order-2"
-                  )}
-                >
-                  <Image
-                    src={member.image}
-                    alt={`${member.name}, ${member.title}`}
-                    fill
-                    sizes="(min-width: 1024px) 36vw, 100vw"
-                    className="object-cover"
-                  />
-                </div>
+                {hasPortrait ? (
+                  <div
+                    className={cn(
+                      "film-frame relative aspect-[4/5] overflow-hidden bg-panel-dark",
+                      isReversed && "lg:order-2"
+                    )}
+                  >
+                    <Image
+                      src={member.image}
+                      alt={`${member.name}, ${member.title}`}
+                      fill
+                      sizes="(min-width: 1024px) 36vw, 100vw"
+                      className="object-cover"
+                    />
+                  </div>
+                ) : null}
 
                 <div
                   className={cn(

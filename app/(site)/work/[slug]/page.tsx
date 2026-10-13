@@ -8,6 +8,7 @@ import { ProjectImageCarousel } from "@/components/sections/project-image-carous
 import { LinkButton } from "@/components/ui/link-button";
 import { Reveal } from "@/components/ui/reveal";
 import { serializeJsonLd } from "@/lib/json-ld";
+import { normalizeProjectGallery } from "@/lib/project-images";
 import {
   getProjectPrimaryMetaLabel,
   parseProjectBusinessParam,
@@ -110,9 +111,14 @@ export default async function ProjectPage({
           (Math.max(currentIndex, 0) + 1) % navigableProjects.length
         ]
       : null;
-  // `project.galleryItems` is already deduplicated and index-aligned by
-  // `normalizeProjectRecord`, including any independently maintained alt text.
-  const galleryItems = project.galleryItems ?? [];
+  // CMS rows are normalized already; local/legacy projects still use arrays.
+  const galleryItems =
+    project.galleryItems ??
+    normalizeProjectGallery({
+      coverImage: project.coverImage,
+      galleryImages: project.galleryImages,
+      galleryCaptions: project.galleryCaptions ?? []
+    }).items;
   const carouselImages = [
     project.coverImage,
     ...galleryItems.map((item) => item.image)
@@ -144,9 +150,9 @@ export default async function ProjectPage({
           dangerouslySetInnerHTML={{ __html: serializeJsonLd(videoSchema) }}
         />
       )}
-      <section className="section-shell pb-8 pt-7 sm:pb-10 sm:pt-20">
-        <div className="grid gap-8 lg:grid-cols-[0.85fr_1.15fr]">
-          <Reveal className="space-y-6">
+      <section className="section-shell pb-6 pt-5 sm:pb-10 sm:pt-8">
+        <div className="grid gap-5 lg:grid-cols-[0.85fr_1.15fr]">
+          <Reveal className="min-w-0 space-y-4">
             <p className="eyebrow">
               {project.business} / {project.category}
             </p>
@@ -158,6 +164,19 @@ export default async function ProjectPage({
                 </span>
               ) : null}
             </h1>
+            <p className="text-sm text-muted">
+              {primarySubject} · {project.location} · {project.year}
+            </p>
+          </Reveal>
+
+          <Reveal
+            delay={0.1}
+            direction="right"
+            className="min-w-0 lg:row-span-2"
+          >
+            <ProjectMedia project={project} />
+          </Reveal>
+          <Reveal className="min-w-0 space-y-5">
             <MetadataGrid
               items={[
                 {
@@ -183,10 +202,6 @@ export default async function ProjectPage({
                 {project.fullDescription}
               </p>
             </div>
-          </Reveal>
-
-          <Reveal delay={0.1} direction="right">
-            <ProjectMedia project={project} />
           </Reveal>
         </div>
       </section>
@@ -239,7 +254,7 @@ export default async function ProjectPage({
 
             <div className="grid gap-3 sm:flex sm:flex-wrap sm:items-center sm:gap-4">
               <LinkButton href="/contact" className="w-full sm:w-auto">
-                Start A Brief
+                Start A Project
               </LinkButton>
               {nextProject ? (
                 <LinkButton

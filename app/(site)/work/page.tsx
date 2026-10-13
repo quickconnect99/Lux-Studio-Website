@@ -75,7 +75,7 @@ export default async function WorkPage({ searchParams }: WorkPageProps) {
       )?.category
     : null;
   const initialCategory =
-    requestedCategory && matchingCategory ? matchingCategory : null;
+    matchingCategory ?? requestedCategory?.trim().slice(0, 80) ?? null;
 
   const copy = initialBusiness
     ? `Selected ${initialBusiness.toLowerCase()} work.`

@@ -2,14 +2,11 @@
 
 import { ResilientImage as Image } from "@/components/ui/resilient-image";
 import Link from "next/link";
-import { startTransition, useMemo, useState } from "react";
+import { startTransition, useEffect, useMemo, useRef, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { AnimatePresence, m } from "framer-motion";
 import { ArrowUpRight } from "lucide-react";
-import {
-  getProjectPrimaryMetaLabel,
-  projectBusinessToParam
-} from "@/lib/project-business";
+import { projectBusinessToParam } from "@/lib/project-business";
 import type { Project, ProjectBusiness } from "@/lib/types";
 import { motionDuration, motionEase } from "@/lib/motion";
 import { cn } from "@/lib/utils";
@@ -34,6 +31,7 @@ export function ProjectGrid({
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
+  const filterRef = useRef<HTMLDivElement>(null);
   const availableBusinesses = useMemo(
     () =>
       Array.from(new Set(projects.map((project) => project.business))).filter(
@@ -70,7 +68,7 @@ export function ProjectGrid({
         (project) =>
           normalizeFilterValue(project.category) ===
           normalizeFilterValue(initialCategory)
-      )?.category ?? null
+      )?.category ?? initialCategory
     );
   }, [projects, resolvedInitialBusiness, initialCategory]);
   const [activeBusiness, setActiveBusiness] = useState<
@@ -107,9 +105,12 @@ export function ProjectGrid({
   const categories = useMemo(
     () => [
       ALL,
-      ...new Set(businessFilteredProjects.map((project) => project.category))
+      ...new Set([
+        ...businessFilteredProjects.map((project) => project.category),
+        ...(activeCategory === ALL ? [] : [activeCategory])
+      ])
     ],
-    [businessFilteredProjects]
+    [businessFilteredProjects, activeCategory]
   );
 
   const filteredProjects = useMemo(
@@ -130,6 +131,17 @@ export function ProjectGrid({
     activeBusiness === ALL
       ? ""
       : `?business=${projectBusinessToParam(activeBusiness)}`;
+
+  useEffect(() => {
+    filterRef.current
+      ?.querySelectorAll<HTMLElement>('[aria-pressed="true"]')
+      .forEach((button) => {
+        const row = button.parentElement;
+        if (row && row.scrollWidth > row.clientWidth) {
+          row.scrollLeft = Math.max(0, button.offsetLeft - row.offsetLeft - 16);
+        }
+      });
+  }, [activeBusiness, activeCategory]);
 
   function syncParams(
     updates: Partial<Record<"business" | "category", string | typeof ALL>>
@@ -166,67 +178,71 @@ export function ProjectGrid({
 
   return (
     <section className="section-shell pb-14 sm:pb-20">
-      {availableBusinesses.length > 1 ? (
-        <fieldset className="border-y border-line py-4 sm:py-5">
+      <div ref={filterRef} className="min-w-0">
+        {availableBusinesses.length > 1 ? (
+          <fieldset className="min-w-0 border-y border-line py-4 sm:py-5">
+            <legend className="px-0 text-xs font-medium uppercase tracking-eyebrow text-muted">
+              Business
+            </legend>
+            <div className="mobile-scroll-affordance mt-3 flex max-w-full gap-2 overflow-x-auto sm:flex-wrap sm:gap-3">
+              {businessFilters.map((business) => (
+                <m.button
+                  key={business}
+                  type="button"
+                  aria-label={
+                    business === ALL
+                      ? "All businesses"
+                      : `Business: ${business}`
+                  }
+                  aria-pressed={activeBusiness === business}
+                  onClick={() => selectBusiness(business)}
+                  whileTap={{ scale: 0.94 }}
+                  transition={{ duration: 0.15 }}
+                  className={cn(
+                    "min-h-11 shrink-0 whitespace-nowrap rounded-full border px-4 py-2 text-xs font-medium uppercase tracking-ui",
+                    "transition-colors duration-150",
+                    activeBusiness === business
+                      ? "border-foreground bg-foreground text-background"
+                      : "border-line bg-panel-secondary text-muted hover:border-accent hover:bg-panel hover:text-foreground"
+                  )}
+                >
+                  {business}
+                </m.button>
+              ))}
+            </div>
+          </fieldset>
+        ) : null}
+
+        <fieldset className="min-w-0 py-4 sm:py-5">
           <legend className="px-0 text-xs font-medium uppercase tracking-eyebrow text-muted">
-            Business
+            Category
           </legend>
-          <div className="mobile-scroll-affordance no-scrollbar -mx-4 mt-3 flex gap-2 overflow-x-auto px-4 sm:mx-0 sm:flex-wrap sm:gap-3 sm:px-0">
-            {businessFilters.map((business) => (
+          <div className="mobile-scroll-affordance mt-3 flex max-w-full gap-2 overflow-x-auto sm:flex-wrap sm:gap-3">
+            {categories.map((category) => (
               <m.button
-                key={business}
+                key={category}
                 type="button"
                 aria-label={
-                  business === ALL ? "All businesses" : `Business: ${business}`
+                  category === ALL ? "All categories" : `Category: ${category}`
                 }
-                aria-pressed={activeBusiness === business}
-                onClick={() => selectBusiness(business)}
+                aria-pressed={activeCategory === category}
+                onClick={() => selectCategory(category)}
                 whileTap={{ scale: 0.94 }}
                 transition={{ duration: 0.15 }}
                 className={cn(
                   "min-h-11 shrink-0 whitespace-nowrap rounded-full border px-4 py-2 text-xs font-medium uppercase tracking-ui",
                   "transition-colors duration-150",
-                  activeBusiness === business
+                  activeCategory === category
                     ? "border-foreground bg-foreground text-background"
                     : "border-line bg-panel-secondary text-muted hover:border-accent hover:bg-panel hover:text-foreground"
                 )}
               >
-                {business}
+                {category}
               </m.button>
             ))}
           </div>
         </fieldset>
-      ) : null}
-
-      <fieldset className="py-4 sm:py-5">
-        <legend className="px-0 text-xs font-medium uppercase tracking-eyebrow text-muted">
-          Category
-        </legend>
-        <div className="mobile-scroll-affordance no-scrollbar -mx-4 mt-3 flex gap-2 overflow-x-auto px-4 sm:mx-0 sm:flex-wrap sm:gap-3 sm:px-0">
-          {categories.map((category) => (
-            <m.button
-              key={category}
-              type="button"
-              aria-label={
-                category === ALL ? "All categories" : `Category: ${category}`
-              }
-              aria-pressed={activeCategory === category}
-              onClick={() => selectCategory(category)}
-              whileTap={{ scale: 0.94 }}
-              transition={{ duration: 0.15 }}
-              className={cn(
-                "min-h-11 shrink-0 whitespace-nowrap rounded-full border px-4 py-2 text-xs font-medium uppercase tracking-ui",
-                "transition-colors duration-150",
-                activeCategory === category
-                  ? "border-foreground bg-foreground text-background"
-                  : "border-line bg-panel-secondary text-muted hover:border-accent hover:bg-panel hover:text-foreground"
-              )}
-            >
-              {category}
-            </m.button>
-          ))}
-        </div>
-      </fieldset>
+      </div>
 
       <p
         className="border-t border-line py-3 text-[0.68rem] font-medium uppercase tracking-meta text-muted sm:py-4"
@@ -291,10 +307,10 @@ export function ProjectGrid({
                   data-work-project={project.slug}
                   className="group block overflow-hidden rounded-[1.5rem] border border-line bg-panel-secondary shadow-card sm:rounded-[2rem]"
                 >
-                  <div className="relative aspect-[4/3] overflow-hidden sm:aspect-[4/5]">
+                  <div className="relative aspect-[4/3] overflow-hidden">
                     <Image
                       src={project.coverImage}
-                      fallbackSrc="/images/hero-poster.svg"
+                      fallbackSrc="/images/car-pictures/midnight-aeroline-03.jpg"
                       alt={`${project.title}, ${project.carModel || project.category} in ${project.location}`}
                       fill
                       preload={index === 0}
@@ -318,32 +334,9 @@ export function ProjectGrid({
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-4 border-t border-line p-4 sm:grid-cols-[1.1fr_1fr_1fr_auto] sm:p-5">
-                    <div>
-                      <p className="text-[0.68rem] uppercase tracking-[0.2em] text-muted">
-                        {getProjectPrimaryMetaLabel(project.business)}
-                      </p>
-                      <p className="mt-2 text-[0.78rem] font-medium uppercase tracking-[0.1em] text-foreground">
-                        {project.carModel || project.category}
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-[0.68rem] uppercase tracking-[0.2em] text-muted">
-                        Category
-                      </p>
-                      <p className="mt-2 text-[0.78rem] font-medium uppercase tracking-[0.1em] text-foreground">
-                        {project.category}
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-[0.68rem] uppercase tracking-[0.2em] text-muted">
-                        Location
-                      </p>
-                      <p className="mt-2 text-[0.78rem] uppercase tracking-[0.1em] text-foreground">
-                        {project.location}
-                      </p>
-                    </div>
-                    <span className="col-span-2 inline-flex items-center justify-between gap-1.5 border-t border-line pt-3 text-[0.72rem] font-medium uppercase tracking-[0.12em] text-foreground transition-colors duration-150 group-hover:text-accent-text sm:col-span-1 sm:justify-start sm:border-0 sm:pt-0">
+                  <div className="flex items-center justify-between gap-4 border-t border-line p-4 sm:p-5">
+                    <p className="text-sm text-muted">{project.location}</p>
+                    <span className="inline-flex shrink-0 items-center gap-1.5 text-xs font-medium uppercase tracking-ui text-foreground transition-colors duration-150 group-hover:text-accent-text">
                       Open Project
                       <ArrowUpRight className="h-3.5 w-3.5 transition-transform duration-300 group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
                     </span>

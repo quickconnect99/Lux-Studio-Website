@@ -10,6 +10,7 @@ import { useMotionPreference } from "@/components/ui/motion-preference-provider"
 import { SplitHeadline } from "@/components/ui/split-headline";
 import type { SiteSettings } from "@/lib/types";
 import { resolveVideoSource } from "@/lib/video";
+import { getProjectCtaLabel } from "@/lib/site-config";
 
 type HomeHeroProps = {
   hero: SiteSettings["hero"];
@@ -166,7 +167,7 @@ export function HomeHero({ hero, copy }: HomeHeroProps) {
         data-home-hero-atmosphere
         className="absolute inset-x-0 top-8 -z-10 h-[500px] rounded-[3rem] bg-hero-radial blur-3xl"
       />
-      <div className="grid gap-7 sm:gap-10 lg:items-center xl:grid-cols-[0.95fr_1.05fr]">
+      <div className="grid gap-7 sm:gap-10 lg:grid-cols-[0.95fr_1.05fr] lg:items-center">
         <m.div
           initial={{ opacity: 1, y: 28 }}
           animate={{ opacity: 1, y: 0 }}
@@ -181,6 +182,7 @@ export function HomeHero({ hero, copy }: HomeHeroProps) {
         >
           <p className="eyebrow">{hero.eyebrow}</p>
           <SplitHeadline
+            className="[&_h1]:text-[clamp(2.75rem,13vw,7rem)]"
             lead={hero.headlineLead}
             trail={hero.headlineTrail}
             copy={hero.copy}
@@ -194,7 +196,7 @@ export function HomeHero({ hero, copy }: HomeHeroProps) {
               variant="secondary"
               className="w-full sm:w-auto"
             >
-              {copy.heroSecondaryCta}
+              {getProjectCtaLabel(copy.heroSecondaryCta)}
             </LinkButton>
           </div>
         </m.div>
@@ -215,7 +217,7 @@ export function HomeHero({ hero, copy }: HomeHeroProps) {
             delay: 0.08,
             ease: motionEase
           }}
-          className="relative min-h-[360px] overflow-hidden rounded-[1.35rem] border border-white/25 bg-black text-white shadow-halo sm:min-h-[420px] sm:rounded-[1.75rem] lg:min-h-[560px]"
+          className="relative aspect-[4/3] min-h-[280px] overflow-hidden rounded-[1.35rem] border border-white/25 bg-black text-white shadow-halo sm:min-h-[360px] sm:rounded-[1.75rem] lg:min-h-0"
         >
           {fileVideoSrc ? (
             <video
@@ -225,7 +227,7 @@ export function HomeHero({ hero, copy }: HomeHeroProps) {
               loop
               playsInline
               preload="metadata"
-              poster="/images/hero-poster.svg"
+              poster="/images/car-pictures/midnight-aeroline-03.jpg"
               onError={() => {
                 setIsPlaying(false);
               }}
@@ -266,7 +268,7 @@ export function HomeHero({ hero, copy }: HomeHeroProps) {
                           ? "Pause showreel video"
                           : "Play showreel video"
                       }
-                      className="inline-flex min-h-11 items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3 py-2 text-[0.62rem] tracking-[0.18em] text-white/85 backdrop-blur disabled:opacity-50"
+                      className="inline-flex min-h-11 min-w-11 items-center justify-center gap-2 rounded-full border border-white/20 bg-white/10 px-3 py-2 text-xs tracking-ui text-white/85 backdrop-blur disabled:opacity-50"
                     >
                       {isPlaying ? (
                         <Pause className="h-3.5 w-3.5" />
@@ -283,7 +285,7 @@ export function HomeHero({ hero, copy }: HomeHeroProps) {
                           ? "Turn hero reel sound on"
                           : "Turn hero reel sound off"
                       }
-                      className="inline-flex min-h-11 shrink-0 items-center justify-center gap-2 rounded-full border border-white/20 bg-white/10 px-3 py-2 text-[0.62rem] tracking-[0.14em] text-white/85 backdrop-blur"
+                      className="inline-flex min-h-11 min-w-11 shrink-0 items-center justify-center gap-2 rounded-full border border-white/20 bg-white/10 px-3 py-2 text-xs tracking-ui text-white/85 backdrop-blur"
                     >
                       {isMuted ? (
                         <VolumeX className="h-3.5 w-3.5" />

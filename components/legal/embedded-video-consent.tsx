@@ -24,19 +24,21 @@ export function EmbeddedVideoConsent({
 
   if (enabled) {
     return (
-      <iframe
-        src={embedSrc}
-        title={`${title} video`}
-        allow="autoplay; fullscreen; picture-in-picture"
-        allowFullScreen
-        referrerPolicy="strict-origin-when-cross-origin"
-        className="absolute inset-0 h-full w-full border-0"
-      />
+      <div className="relative aspect-video min-h-[240px] sm:min-h-[420px]">
+        <iframe
+          src={embedSrc}
+          title={`${title} video`}
+          allow="autoplay; fullscreen; picture-in-picture"
+          allowFullScreen
+          referrerPolicy="strict-origin-when-cross-origin"
+          className="absolute inset-0 h-full w-full border-0"
+        />
+      </div>
     );
   }
 
   return (
-    <div className="absolute inset-0">
+    <div className="relative flex min-h-[320px] items-end sm:min-h-[420px]">
       {posterSrc ? (
         <Image
           src={posterSrc}
@@ -49,7 +51,7 @@ export function EmbeddedVideoConsent({
       ) : null}
       <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(5,8,10,0.24)_0%,rgba(5,8,10,0.82)_100%)]" />
 
-      <div className="absolute inset-x-0 bottom-0 z-10 p-6 text-white sm:p-8">
+      <div className="relative z-10 w-full px-4 pb-4 pt-16 text-white sm:p-8 sm:pt-20">
         <div className="max-w-xl rounded-[1.75rem] border border-white/15 bg-black/70 p-5 backdrop-blur-md">
           <p className="font-mono text-[0.68rem] uppercase tracking-[0.28em] text-accent">
             External video / {providerLabel}
@@ -76,7 +78,7 @@ export function EmbeddedVideoConsent({
               href={externalHref}
               target="_blank"
               rel="noreferrer"
-              className="text-white/82 inline-flex items-center gap-2 text-xs uppercase tracking-ui transition-colors duration-150 hover:text-accent"
+              className="text-white/82 inline-flex min-h-11 items-center gap-2 text-xs uppercase tracking-ui transition-colors duration-150 hover:text-accent"
             >
               Watch on {providerLabel}
               <ExternalLink className="h-3.5 w-3.5" />
@@ -84,7 +86,7 @@ export function EmbeddedVideoConsent({
 
             <Link
               href="/datenschutz"
-              className="text-white/68 text-xs uppercase tracking-ui transition-colors duration-150 hover:text-accent sm:basis-full"
+              className="inline-flex min-h-11 items-center text-xs uppercase tracking-ui text-white/80 transition-colors duration-150 hover:text-accent sm:basis-full"
             >
               View privacy policy
             </Link>

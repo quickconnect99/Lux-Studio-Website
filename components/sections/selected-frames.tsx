@@ -10,6 +10,7 @@ import { Reveal } from "@/components/ui/reveal";
 import { motionDuration, motionEase } from "@/lib/motion";
 import type { FrameItem } from "@/lib/project-images";
 import { cn } from "@/lib/utils";
+import { useSwipeNavigation } from "@/hooks/use-swipe-navigation";
 
 const Lightbox = dynamic(
   () => import("@/components/ui/lightbox").then((module) => module.Lightbox),
@@ -39,6 +40,7 @@ export function SelectedFrames({ frames, label }: SelectedFramesProps) {
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
   const [hasOpenedLightbox, setHasOpenedLightbox] = useState(false);
   const [transitionDirection, setTransitionDirection] = useState<-1 | 1>(1);
+  const swipe = useSwipeNavigation(showPreviousFrame, showNextFrame);
 
   if (frameItems.length === 0) return null;
 
@@ -88,6 +90,7 @@ export function SelectedFrames({ frames, label }: SelectedFramesProps) {
       <button
         key={`side-${position}`}
         type="button"
+        data-selected-frame-preview={position}
         aria-label={
           position === "left"
             ? "Select previous still preview"
@@ -98,13 +101,13 @@ export function SelectedFrames({ frames, label }: SelectedFramesProps) {
           setFocusedIndex(index);
         }}
         className={cn(
-          "group absolute top-[30%] z-10 w-[78vw] opacity-90 focus-visible:outline-none sm:w-[46%]",
+          "group absolute top-[48%] z-10 w-[46%] opacity-70 hover:opacity-90 focus-visible:opacity-100 focus-visible:outline-none sm:top-[30%] sm:opacity-90",
           "transition-[opacity,transform] duration-500 ease-out",
-          position === "left" && "-left-[47vw] sm:left-0 lg:left-0",
-          position === "right" && "-right-[47vw] sm:right-0 lg:right-0"
+          position === "left" && "left-0",
+          position === "right" && "right-0"
         )}
       >
-        <div className="film-frame relative overflow-hidden rounded-[2rem]">
+        <div className="film-frame relative overflow-hidden rounded-2xl sm:rounded-[2rem]">
           <div className="aspect-[4/3]" />
           <AnimatePresence initial={false} custom={transitionDirection}>
             <m.div
@@ -142,7 +145,7 @@ export function SelectedFrames({ frames, label }: SelectedFramesProps) {
                 }
                 alt={frame.alt ?? `Selected project still ${index + 1}`}
                 fill
-                sizes="(min-width: 1280px) 660px, (min-width: 640px) 48vw, 78vw"
+                sizes="(min-width: 1280px) 660px, (min-width: 640px) 48vw, 46vw"
                 className="object-cover"
               />
             </m.div>
@@ -162,11 +165,15 @@ export function SelectedFrames({ frames, label }: SelectedFramesProps) {
     return (
       <div
         key="center-frame"
-        className="group/frame absolute left-1/2 top-[8%] z-30 w-[78vw] -translate-x-1/2 sm:top-[10%] sm:w-[48%]"
+        className={cn(
+          "group/frame relative z-30 mx-auto sm:absolute sm:left-1/2 sm:top-[10%] sm:mx-0 sm:w-[48%] sm:-translate-x-1/2",
+          frameItems.length > 1 ? "w-[calc(100%-2rem)]" : "w-full"
+        )}
       >
         <div
           data-selected-frame="center"
-          className="film-frame relative overflow-hidden rounded-[2rem]"
+          className="film-frame relative touch-pan-y overflow-hidden rounded-[1.5rem] sm:rounded-[2rem]"
+          {...swipe}
         >
           <div className="aspect-[4/3]" />
           <AnimatePresence initial={false} custom={transitionDirection}>
@@ -207,7 +214,7 @@ export function SelectedFrames({ frames, label }: SelectedFramesProps) {
                   }
                   alt={frame.alt ?? `Selected project still ${index + 1}`}
                   fill
-                  sizes="(min-width: 1280px) 660px, (min-width: 640px) 48vw, 78vw"
+                  sizes={`(min-width: 1280px) 660px, (min-width: 640px) 48vw, calc(100vw - ${frameItems.length > 1 ? "4rem" : "2rem"})`}
                   className="object-cover"
                 />
               </div>
@@ -311,7 +318,12 @@ export function SelectedFrames({ frames, label }: SelectedFramesProps) {
         </div>
 
         <Reveal variant="default" className="pt-8">
-          <div className="relative mx-auto h-[92vw] min-h-[380px] max-w-[1360px] overflow-hidden pb-10 pt-4 sm:h-[51vw] sm:min-h-[440px] lg:max-h-[690px]">
+          <div
+            className={cn(
+              "relative mx-auto max-w-[1360px] overflow-hidden pb-12 sm:h-[51vw] sm:min-h-[440px] sm:pt-4 lg:max-h-[690px]",
+              frameItems.length > 1 && "pb-[6.75rem] sm:pb-12"
+            )}
+          >
             {frameItems.length > 1
               ? renderSideFrameButton({
                   index: previousIndex,

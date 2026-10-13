@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import { PageHeader } from "@/components/sections/page-header";
 import {
   getFormattedBusinessAddress,
-  getMissingImprintFields,
   getPublicLegalIdentity,
   isMissingLegalValue,
   legalProfile
@@ -62,7 +61,6 @@ function DetailRow({
 export default async function ImprintPage() {
   const settings = await getSiteSettings();
   const identity = getPublicLegalIdentity(settings);
-  const missingFields = getMissingImprintFields(settings);
   const businessAddress = getFormattedBusinessAddress();
   const companyName = [identity.operatorName, legalProfile.legalForm]
     .filter(Boolean)
@@ -74,52 +72,11 @@ export default async function ImprintPage() {
         eyebrow="Legal"
         lead="Legal"
         trail="Notice"
-        copy="Core company and contact details for this website. Before launch, replace all placeholders with the final business information."
+        copy="Company, contact, and media ownership details for Lux Studio."
       />
 
       <section className="section-shell pb-14">
-        <div className="grid gap-6 lg:grid-cols-[0.8fr_1.2fr]">
-          <aside className="space-y-6">
-            <div className="panel-2xl p-6 sm:p-7">
-              <p className="text-xs uppercase tracking-eyebrow text-muted">
-                Status
-              </p>
-              {missingFields.length > 0 ? (
-                <>
-                  <p className="mt-4 text-sm leading-7 text-foreground">
-                    This legal notice still contains placeholders. Before
-                    launch, complete at least the following details:
-                  </p>
-                  <ul className="mt-4 grid gap-3">
-                    {missingFields.map((field) => (
-                      <li
-                        key={field.label}
-                        className="border-warning/30 bg-warning/10 rounded-[1.25rem] border px-4 py-3 text-sm leading-6 text-foreground"
-                      >
-                        {field.label}
-                      </li>
-                    ))}
-                  </ul>
-                </>
-              ) : (
-                <p className="mt-4 text-sm leading-7 text-muted">
-                  No obvious placeholders remain.
-                </p>
-              )}
-            </div>
-
-            <div className="panel-2xl p-6 sm:p-7">
-              <p className="text-xs uppercase tracking-eyebrow text-muted">
-                Note
-              </p>
-              <p className="mt-4 text-sm leading-7 text-muted">
-                This page is structured as a DACH and EU-friendly template. If
-                your business is based outside the EU or subject to specific
-                professional rules, adjust the details accordingly.
-              </p>
-            </div>
-          </aside>
-
+        <div className="mx-auto max-w-5xl">
           <div className="panel-2xl p-6 sm:p-8">
             <h2 className="font-[family-name:var(--font-display)] text-3xl uppercase leading-none text-foreground sm:text-4xl">
               Company Details

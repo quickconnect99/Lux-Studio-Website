@@ -1,15 +1,12 @@
 "use client";
 
 import { getImageProps } from "next/image";
-import {
-  useEffect,
-  useRef,
-  type PointerEvent as ReactPointerEvent
-} from "react";
+import { useEffect, useRef } from "react";
 import { X, ChevronLeft, ChevronRight } from "lucide-react";
 import { AnimatePresence, m, useReducedMotion } from "framer-motion";
 import { FallbackImage } from "@/components/ui/fallback-image";
 import { useFocusTrapDialog } from "@/hooks/use-focus-trap-dialog";
+import { useSwipeNavigation } from "@/hooks/use-swipe-navigation";
 import { motionDuration, motionEase } from "@/lib/motion";
 import { cn } from "@/lib/utils";
 
@@ -36,7 +33,7 @@ export function Lightbox({
   const shouldReduceMotion = useReducedMotion();
   const dialogRef = useRef<HTMLDivElement>(null);
   const closeButtonRef = useRef<HTMLButtonElement>(null);
-  const pointerOriginX = useRef<number | null>(null);
+  const swipe = useSwipeNavigation(onPrev, onNext);
   const actionsRef = useRef({ onClose, onPrev, onNext });
 
   useEffect(() => {
@@ -94,33 +91,6 @@ export function Lightbox({
       image.src = props.src;
     });
   }, [activeIndex, images]);
-
-  function handlePointerDown(event: ReactPointerEvent<HTMLDivElement>) {
-    if (event.pointerType === "mouse") {
-      return;
-    }
-
-    pointerOriginX.current = event.clientX;
-  }
-
-  function handlePointerUp(event: ReactPointerEvent<HTMLDivElement>) {
-    if (pointerOriginX.current === null || event.pointerType === "mouse") {
-      return;
-    }
-
-    const distance = event.clientX - pointerOriginX.current;
-    pointerOriginX.current = null;
-
-    if (Math.abs(distance) < 48) {
-      return;
-    }
-
-    if (distance > 0) {
-      onPrev();
-    } else {
-      onNext();
-    }
-  }
 
   const imageNumber =
     activeIndex === null ? "00" : String(activeIndex + 1).padStart(2, "0");
@@ -217,30 +187,24 @@ export function Lightbox({
           <div
             data-lightbox-shell
             className={cn(
-              "mx-auto flex min-h-0 w-full max-w-[112.5rem] flex-col items-center gap-3",
-              images.length > 1 &&
-                "sm:grid sm:grid-cols-[2.75rem_minmax(0,1fr)_2.75rem] sm:gap-4"
+              "mx-auto grid min-h-0 w-full max-w-[112.5rem] grid-cols-[2.75rem_minmax(0,1fr)_2.75rem] grid-rows-[minmax(0,1fr)_2.75rem] items-center gap-3",
+              images.length > 1 && "sm:grid-rows-1 sm:gap-4"
             )}
             onClick={(event) => event.stopPropagation()}
           >
             {images.length > 1 ? (
-              <div className="order-2 flex w-full items-center justify-between sm:order-1 sm:w-auto sm:justify-start">
-                <div className="sm:hidden">{previousControl}</div>
-                <div className="text-[0.62rem] uppercase tracking-meta text-white/50 sm:hidden">
-                  Swipe or use controls
-                </div>
-                <div className="hidden sm:block">{previousControl}</div>
+              <div className="col-start-1 row-start-2 sm:row-start-1">
+                {previousControl}
               </div>
             ) : null}
 
             <div
               data-lightbox-frame
-              className="film-frame relative order-1 flex h-[calc(100dvh-9.5rem)] min-h-0 w-full items-center justify-center overflow-hidden bg-black sm:order-2 sm:h-[calc(100dvh-5.75rem)] sm:max-h-[1080px]"
-              onPointerDown={handlePointerDown}
-              onPointerUp={handlePointerUp}
-              onPointerCancel={() => {
-                pointerOriginX.current = null;
-              }}
+              className={cn(
+                "relative col-span-3 row-start-1 flex h-full min-h-0 w-full touch-pan-y items-center justify-center overflow-hidden rounded-2xl border border-white/15 bg-black/30",
+                images.length > 1 && "sm:col-span-1 sm:col-start-2"
+              )}
+              {...swipe}
             >
               <AnimatePresence initial={false} mode="sync">
                 <m.div
@@ -279,15 +243,14 @@ export function Lightbox({
             </div>
 
             {images.length > 1 ? (
-              <div className="order-3 hidden sm:flex sm:items-center sm:justify-end">
+              <div className="col-start-3 row-start-2 flex justify-end sm:row-start-1">
                 {nextControl}
               </div>
             ) : null}
-
             {images.length > 1 ? (
-              <div className="order-3 flex w-full justify-end sm:hidden">
-                {nextControl}
-              </div>
+              <p className="col-start-2 row-start-2 text-center text-xs text-white/75 sm:hidden">
+                Swipe to browse
+              </p>
             ) : null}
           </div>
         </m.div>

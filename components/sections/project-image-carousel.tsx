@@ -2,11 +2,12 @@
 
 import { ResilientImage as Image } from "@/components/ui/resilient-image";
 import dynamic from "next/dynamic";
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { AnimatePresence, m } from "framer-motion";
 import { ChevronLeft, ChevronRight, Maximize2 } from "lucide-react";
 import { motionDuration, motionEase } from "@/lib/motion";
 import { cn } from "@/lib/utils";
+import { useSwipeNavigation } from "@/hooks/use-swipe-navigation";
 
 const Lightbox = dynamic(
   () => import("@/components/ui/lightbox").then((module) => module.Lightbox),
@@ -29,6 +30,18 @@ export function ProjectImageCarousel({
   const [activeIndex, setActiveIndex] = useState(0);
   const [fullscreenIndex, setFullscreenIndex] = useState<number | null>(null);
   const [hasOpenedLightbox, setHasOpenedLightbox] = useState(false);
+  const swipe = useSwipeNavigation(prev, next);
+  const thumbnailsRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const button = thumbnailsRef.current?.querySelector<HTMLElement>(
+      '[aria-current="true"]'
+    );
+    const row = thumbnailsRef.current;
+    if (button && row && row.scrollWidth > row.clientWidth) {
+      row.scrollLeft = Math.max(0, button.offsetLeft - row.offsetLeft - 12);
+    }
+  }, [activeIndex]);
 
   if (images.length === 0) return null;
 
@@ -71,7 +84,10 @@ export function ProjectImageCarousel({
         className="overflow-hidden rounded-[1.5rem] border border-line bg-panel-secondary p-3 shadow-card sm:rounded-[2rem] sm:p-5"
       >
         <div className="space-y-3">
-          <div className="film-frame relative overflow-hidden rounded-[1.25rem] sm:rounded-[1.5rem]">
+          <div
+            className="film-frame relative touch-pan-y overflow-hidden rounded-[1.25rem] sm:rounded-[1.5rem]"
+            {...swipe}
+          >
             <div className="aspect-[4/3] sm:aspect-[16/9]" />
             <AnimatePresence initial={false} mode="sync">
               <m.div
@@ -170,7 +186,10 @@ export function ProjectImageCarousel({
           </div>
 
           {images.length > 1 ? (
-            <div className="no-scrollbar flex gap-2 overflow-x-auto pb-1 sm:grid sm:grid-cols-4 sm:gap-3 lg:grid-cols-6">
+            <div
+              ref={thumbnailsRef}
+              className="mobile-scroll-affordance relative flex gap-2 overflow-x-auto pb-1 sm:grid sm:grid-cols-4 sm:gap-3 lg:grid-cols-6"
+            >
               {images.map((image, index) => (
                 <button
                   key={`${image}-${index}`}
@@ -201,7 +220,7 @@ export function ProjectImageCarousel({
                     sizes="(min-width: 1024px) 15vw, 112px"
                     className="object-cover"
                   />
-                  <span className="absolute bottom-1.5 right-1.5 rounded-full bg-black/55 px-2 py-1 font-[family-name:var(--font-mono)] text-[0.55rem] text-white/80 backdrop-blur">
+                  <span className="absolute bottom-1.5 right-1.5 rounded-full bg-black/70 px-2 py-1 font-[family-name:var(--font-mono)] text-xs text-white backdrop-blur">
                     {String(index + 1).padStart(2, "0")}
                   </span>
                 </button>

@@ -56,15 +56,17 @@ export default async function HomePage() {
         label={settings.copy.home.selectedWorkLabel}
       />
 
-      <HorizontalStillStrip
-        frames={motionFrames}
-        direction="right"
-        eyebrow="Motion reference"
-        lead="Frames"
-        trail="In Motion"
-        ariaLabel="Frames in Motion projects. Select an image to open the related project."
-        imageAltPrefix="Project frame"
-      />
+      <div className="hidden sm:block">
+        <HorizontalStillStrip
+          frames={motionFrames}
+          direction="right"
+          eyebrow="Motion reference"
+          lead="Frames"
+          trail="In Motion"
+          ariaLabel="Frames in Motion projects. Select an image to open the related project."
+          imageAltPrefix="Project frame"
+        />
+      </div>
 
       <FeaturedProjects projects={featuredProjects} />
 
@@ -89,7 +91,7 @@ export default async function HomePage() {
             </div>
             <div className="flex flex-col justify-end gap-6">
               <div className="grid gap-3 sm:flex sm:flex-wrap sm:gap-4">
-                <LinkButton href="/work" className="w-full sm:w-auto">
+                <LinkButton href="/contact" className="w-full sm:w-auto">
                   {settings.copy.home.ctaButton}
                 </LinkButton>
                 {isPublicAdminEnabled ? (

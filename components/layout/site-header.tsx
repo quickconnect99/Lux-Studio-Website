@@ -160,7 +160,7 @@ export function SiteHeader({ settings }: SiteHeaderProps) {
               duration: motionDuration.state,
               ease: motionEase
             }}
-            className="mobile-navigation-panel bg-background/95 fixed inset-x-0 bottom-0 overflow-y-auto border-t border-line shadow-card backdrop-blur-2xl lg:hidden"
+            className="mobile-navigation-panel fixed inset-x-0 bottom-0 overflow-y-auto border-t border-line shadow-card backdrop-blur-2xl lg:hidden"
           >
             <div className="section-shell flex min-h-full flex-col pb-5 pt-4">
               <div className="mb-4 flex items-center justify-between gap-4">
@@ -204,7 +204,7 @@ export function SiteHeader({ settings }: SiteHeaderProps) {
                       <span
                         className={cn(
                           "font-[family-name:var(--font-mono)] text-[0.68rem]",
-                          active ? "text-accent-text" : "text-muted"
+                          active ? "text-background" : "text-muted"
                         )}
                       >
                         0{index + 1}
@@ -214,7 +214,7 @@ export function SiteHeader({ settings }: SiteHeaderProps) {
                 })}
               </div>
               <div className="mt-auto border-t border-line pt-6">
-                <p className="max-w-sm text-sm leading-7 text-muted">
+                <p className="max-w-sm text-sm leading-7 text-foreground">
                   {settings.brand.strapline}
                 </p>
               </div>

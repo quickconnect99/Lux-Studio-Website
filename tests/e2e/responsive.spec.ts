@@ -144,12 +144,12 @@ test("mobile work filters communicate horizontal scrolling", async ({
     const styles = getComputedStyle(element);
     return {
       overflows: element.scrollWidth > element.clientWidth,
-      maskImage: styles.maskImage || styles.webkitMaskImage
+      scrollbarWidth: styles.scrollbarWidth
     };
   });
 
   expect(filterLayout.overflows).toBe(true);
-  expect(filterLayout.maskImage).not.toBe("none");
+  expect(filterLayout.scrollbarWidth).toBe("thin");
 });
 
 test("reduced motion hydrates without hiding content", async ({
@@ -329,7 +329,9 @@ test("service CTA carries the selected service into the inquiry", async ({
   test.skip(testInfo.project.name !== "desktop-1440");
   await page.goto("/services", { waitUntil: "networkidle" });
 
-  const startBrief = page.getByRole("link", { name: "Start A Brief" }).first();
+  const startBrief = page
+    .getByRole("link", { name: "Start A Project" })
+    .first();
   const href = await startBrief.getAttribute("href");
   expect(href).toMatch(/^\/contact\?service=/);
   await startBrief.click();
@@ -433,7 +435,7 @@ test("hero reel follows visibility and preserves a manual pause", async ({
 test("Frames in Motion opens the related project in the same tab", async ({
   page
 }, testInfo) => {
-  test.skip(testInfo.project.name !== "mobile-390");
+  test.skip(testInfo.project.name !== "desktop-1440");
   await page.goto("/", { waitUntil: "networkidle" });
 
   const strip = page.getByRole("region", {
@@ -686,8 +688,10 @@ test("project carousel opens fullscreen and keeps image navigation", async ({
   await expect(dialog.locator("img").first()).toHaveAttribute("alt", /.+/);
 
   if (galleryImageCount > 1) {
+    const counter = dialog.locator('[aria-live="polite"]');
+    const previousCounter = await counter.textContent();
     await dialog.locator('[data-lightbox-control="next"]').click();
-    await expect(dialog.getByText(/2 \/ \d+/)).toBeVisible();
+    await expect(counter).not.toHaveText(previousCounter!);
   }
 
   await page.keyboard.press("Escape");
@@ -706,7 +710,7 @@ test("project detail ends with a direct inquiry action", async ({
   });
   await expect(heading).toBeVisible();
   await expect(
-    page.getByRole("link", { name: "Start A Brief" })
+    page.getByRole("link", { name: "Start A Project" })
   ).toHaveAttribute("href", "/contact");
 });
 
@@ -861,7 +865,9 @@ test("admin uses its own workspace chrome", async ({ page }, testInfo) => {
   await page.goto("/admin", { waitUntil: "networkidle" });
 
   await expect(page.locator("main[data-admin-workspace]")).toBeVisible();
-  await expect(page.locator("header img[data-company-logo]")).toHaveCount(0);
+  await expect(
+    page.getByRole("button", { name: "Open navigation" })
+  ).toHaveCount(0);
   await expect(page.locator("footer")).toHaveCount(0);
   await expect(
     page.getByRole("heading", { name: /Lux Studio Admin workspace/i })

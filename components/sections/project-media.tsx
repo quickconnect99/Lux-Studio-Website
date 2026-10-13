@@ -11,7 +11,7 @@ export function ProjectMedia({ project }: ProjectMediaProps) {
   const videoSource = getProjectVideoSource(project);
 
   return (
-    <div className="film-frame grain relative min-h-[320px] overflow-hidden bg-panel-dark sm:min-h-[620px]">
+    <div className="film-frame grain relative min-h-[240px] overflow-hidden bg-panel-dark sm:min-h-[420px]">
       {videoSource ? (
         videoSource.kind === "file" ? (
           <video

@@ -1,4 +1,4 @@
-import type { InquiryServiceType, Service } from "@/lib/types";
+import type { InquiryServiceType, Project, Service } from "@/lib/types";
 
 export type InquiryServiceOption = {
   label: string;
@@ -14,6 +14,23 @@ const serviceTypeByNumber: Record<string, InquiryServiceType> = {
 
 export function getInquiryServiceType(service: Service): InquiryServiceType {
   return serviceTypeByNumber[service.number] ?? "Other";
+}
+
+const projectCategoryByService: Record<string, string> = {
+  "01": "Brand Film",
+  "02": "Social Content",
+  "03": "Event Coverage",
+  "04": "Launch Campaign"
+};
+
+export function getRelatedProjectCategory(
+  service: Service,
+  projects: Project[]
+) {
+  const category = projectCategoryByService[service.number];
+  return (
+    projects.find((project) => project.category === category)?.category ?? null
+  );
 }
 
 export function buildInquiryServiceOptions(
